@@ -63,6 +63,7 @@ const Step2 = () => {
   const [showMarketingCopyModal, setShowMarketingCopyModal] = useState(false);
   const [marketingCopy, setMarketingCopy] = useState(null);
   const [marketingCopyLoading, setMarketingCopyLoading] = useState(false);
+  const [savedMarketingCopy, setSavedMarketingCopy] = useState(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -86,8 +87,11 @@ const Step2 = () => {
       'trust-process': [],
       'step-into-authority': []
     });
+    const savedCopy = safeLocalStorageGet('marketingCopy', null);
+    
     setContentAssets(savedAssets);
     setFunnelStages(savedFunnelStages);
+    setSavedMarketingCopy(savedCopy);
   }, []);
 
   // Save data whenever it changes
@@ -555,8 +559,9 @@ const Step2 = () => {
   const handleSaveMarketingCopy = () => {
     if (marketingCopy) {
       safeLocalStorageSet('marketingCopy', marketingCopy);
+      setSavedMarketingCopy(marketingCopy);
       setShowMarketingCopyModal(false);
-      // Could show a success message here
+      // Show success message or notification here if needed
     }
   };
 
@@ -953,6 +958,65 @@ const Step2 = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Saved Marketing Copy Display */}
+                {savedMarketingCopy && (
+                  <div className="bg-gray-50 border rounded-lg p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h4 className="text-xl font-semibold text-gray-900">Your Generated Marketing Copy</h4>
+                      <button
+                        onClick={() => {
+                          setMarketingCopy(savedMarketingCopy);
+                          setShowMarketingCopyModal(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        View Full Copy
+                      </button>
+                    </div>
+                    
+                    {/* Core Brand Messaging Preview */}
+                    <div className="bg-white border rounded-lg p-4 mb-4">
+                      <h5 className="font-semibold text-gray-800 mb-3">Core Brand Messaging</h5>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Primary Value Proposition:</p>
+                          <p className="text-sm text-gray-600 italic">"{savedMarketingCopy.primaryValueProposition}"</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Elevator Pitch:</p>
+                          <p className="text-sm text-gray-600 italic">"{savedMarketingCopy.elevatorPitch}"</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Mission Statement:</p>
+                          <p className="text-sm text-gray-600 italic">"{savedMarketingCopy.missionStatement}"</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Additional Sections Summary */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white border rounded-lg p-3">
+                        <h6 className="font-medium text-gray-800 mb-2">Stage-Optimized Copy</h6>
+                        <p className="text-xs text-gray-600">
+                          {Object.keys(savedMarketingCopy.stageOptimizedCopy || {}).length} funnel stages with targeted content
+                        </p>
+                      </div>
+                      <div className="bg-white border rounded-lg p-3">
+                        <h6 className="font-medium text-gray-800 mb-2">Content & Engagement</h6>
+                        <p className="text-xs text-gray-600">
+                          Social media posts, email sequences, and blog ideas
+                        </p>
+                      </div>
+                      <div className="bg-white border rounded-lg p-3">
+                        <h6 className="font-medium text-gray-800 mb-2">TARE Framework</h6>
+                        <p className="text-xs text-gray-600">
+                          Complete implementation strategy for all 4 pillars
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
