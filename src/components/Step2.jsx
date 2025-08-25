@@ -239,8 +239,20 @@ const Step2 = () => {
       notes: `AI-suggested content for ${suggestion.stageName} stage`
     };
     
-    // Add to content assets
-    setContentAssets(prev => [...prev, newContentAsset]);
+    // Add directly to the appropriate funnel stage (not to content library)
+    setFunnelStages(prev => {
+      const updated = { ...prev };
+      const targetStage = suggestion.stage;
+      
+      if (!updated[targetStage]) {
+        updated[targetStage] = [];
+      }
+      
+      // Add the content to the target stage
+      updated[targetStage] = [...updated[targetStage], newContentAsset];
+      
+      return updated;
+    });
     
     // Track that this suggestion was selected
     setSelectedSuggestions(prev => [...prev, suggestion.id]);
