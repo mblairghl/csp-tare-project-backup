@@ -117,7 +117,6 @@ const Step2 = () => {
   };
 
   const handleAIGapAnalysis = async () => {
-
     // Reset AI state for new session
     setAiContentSuggestions(null);
     setAiGapAnalysis(null);
@@ -125,45 +124,28 @@ const Step2 = () => {
     setAiSuggestionSet(1);
 
     setAiModalOpen(true);
+    setAiModalType('gap');
     setAiLoading(true);
     
     try {
-      // Count actual user content in each stage (not AI suggestions)
-      const gaps = [];
-      const gapSuggestions = {};
+      // Generate gap analysis using the AI service
+      const savedPersonas = JSON.parse(localStorage.getItem('savedPersonas') || '[]');
+      const businessInfo = {
+        business: 'Business coaching and consulting services',
+        offer: 'Authority Revenue Toolkit - systematic business growth framework',
+        personas: savedPersonas.length > 0 ? savedPersonas.map(p => p.name).join(', ') : 'Business owners and entrepreneurs'
+      };
       
-      Object.entries(funnelStages).forEach(([stage, items]) => {
-        if (items.length < 2) {
-          gaps.push({
-            stage,
-            currentCount: items.length,
-            needed: 2 - items.length
-          });
-        }
-      });
-
-      if (gaps.length === 0) {
-        // No gaps - show success message
-        setAiGapAnalysis({
-          noGaps: true,
-          message: "Great job! All funnel stages have at least 2 content items."
-        });
-      } else {
-        // Generate suggestions for gap stages only
-        const savedPersonas = JSON.parse(localStorage.getItem('savedPersonas') || '[]');
-        const businessInfo = {
-          business: 'Business coaching and consulting services',
-          offer: 'Authority Revenue Toolkit - systematic business growth framework',
-          personas: savedPersonas.length > 0 ? savedPersonas.map(p => p.name).join(', ') : 'Business owners and entrepreneurs',
-          gaps: gaps.map(g => g.stage)
-        };
-        
-        const suggestions = await aiService.generateGapAnalysis(businessInfo);
-        setAiContentSuggestions(suggestions);
-      }
+      const gapAnalysis = await aiService.generateGapAnalysis(businessInfo);
+      setAiGapAnalysis(gapAnalysis);
     } catch (error) {
       console.error('Error generating gap analysis:', error);
-      alert('Error generating gap analysis. Please check your API key and try again.');
+      setAiGapAnalysis({
+        message: "Error generating gap analysis. Please try again.",
+        gaps: [],
+        suggestions: [],
+        overallStatus: "Error"
+      });
     } finally {
       setAiLoading(false);
     }
@@ -211,6 +193,33 @@ const Step2 = () => {
     }
   };
 
+  const handleAddGapSuggestion = (suggestion, suggestionIndex) => {
+    // Create a new content asset from the gap suggestion
+    const newContentAsset = {
+      id: `gap_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      title: suggestion.title,
+      description: suggestion.description,
+      type: suggestion.type,
+      notes: `AI-suggested content for ${suggestion.stageName} stage`
+    };
+    
+    // Add to content assets
+    setContentAssets(prev => [...prev, newContentAsset]);
+    
+    // Track that this suggestion was selected
+    setSelectedSuggestions(prev => [...prev, suggestion.id]);
+    
+    // Remove this suggestion from the gap analysis
+    setAiGapAnalysis(prev => {
+      if (!prev || !prev.suggestions) return prev;
+      
+      return {
+        ...prev,
+        suggestions: prev.suggestions.filter(s => s.id !== suggestion.id)
+      };
+    });
+  };
+
   const handleMoreAISuggestions = async () => {
     setAiLoading(true);
     
@@ -237,21 +246,31 @@ const Step2 = () => {
         });
         businessInfo.gaps = gaps;
         newSuggestions = await aiService.generateGapAnalysis(businessInfo);
+        
+        // For gap analysis, merge suggestions
+        setAiGapAnalysis(prev => {
+          if (!prev) return newSuggestions;
+          
+          return {
+            ...prev,
+            suggestions: [...(prev.suggestions || []), ...(newSuggestions.suggestions || [])]
+          };
+        });
       } else {
         // For regular placement suggestions, generate for all stages
         newSuggestions = await aiService.generateContentSuggestions(businessInfo);
-      }
-      
-      // Merge new suggestions with existing ones
-      setAiContentSuggestions(prev => {
-        if (!prev) return newSuggestions;
         
-        const merged = { ...prev };
-        Object.keys(newSuggestions).forEach(stage => {
-          merged[stage] = [...(merged[stage] || []), ...newSuggestions[stage]];
+        // Merge new suggestions with existing ones
+        setAiContentSuggestions(prev => {
+          if (!prev) return newSuggestions;
+          
+          const merged = { ...prev };
+          Object.keys(newSuggestions).forEach(stage => {
+            merged[stage] = [...(merged[stage] || []), ...newSuggestions[stage]];
+          });
+          return merged;
         });
-        return merged;
-      });
+      }
       
       setAiSuggestionSet(prev => prev + 1);
     } catch (error) {
@@ -726,7 +745,78 @@ const Step2 = () => {
               </div>
             )}
 
-            {aiGapAnalysis && aiGapAnalysis.noGaps && (
+            {/* Gap Analysis Results */}
+            {aiGapAnalysis && aiGapAnalysis.gaps && aiGapAnalysis.suggestions && (
+              <div className="space-y-6">
+                <p className="text-gray-600 mb-4">
+                  {aiGapAnalysis.message}
+                  {selectedSuggestions.length > 0 && (
+                    <span className="text-green-600 font-semibold ml-2">
+                      {selectedSuggestions.length} suggestion(s) added!
+                    </span>
+                  )}
+                </p>
+
+                {/* Gap Summary */}
+                <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                  <h4 className="font-semibold text-blue-800 mb-3">Content Gaps Identified:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {aiGapAnalysis.gaps.map((gap, index) => (
+                      <div key={gap.stage} className="bg-white p-3 rounded border-l-4 border-blue-500">
+                        <h5 className="font-medium text-gray-900">{gap.stageName}</h5>
+                        <p className="text-sm text-gray-600">
+                          Has {gap.currentCount} item(s), needs {gap.needed} more
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Content Suggestions */}
+                {aiGapAnalysis.suggestions.length > 0 ? (
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Targeted Content Suggestions:</h4>
+                    {aiGapAnalysis.suggestions.map((suggestion, index) => (
+                      <div key={suggestion.id} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                                {suggestion.stageName}
+                              </span>
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                suggestion.priority === 'High' ? 'bg-red-100 text-red-800' :
+                                suggestion.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {suggestion.priority} Priority
+                              </span>
+                            </div>
+                            <h4 className="font-semibold text-gray-900 mb-2">{suggestion.title}</h4>
+                            <p className="text-sm text-gray-600 mb-2">{suggestion.description}</p>
+                            <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                              {suggestion.type}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleAddGapSuggestion(suggestion, index)}
+                            className="ml-3 px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">All gap suggestions have been added!</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {aiGapAnalysis && aiGapAnalysis.overallStatus === "Complete" && (
               <div className="text-center py-8">
                 <div className="text-6xl mb-4">🎉</div>
                 <h3 className="text-xl font-semibold text-green-600 mb-2">Content Goals Achieved!</h3>
