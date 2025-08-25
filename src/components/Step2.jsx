@@ -171,8 +171,8 @@ const Step2 = () => {
   };
 
   const handleAddAISuggestion = (suggestion, stage, suggestionIndex) => {
-    // Find the existing content item
-    const contentItem = contentAssets.find(item => item.id === suggestion.id);
+    // Find the existing content item using contentId
+    const contentItem = contentAssets.find(item => item.id === suggestion.contentId);
     
     if (contentItem) {
       // Add the existing content to the suggested funnel stage
@@ -194,18 +194,19 @@ const Step2 = () => {
       });
       
       // Remove the content from contentAssets (unmapped content)
-      setContentAssets(prev => prev.filter(item => item.id !== suggestion.id));
+      setContentAssets(prev => prev.filter(item => item.id !== suggestion.contentId));
       
-      // Track that this suggestion was selected
-      setSelectedSuggestions(prev => [...prev, suggestion.id]);
+      // Track that this suggestion was selected and remove it from the analysis
+      setSelectedSuggestions(prev => [...prev, suggestion.contentId]);
       
-      // Remove this suggestion from the analysis results
+      // Remove this suggestion from the current analysis
       setAiContentSuggestions(prev => {
         if (!prev || !prev.contentAnalysis) return prev;
         
         return {
           ...prev,
-          contentAnalysis: prev.contentAnalysis.filter(item => item.id !== suggestion.id)
+          contentAnalysis: prev.contentAnalysis.filter(item => item.contentId !== suggestion.contentId),
+          totalItems: prev.totalItems - 1
         };
       });
     }
@@ -673,13 +674,12 @@ const Step2 = () => {
                 {aiContentSuggestions.contentAnalysis.length > 0 ? (
                   <div className="space-y-4">
                     {aiContentSuggestions.contentAnalysis.map((analysis, index) => (
-                      <div key={analysis.id} className="bg-gray-50 p-4 rounded-lg">
+                      <div key={analysis.contentId || index} className="bg-gray-50 p-4 rounded-lg">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-2">{analysis.title}</h4>
-                            <p className="text-sm text-gray-600 mb-2">{analysis.description}</p>
+                            <h4 className="font-semibold text-gray-900 mb-2">{analysis.contentTitle}</h4>
                             <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded mr-2">
-                              {analysis.type}
+                              {analysis.contentType}
                             </span>
                             <span className={`text-xs px-2 py-1 rounded ${
                               analysis.confidence === 'High' ? 'bg-green-100 text-green-800' :
@@ -690,8 +690,8 @@ const Step2 = () => {
                             </span>
                             
                             <div className="mt-3 p-3 bg-white rounded border-l-4 border-blue-500">
-                              <h5 className="font-medium text-blue-800 capitalize mb-1">
-                                Suggested Stage: {analysis.suggestedStage.replace(/-/g, ' ')}
+                              <h5 className="font-medium text-blue-800 mb-1">
+                                Suggested Stage: {analysis.stageName}
                               </h5>
                               <p className="text-sm text-gray-700">{analysis.reasoning}</p>
                             </div>
@@ -700,7 +700,7 @@ const Step2 = () => {
                             onClick={() => handleAddAISuggestion(analysis, analysis.suggestedStage, index)}
                             className="ml-3 px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
                           >
-                            Place Here
+                            Add
                           </button>
                         </div>
                       </div>
