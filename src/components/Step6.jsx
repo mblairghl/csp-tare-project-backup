@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import Confetti from 'react-confetti';
 import StepFooter from './StepFooter';
 
 const Step6 = () => {
@@ -83,7 +84,15 @@ const Step6 = () => {
             {subSteps.map((step, index) => (
               <button
                 key={step.id}
-                onClick={() => setActiveTab(step.id)}
+                onClick={() => {
+                  setActiveTab(step.id);
+                  // Trigger confetti when milestone tab is clicked
+                  if (step.id === 'milestone-reflection') {
+                    setShowConfetti(true);
+                    // Stop confetti after 3 seconds
+                    setTimeout(() => setShowConfetti(false), 3000);
+                  }
+                }}
                 className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === step.id
                     ? 'border-green-500 text-green-600 bg-green-50'
@@ -181,6 +190,16 @@ Focus on creating a smooth, professional experience that ensures client success 
 
             {activeTab === 'milestone-reflection' && (
               <div>
+                {showConfetti && (
+                  <Confetti
+                    width={windowDimensions.width}
+                    height={windowDimensions.height}
+                    recycle={false}
+                    numberOfPieces={200}
+                    gravity={0.3}
+                  />
+                )}
+                
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
                 <p className="text-gray-600 mb-6">
                   Celebrate your progress and reflect on what you've accomplished in this step.
