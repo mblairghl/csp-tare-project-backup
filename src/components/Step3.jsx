@@ -499,7 +499,7 @@ const Step3 = () => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {currentLeadSources.map((source) => (
+                      {(currentLeadSources || []).map((source) => (
                         <div key={source.id} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-semibold text-gray-900">{source.name}</h4>
@@ -566,7 +566,7 @@ const Step3 = () => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {expansionOpportunities.map((opportunity) => (
+                      {(expansionOpportunities || []).map((opportunity) => (
                         <div key={opportunity.id} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-semibold text-gray-900">{opportunity.name}</h4>
@@ -749,7 +749,7 @@ const Step3 = () => {
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-semibold text-gray-900 mb-3">Top Lead Sources</h4>
                   <div className="space-y-2">
-                    {aiLeadStrategy.topLeadSources.map((source, index) => (
+                    {(aiLeadStrategy.topLeadSources || []).map((source, index) => (
                       <div key={index} className="bg-white p-3 rounded border">
                         <h5 className="font-medium text-gray-800">{source.source}</h5>
                         <p className="text-sm text-gray-600">{source.description}</p>
@@ -766,11 +766,11 @@ const Step3 = () => {
                 </div>
               )}
 
-              {aiLeadStrategy.qualificationCriteria && (
+              {aiLeadStrategy.qualificationCriteria && Array.isArray(aiLeadStrategy.qualificationCriteria) && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-semibold text-gray-900 mb-3">Qualification Criteria</h4>
                   <div className="space-y-2">
-                    {aiLeadStrategy.qualificationCriteria.map((criteria, index) => (
+                    {(aiLeadStrategy.qualificationCriteria || []).map((criteria, index) => (
                       <div key={index} className="bg-white p-3 rounded border">
                         <h5 className="font-medium text-gray-800">{criteria.criteria}</h5>
                         <p className="text-sm text-gray-600">{criteria.description}</p>
@@ -780,11 +780,11 @@ const Step3 = () => {
                 </div>
               )}
 
-              {aiLeadStrategy.trackingMetrics && (
+              {aiLeadStrategy.trackingMetrics && Array.isArray(aiLeadStrategy.trackingMetrics) && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-semibold text-gray-900 mb-3">Tracking Metrics</h4>
                   <div className="space-y-2">
-                    {aiLeadStrategy.trackingMetrics.map((metric, index) => (
+                    {(aiLeadStrategy.trackingMetrics || []).map((metric, index) => (
                       <div key={index} className="bg-white p-3 rounded border">
                         <h5 className="font-medium text-gray-800">{metric.metric}</h5>
                         <p className="text-sm text-gray-600">{metric.description}</p>
