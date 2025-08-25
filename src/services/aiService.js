@@ -298,6 +298,81 @@ class AIService {
       priority: index === 0 ? 'High' : 'Medium'
     }));
   }
+
+  async generateLeadStrategy(businessInfo) {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Mock lead strategy based on business info
+    return {
+      topLeadSources: [
+        {
+          source: 'LinkedIn Content Strategy',
+          description: 'Share valuable business insights and engage with potential clients through thought leadership content.',
+          priority: 'High',
+          estimatedROI: '300%'
+        },
+        {
+          source: 'Referral Program',
+          description: 'Leverage existing client relationships to generate warm introductions and referrals.',
+          priority: 'High',
+          estimatedROI: '500%'
+        },
+        {
+          source: 'Industry Speaking Events',
+          description: 'Position yourself as an expert by speaking at business conferences and networking events.',
+          priority: 'Medium',
+          estimatedROI: '250%'
+        },
+        {
+          source: 'Strategic Partnerships',
+          description: 'Partner with complementary service providers to cross-refer clients.',
+          priority: 'Medium',
+          estimatedROI: '200%'
+        }
+      ],
+      qualificationCriteria: [
+        {
+          criteria: 'Business Revenue',
+          description: 'Target businesses with $500K+ annual revenue for best fit',
+          weight: 'High'
+        },
+        {
+          criteria: 'Growth Mindset',
+          description: 'Look for leaders actively seeking systematic business improvement',
+          weight: 'High'
+        },
+        {
+          criteria: 'Implementation Capacity',
+          description: 'Ensure they have resources to implement recommended strategies',
+          weight: 'Medium'
+        }
+      ],
+      trackingMetrics: [
+        {
+          metric: 'Lead Source Attribution',
+          description: 'Track which channels generate the highest quality leads',
+          importance: 'Critical'
+        },
+        {
+          metric: 'Conversion Rate by Source',
+          description: 'Monitor how different lead sources convert to clients',
+          importance: 'High'
+        },
+        {
+          metric: 'Cost per Acquisition',
+          description: 'Calculate the true cost of acquiring clients from each source',
+          importance: 'High'
+        }
+      ],
+      recommendations: [
+        'Focus 60% of effort on high-ROI sources (LinkedIn, Referrals)',
+        'Implement proper lead scoring in HighLevel for qualification',
+        'Set up automated nurture sequences for each lead source type',
+        'Track and optimize conversion rates monthly'
+      ]
+    };
+  }
 }
 
 const aiService = new AIService();
