@@ -12,6 +12,7 @@ const Step3 = () => {
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [aiLeadStrategy, setAiLeadStrategy] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
