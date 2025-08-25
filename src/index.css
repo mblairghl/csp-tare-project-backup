@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSP Brand Colors */
+:root {
+  --csp-green: #0e9246;
+  --csp-blue: #467A8f;
+  --csp-lime: #d7df21;
+  --csp-orange: #fbae42;
+  --csp-light-blue: #5c98af;
+  --csp-gray: #999fa9;
+}
+
+/* Custom Components */
+.csp-3d-section {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.csp-3d-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Exclude reports from 3D hover effects */
+.csp-3d-section.no-hover:hover {
+  transform: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #0e9246 0%, #16a34a 100%);
+}
+
+.project-setup-section {
+  border-left: 4px solid #ef4444;
+}
+
+.btn-csp-orange {
+  background-color: var(--csp-orange);
+  color: white;
+}
+
+.btn-csp-orange:hover {
+  background-color: #f59e0b;
+}
+
+.btn-csp-green {
+  background-color: var(--csp-green);
+  color: white;
+}
+
+.btn-csp-green:hover {
+  background-color: #16a34a;
+}
+
+.btn-csp-lime {
+  background-color: var(--csp-lime);
+  color: black;
+}
+
+.btn-csp-lime:hover {
+  background-color: #bef264;
+}
+
+/* Framework Step Cards */
+.framework-step-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.framework-step-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.step-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.step-status.plan {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.step-status.assemble {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.step-status.monitor {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+/* Sidebar Styling */
+.sidebar-navigation {
+  background-color: #f9fafb;
+}
+
+.sidebar-navigation a {
+  transition: all 0.2s ease-in-out;
+}
+
+.sidebar-navigation a:hover {
+  background-color: #f3f4f6;
+}
+
+.sidebar-navigation a.active {
+  background-color: #dcfce7;
+  color: #166534;
+  border-left: 4px solid var(--csp-green);
+}
+
+/* Developer Tools Section */
+.developer-tools {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar-navigation {
+    width: 100%;
+    height: auto;
+  }
+  
+  .framework-step-card {
+    margin-bottom: 1rem;
+  }
+}
+
