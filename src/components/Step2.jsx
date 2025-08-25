@@ -385,7 +385,157 @@ const Step2 = () => {
       const generatedCopy = {
         primaryValueProposition: `Transform your expertise into industry authority through strategic content positioning and systematic relationship building, generating qualified leads while establishing yourself as the go-to expert in your field.`,
         elevatorPitch: `I help professionals in your industry build authentic authority and generate consistent leads through strategic content and relationship building. Unlike traditional marketing approaches that feel pushy, my system focuses on genuine value creation and thought leadership that naturally attracts your ideal clients.`,
-        missionStatement: `To empower business leaders to build sustainable authority in their industry through authentic expertise sharing, strategic content creation, and meaningful professional relationships that drive both personal fulfillment and business growth.`
+        missionStatement: `To empower business leaders to build sustainable authority in their industry through authentic expertise sharing, strategic content creation, and meaningful professional relationships that drive both personal fulfillment and business growth.`,
+        
+        // Stage-Optimized Marketing Copy
+        stageOptimizedCopy: {
+          discoverPossibility: [
+            {
+              title: "Blog Post: The Hidden Cost of DIY Business Solutions",
+              content: "Many business owners believe they can handle everything themselves, but this approach often leads to burnout and missed opportunities. Here's why investing in expert guidance pays dividends...",
+              type: "Blog Post"
+            },
+            {
+              title: "Social Media: 5 Warning Signs Your Current Strategy is Failing",
+              content: "🚨 Warning signs your business strategy needs an upgrade: 1) You're working harder but seeing diminishing returns 2) Your competitors are gaining ground 3) You feel overwhelmed by daily operations...",
+              type: "Social Media"
+            }
+          ],
+          resonateMission: [
+            {
+              title: "Email Series: Why Most Business Advice Doesn't Work",
+              content: "Dear [Name], I've been in your shoes. The endless cycle of trying new strategies, hoping this time will be different. But here's what I learned after years of trial and error...",
+              type: "Email"
+            },
+            {
+              title: "Video Script: My Journey from Struggling to Systematic Success",
+              content: "Three years ago, I was exactly where you might be today - working 60+ hour weeks, constantly stressed about the next client, wondering if there was a better way...",
+              type: "Video"
+            }
+          ],
+          envisionTransformation: [
+            {
+              title: "Case Study: How [Client] Doubled Revenue in 6 Months",
+              content: "When [Client Name] first came to me, they were struggling with inconsistent income and working around the clock. Here's exactly how we transformed their business...",
+              type: "Case Study"
+            },
+            {
+              title: "Webinar: The 90-Day Authority Building Blueprint",
+              content: "In this exclusive training, I'll show you the exact system my clients use to establish themselves as industry authorities and generate consistent, high-quality leads...",
+              type: "Webinar"
+            }
+          ],
+          trustProcess: [
+            {
+              title: "Behind-the-Scenes: My Proven 5-Step Framework",
+              content: "Let me pull back the curtain and show you exactly how I help clients build authority. This isn't theory - it's the battle-tested system that's worked for hundreds of professionals...",
+              type: "Content Series"
+            },
+            {
+              title: "Client Testimonial Compilation",
+              content: "Don't just take my word for it. Here's what real clients say about their transformation and the results they've achieved using our systematic approach...",
+              type: "Testimonial"
+            }
+          ],
+          stepIntoAuthority: [
+            {
+              title: "Limited-Time: Authority Accelerator Program",
+              content: "Ready to stop spinning your wheels and start building real authority in your industry? My Authority Accelerator Program is now open for a limited time...",
+              type: "Sales Page"
+            },
+            {
+              title: "Free Strategy Session: Your Authority Roadmap",
+              content: "Book a complimentary 30-minute strategy session where we'll map out your personalized authority-building roadmap and identify the fastest path to your goals...",
+              type: "Call-to-Action"
+            }
+          ]
+        },
+
+        // Content & Engagement Copy
+        contentEngagement: {
+          socialMediaPosts: [
+            "💡 Unpopular opinion: Working harder isn't the solution. Working smarter is. Here's how to shift from hustle mode to strategic mode...",
+            "🎯 The difference between busy and productive? Systems. Here's the framework that changed everything for my business...",
+            "📈 Your expertise is valuable. But if no one knows about it, it's worthless. Here's how to showcase your knowledge effectively..."
+          ],
+          emailSequences: [
+            {
+              subject: "The mistake that's costing you clients",
+              preview: "Most experts make this critical error when building their authority..."
+            },
+            {
+              subject: "Why your competitors are winning (and how to catch up)",
+              preview: "It's not what you think. The real reason comes down to this one thing..."
+            },
+            {
+              subject: "The authority-building secret nobody talks about",
+              preview: "After working with 500+ professionals, I've discovered the missing piece..."
+            }
+          ],
+          blogPostIdeas: [
+            "The Complete Guide to Building Authority in [Your Industry]",
+            "5 Common Mistakes That Sabotage Professional Credibility",
+            "How to Position Yourself as the Go-To Expert (Even in a Crowded Market)",
+            "The Psychology Behind Why People Choose One Expert Over Another"
+          ]
+        },
+
+        // TARE Framework Implementation
+        tareFramework: {
+          trust: {
+            elements: [
+              "Share authentic behind-the-scenes content",
+              "Showcase client results and testimonials",
+              "Be transparent about your process and methodology",
+              "Admit mistakes and lessons learned"
+            ],
+            messaging: "Building trust through transparency, authenticity, and proven results."
+          },
+          authority: {
+            elements: [
+              "Publish thought leadership content regularly",
+              "Speak at industry events and podcasts",
+              "Share unique frameworks and methodologies",
+              "Demonstrate deep industry knowledge"
+            ],
+            messaging: "Establishing authority through expertise, thought leadership, and industry recognition."
+          },
+          relevance: {
+            elements: [
+              "Address current industry challenges",
+              "Reference trending topics and news",
+              "Solve specific problems your audience faces",
+              "Use language and examples that resonate"
+            ],
+            messaging: "Staying relevant by addressing current challenges and speaking your audience's language."
+          },
+          engagement: {
+            elements: [
+              "Ask thought-provoking questions",
+              "Create interactive content and polls",
+              "Respond promptly to comments and messages",
+              "Encourage community discussion"
+            ],
+            messaging: "Driving engagement through interaction, community building, and valuable conversations."
+          }
+        },
+
+        // Content Calendar & Positioning
+        contentCalendar: {
+          weekly: [
+            "Monday: Industry insight or trend analysis",
+            "Wednesday: Educational content or how-to",
+            "Friday: Behind-the-scenes or personal story",
+            "Weekend: Community engagement or Q&A"
+          ],
+          monthly: [
+            "Week 1: Problem awareness content",
+            "Week 2: Solution education content", 
+            "Week 3: Authority demonstration content",
+            "Week 4: Community building content"
+          ],
+          positioning: "Position yourself as the trusted advisor who combines deep expertise with practical, actionable guidance."
+        }
       };
       
       setMarketingCopy(generatedCopy);
@@ -1090,7 +1240,7 @@ const Step2 = () => {
                     <p className="text-gray-600">Generating your marketing copy...</p>
                   </div>
                 ) : marketingCopy ? (
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {/* Core Brand Messaging */}
                     <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
                       <div className="flex items-center mb-4">
@@ -1122,6 +1272,123 @@ const Step2 = () => {
                         <div className="bg-white border-l-4 border-green-400 p-4 rounded-r">
                           <p className="text-gray-800 italic">"{marketingCopy.missionStatement}"</p>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Stage-Optimized Marketing Copy */}
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                      <h4 className="text-lg font-semibold text-blue-800 mb-6">Stage-Optimized Marketing Copy</h4>
+                      
+                      {Object.entries(marketingCopy.stageOptimizedCopy).map(([stage, content]) => (
+                        <div key={stage} className="mb-6">
+                          <h5 className="font-semibold text-blue-700 mb-3 capitalize">
+                            {stage.replace(/([A-Z])/g, ' $1').trim()}
+                          </h5>
+                          <div className="space-y-3">
+                            {content.map((item, index) => (
+                              <div key={index} className="bg-white p-4 rounded border-l-4 border-blue-300">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h6 className="font-medium text-gray-900">{item.title}</h6>
+                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                    {item.type}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-700">{item.content}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Content & Engagement Copy */}
+                    <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-r-lg">
+                      <h4 className="text-lg font-semibold text-yellow-800 mb-6">Content & Engagement Copy</h4>
+                      
+                      {/* Social Media Posts */}
+                      <div className="mb-6">
+                        <h5 className="font-semibold text-yellow-700 mb-3">Social Media Posts</h5>
+                        <div className="space-y-2">
+                          {marketingCopy.contentEngagement.socialMediaPosts.map((post, index) => (
+                            <div key={index} className="bg-white p-3 rounded border-l-4 border-yellow-300">
+                              <p className="text-sm text-gray-700">{post}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Email Sequences */}
+                      <div className="mb-6">
+                        <h5 className="font-semibold text-yellow-700 mb-3">Email Sequences</h5>
+                        <div className="space-y-2">
+                          {marketingCopy.contentEngagement.emailSequences.map((email, index) => (
+                            <div key={index} className="bg-white p-3 rounded border-l-4 border-yellow-300">
+                              <p className="font-medium text-gray-900 text-sm">Subject: {email.subject}</p>
+                              <p className="text-sm text-gray-600">{email.preview}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Blog Post Ideas */}
+                      <div>
+                        <h5 className="font-semibold text-yellow-700 mb-3">Blog Post Ideas</h5>
+                        <div className="space-y-2">
+                          {marketingCopy.contentEngagement.blogPostIdeas.map((idea, index) => (
+                            <div key={index} className="bg-white p-3 rounded border-l-4 border-yellow-300">
+                              <p className="text-sm text-gray-700">{idea}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* TARE Framework Implementation */}
+                    <div className="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg">
+                      <h4 className="text-lg font-semibold text-purple-800 mb-6">TARE Framework Implementation</h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {Object.entries(marketingCopy.tareFramework).map(([key, framework]) => (
+                          <div key={key} className="bg-white p-4 rounded border-l-4 border-purple-300">
+                            <h5 className="font-semibold text-purple-700 mb-2 capitalize">{key}</h5>
+                            <p className="text-sm text-gray-600 mb-3">{framework.messaging}</p>
+                            <ul className="text-xs text-gray-700 space-y-1">
+                              {framework.elements.map((element, index) => (
+                                <li key={index}>• {element}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Content Calendar & Positioning */}
+                    <div className="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-r-lg">
+                      <h4 className="text-lg font-semibold text-orange-800 mb-6">Content Calendar & Positioning</h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="bg-white p-4 rounded border-l-4 border-orange-300">
+                          <h5 className="font-semibold text-orange-700 mb-3">Weekly Schedule</h5>
+                          <ul className="text-sm text-gray-700 space-y-1">
+                            {marketingCopy.contentCalendar.weekly.map((item, index) => (
+                              <li key={index}>• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded border-l-4 border-orange-300">
+                          <h5 className="font-semibold text-orange-700 mb-3">Monthly Themes</h5>
+                          <ul className="text-sm text-gray-700 space-y-1">
+                            {marketingCopy.contentCalendar.monthly.map((item, index) => (
+                              <li key={index}>• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white p-4 rounded border-l-4 border-orange-300">
+                        <h5 className="font-semibold text-orange-700 mb-2">Strategic Positioning</h5>
+                        <p className="text-sm text-gray-700">{marketingCopy.contentCalendar.positioning}</p>
                       </div>
                     </div>
 
