@@ -44,11 +44,19 @@ const Step3 = () => {
   });
   const [currentLeadSources, setCurrentLeadSources] = useState([]);
   const [showAddLeadSourceModal, setShowAddLeadSourceModal] = useState(false);
+  const [expansionOpportunities, setExpansionOpportunities] = useState([]);
+  const [showAddExpansionModal, setShowAddExpansionModal] = useState(false);
+  const [highlevelSetup, setHighlevelSetup] = useState(null);
 
-  // Load saved lead sources on component mount
+  // Load saved data on component mount
   useEffect(() => {
     const savedLeadSources = safeLocalStorageGet('step3_current_lead_sources', []);
+    const savedExpansionOpportunities = safeLocalStorageGet('step3_expansion_opportunities', []);
+    const savedHighlevelSetup = safeLocalStorageGet('step3_highlevel_setup', null);
+    
     setCurrentLeadSources(savedLeadSources);
+    setExpansionOpportunities(savedExpansionOpportunities);
+    setHighlevelSetup(savedHighlevelSetup);
   }, []);
   useEffect(() => {
     const handleResize = () => {
@@ -194,6 +202,60 @@ const Step3 = () => {
     } catch (error) {
       console.error('Error saving lead sources:', error);
     }
+  };
+
+  // Handle adding expansion opportunity
+  const handleAddExpansionOpportunity = () => {
+    setShowAddExpansionModal(true);
+  };
+
+  // Handle generating HighLevel setup checklist
+  const handleGenerateSetupChecklist = () => {
+    const checklist = {
+      id: Date.now(),
+      dateGenerated: new Date().toISOString(),
+      items: [
+        {
+          category: 'Lead Source Tracking',
+          tasks: [
+            'Set up UTM parameters for each lead source',
+            'Configure lead source attribution in HighLevel',
+            'Create custom fields for lead source details',
+            'Set up automated lead source tagging'
+          ]
+        },
+        {
+          category: 'Lead Scoring Configuration',
+          tasks: [
+            'Configure source quality scoring rules',
+            'Set up engagement scoring triggers',
+            'Create lead score thresholds for qualification',
+            'Set up automated workflows based on lead scores'
+          ]
+        },
+        {
+          category: 'Tracking & Analytics',
+          tasks: [
+            'Set up conversion tracking for each source',
+            'Configure lead source performance dashboards',
+            'Create automated reporting for lead source ROI',
+            'Set up lead quality monitoring alerts'
+          ]
+        },
+        {
+          category: 'Integration Setup',
+          tasks: [
+            'Connect all lead sources to HighLevel',
+            'Set up webhook integrations where needed',
+            'Configure API connections for data sync',
+            'Test all lead source data flows'
+          ]
+        }
+      ]
+    };
+
+    setHighlevelSetup(checklist);
+    safeLocalStorageSet('step3_highlevel_setup', checklist);
   };
 
   // Load saved lead sources on component mount
@@ -432,9 +494,7 @@ const Step3 = () => {
                     </button>
                     
                     <button 
-                      onClick={() => {
-                        alert('Add Potential Lead Source modal coming soon!');
-                      }}
+                      onClick={handleAddExpansionOpportunity}
                       className="text-white px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
                       style={{ backgroundColor: '#fbae42' }}
                     >
@@ -442,13 +502,42 @@ const Step3 = () => {
                     </button>
                   </div>
                   
-                  <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
-                    <div className="text-gray-400 text-4xl mb-2">🎯</div>
-                    <h4 className="text-gray-600 font-medium mb-2">No Expansion Opportunities Added Yet</h4>
-                    <p className="text-gray-500 text-sm">
-                      Use AI recommendations or manual research to identify new lead generation opportunities for your business.
-                    </p>
-                  </div>
+                  {expansionOpportunities.length === 0 ? (
+                    <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                      <div className="text-gray-400 text-4xl mb-2">🎯</div>
+                      <h4 className="text-gray-600 font-medium mb-2">No Expansion Opportunities Added Yet</h4>
+                      <p className="text-gray-500 text-sm">
+                        Use AI recommendations or manual research to identify new lead generation opportunities for your business.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {expansionOpportunities.map((opportunity) => (
+                        <div key={opportunity.id} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold text-gray-900">{opportunity.name}</h4>
+                            <button
+                              onClick={() => {
+                                const updated = expansionOpportunities.filter(opp => opp.id !== opportunity.id);
+                                setExpansionOpportunities(updated);
+                                safeLocalStorageSet('step3_expansion_opportunities', updated);
+                              }}
+                              className="text-red-500 hover:text-red-700 text-sm"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p><span className="font-medium">Type:</span> {opportunity.type}</p>
+                            <p><span className="font-medium">Priority:</span> {opportunity.priority}</p>
+                            {opportunity.description && (
+                              <p className="text-gray-500 mt-2">{opportunity.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -487,9 +576,7 @@ const Step3 = () => {
                   
                   <div className="flex flex-col sm:flex-row gap-3">
                     <button 
-                      onClick={() => {
-                        alert('HighLevel configuration guide coming soon!');
-                      }}
+                      onClick={handleGenerateSetupChecklist}
                       className="text-white px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
                       style={{ backgroundColor: '#fbae42' }}
                     >
@@ -497,13 +584,55 @@ const Step3 = () => {
                     </button>
                   </div>
                   
-                  <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
-                    <div className="text-gray-400 text-4xl mb-2">⚙️</div>
-                    <h4 className="text-gray-600 font-medium mb-2">Ready for HighLevel Implementation</h4>
-                    <p className="text-gray-500 text-sm">
-                      Your lead scoring criteria and tracking plan will be used to configure HighLevel properly for accurate measurement.
-                    </p>
-                  </div>
+                  {highlevelSetup ? (
+                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900">HighLevel Setup Checklist</h4>
+                        <span className="text-sm text-gray-500">
+                          Generated: {new Date(highlevelSetup.dateGenerated).toLocaleDateString()}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        {highlevelSetup.items.map((section, index) => (
+                          <div key={index} className="border-l-4 border-blue-500 pl-4">
+                            <h5 className="font-semibold text-gray-800 mb-3">{section.category}</h5>
+                            <div className="space-y-2">
+                              {section.tasks.map((task, taskIndex) => (
+                                <div key={taskIndex} className="flex items-start space-x-2">
+                                  <input 
+                                    type="checkbox" 
+                                    className="mt-1 h-4 w-4 text-blue-600 rounded border-gray-300"
+                                  />
+                                  <span className="text-sm text-gray-700">{task}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <button
+                          onClick={() => {
+                            setHighlevelSetup(null);
+                            safeLocalStorageSet('step3_highlevel_setup', null);
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm font-medium"
+                        >
+                          Clear Checklist
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                      <div className="text-gray-400 text-4xl mb-2">⚙️</div>
+                      <h4 className="text-gray-600 font-medium mb-2">No Setup Checklist Generated Yet</h4>
+                      <p className="text-gray-500 text-sm">
+                        Generate a comprehensive HighLevel setup checklist based on your lead sources and scoring requirements.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -804,6 +933,97 @@ const Step3 = () => {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Expansion Opportunity Modal */}
+        {showAddExpansionModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Add Expansion Opportunity</h3>
+                  <button
+                    onClick={() => setShowAddExpansionModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Lead Source Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Podcast Guest Appearances"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Type <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <option value="">Select a type...</option>
+                      <option value="Content Marketing">Content Marketing</option>
+                      <option value="Social Media">Social Media</option>
+                      <option value="Paid Advertising">Paid Advertising</option>
+                      <option value="Networking">Networking</option>
+                      <option value="Partnerships">Partnerships</option>
+                      <option value="Public Relations">Public Relations</option>
+                      <option value="Direct Outreach">Direct Outreach</option>
+                      <option value="Events">Events</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Priority Level
+                    </label>
+                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <option value="">Select priority...</option>
+                      <option value="High">High Priority</option>
+                      <option value="Medium">Medium Priority</option>
+                      <option value="Low">Low Priority</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      placeholder="Brief description of this expansion opportunity..."
+                      rows={3}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-6">
+                  <button
+                    onClick={() => setShowAddExpansionModal(false)}
+                    className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      // For now, just close the modal - will implement form handling later
+                      alert('Expansion opportunity form submission coming soon!');
+                      setShowAddExpansionModal(false);
+                    }}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Add Opportunity
+                  </button>
+                </div>
               </div>
             </div>
           </div>
