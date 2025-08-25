@@ -33,11 +33,6 @@ const Step1 = () => {
   });
 
   const handleAIPersonas = async () => {
-    if (!aiService.hasApiKey()) {
-      setApiKeyModalOpen(true);
-      return;
-    }
-
     setAiModalOpen(true);
     setAiLoading(true);
     setCurrentPersonaSet(1); // Reset to first set
@@ -56,7 +51,7 @@ const Step1 = () => {
       setSelectedPersonaIds([]); // Reset selections when new personas are generated
     } catch (error) {
       console.error('Error generating personas:', error);
-      alert('Error generating personas. Please check your API key and try again.');
+      alert('Error generating personas. Please try again.');
     } finally {
       setAiLoading(false);
     }
