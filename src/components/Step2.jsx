@@ -11,7 +11,6 @@ const Step2 = () => {
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
   const [activeSubStep, setActiveSubStep] = useState('content-library');
   const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [showAIModal, setShowAIModal] = useState(false);
   const [aiModalType, setAiModalType] = useState('placement');
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [contentAssetModalOpen, setContentAssetModalOpen] = useState(false);
@@ -88,7 +87,7 @@ const Step2 = () => {
     setAiContentSuggestions(null);
     setAiGapAnalysis(null);
     setAiLoading(true);
-    setShowAIModal(true);
+    setAiModalOpen(true); // Fixed: use aiModalOpen instead of showAIModal
     setAiModalType('placement');
 
     try {
@@ -494,8 +493,15 @@ const Step2 = () => {
                         2
                       </div>
                       <button 
-                        onClick={handleAIPlacementSuggestions}
-                        className="text-black px-4 py-2 rounded-lg font-medium transition-colors hover:opacity-90 flex items-center space-x-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!aiLoading && !aiModalOpen) {
+                            handleAIPlacementSuggestions();
+                          }
+                        }}
+                        disabled={aiLoading || aiModalOpen}
+                        className="text-black px-4 py-2 rounded-lg font-medium transition-colors hover:opacity-90 flex items-center space-x-2 disabled:opacity-50"
                         style={{ backgroundColor: '#d7df21' }}
                       >
                         <Sparkles className="w-4 h-4" />
