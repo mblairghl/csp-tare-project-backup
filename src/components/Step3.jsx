@@ -94,24 +94,63 @@ const Step3 = () => {
     'YouTube Channel'
   ];
 
-  const handleAddCurrentLeadSource = (leadSource) => {
-    const newSource = {
+  co  // Lead source form state
+  const [leadSourceForm, setLeadSourceForm] = useState({
+    type: '',
+    name: '',
+    description: '',
+    channelCategory: '',
+    effortLevel: '',
+    timeInvestment: '',
+    skillLevel: ''
+  });
+
+  // Handle form input changes
+  const handleFormChange = (field, value) => {
+    setLeadSourceForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmitLeadSource = () => {
+    // Validate required fields
+    if (!leadSourceForm.type || !leadSourceForm.name || !leadSourceForm.channelCategory) {
+      alert('Please fill in all required fields (Type, Lead Source Name, and Channel Category)');
+      return;
+    }
+
+    // Create new lead source object
+    const newLeadSource = {
       id: Date.now(),
-      name: leadSource,
-      type: 'current',
+      type: leadSourceForm.type,
+      name: leadSourceForm.name,
+      description: leadSourceForm.description,
+      channelCategory: leadSourceForm.channelCategory,
+      effortLevel: leadSourceForm.effortLevel,
+      timeInvestment: leadSourceForm.timeInvestment,
+      skillLevel: leadSourceForm.skillLevel,
       dateAdded: new Date().toISOString()
     };
-    
-    const updatedSources = [...currentLeadSources, newSource];
+
+    // Add to current lead sources
+    const updatedSources = [...currentLeadSources, newLeadSource];
     setCurrentLeadSources(updatedSources);
-    
+
     // Save to localStorage
-    try {
-      localStorage.setItem('step3_current_lead_sources', JSON.stringify(updatedSources));
-    } catch (error) {
-      console.error('Error saving lead sources:', error);
-    }
-    
+    safeLocalStorageSet('step3_current_lead_sources', JSON.stringify(updatedSources));
+
+    // Reset form and close modal
+    setLeadSourceForm({
+      type: '',
+      name: '',
+      description: '',
+      channelCategory: '',
+      effortLevel: '',
+      timeInvestment: '',
+      skillLevel: ''
+    });
     setShowAddLeadSourceModal(false);
   };
 
@@ -292,48 +331,50 @@ const Step3 = () => {
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Current Lead Sources Audit</h3>
                 <p className="text-gray-600 mb-6">
-                  Let's inventory the lead generation channels you're currently using. This helps us understand your starting point before planning improvements.
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button 
+                  Let's inventory the lead generation channels you're currently using. This helps us understand your starting poi                <div className="bg-white p-6 rounded-lg border">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Current Lead Sources</h3>
+                    <button
                       onClick={() => setShowAddLeadSourceModal(true)}
-                      className="text-white px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
-                      style={{ backgroundColor: '#fbae42' }}
+                      className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                     >
                       + Add Current Lead Source
                     </button>
                   </div>
                   
-                  {/* Display Current Lead Sources */}
-                  {currentLeadSources.length > 0 ? (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-900">Your Current Lead Sources:</h4>
-                      <div className="grid gap-3">
-                        {currentLeadSources.map((source) => (
-                          <div key={source.id} className="bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-center">
-                            <div>
-                              <h5 className="font-medium text-gray-900">{source.name}</h5>
-                              <p className="text-sm text-gray-500">Added {new Date(source.dateAdded).toLocaleDateString()}</p>
-                            </div>
-                            <button
-                              onClick={() => handleDeleteLeadSource(source.id)}
-                              className="text-red-600 hover:text-red-800 px-3 py-1 rounded transition-colors"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+                  {currentLeadSources.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="text-4xl mb-2">📊</div>
+                      <p>No lead sources added yet</p>
+                      <p className="text-sm">Add your current lead generation channels to get started</p>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
-                      <div className="text-gray-400 text-4xl mb-2">📋</div>
-                      <h4 className="text-gray-600 font-medium mb-2">No Lead Sources Added Yet</h4>
-                      <p className="text-gray-500 text-sm">
-                        Start by adding your current lead generation channels. Examples: LinkedIn outreach, referrals, content marketing, networking events, etc.
-                      </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {currentLeadSources.map((source) => (
+                        <div key={source.id} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold text-gray-900">{source.name}</h4>
+                            <button
+                              onClick={() => handleDeleteLeadSource(source.id)}
+                              className="text-red-500 hover:text-red-700 text-sm"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p><span className="font-medium">Type:</span> {source.type}</p>
+                            {source.channelCategory && (
+                              <p><span className="font-medium">Category:</span> {source.channelCategory}</p>
+                            )}
+                            {source.effortLevel && (
+                              <p><span className="font-medium">Effort:</span> {source.effortLevel}</p>
+                            )}
+                            {source.description && (
+                              <p className="text-gray-500 mt-2">{source.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -569,7 +610,11 @@ const Step3 = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Type <span className="text-red-500">*</span>
                     </label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <select 
+                      value={leadSourceForm.type}
+                      onChange={(e) => handleFormChange('type', e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
                       <option value="">Select a type...</option>
                       <option value="Social Media">Social Media</option>
                       <option value="Content Marketing">Content Marketing</option>
@@ -596,6 +641,8 @@ const Step3 = () => {
                     </label>
                     <input
                       type="text"
+                      value={leadSourceForm.name}
+                      onChange={(e) => handleFormChange('name', e.target.value)}
                       placeholder="e.g., LinkedIn Content Strategy"
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -607,6 +654,8 @@ const Step3 = () => {
                       Description
                     </label>
                     <textarea
+                      value={leadSourceForm.description}
+                      onChange={(e) => handleFormChange('description', e.target.value)}
                       placeholder="Brief description of this lead source..."
                       rows="3"
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -626,7 +675,11 @@ const Step3 = () => {
                           Channel Category <span className="text-red-500">*</span>
                           <span className="text-xs text-gray-500 block">(Required for dashboard insights)</span>
                         </label>
-                        <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <select 
+                          value={leadSourceForm.channelCategory}
+                          onChange={(e) => handleFormChange('channelCategory', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
                           <option value="">Select channel...</option>
                           <option value="Organic">Organic (SEO, Content, Social)</option>
                           <option value="Paid">Paid (Ads, Sponsored Content)</option>
@@ -640,7 +693,11 @@ const Step3 = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Effort Level
                         </label>
-                        <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <select 
+                          value={leadSourceForm.effortLevel}
+                          onChange={(e) => handleFormChange('effortLevel', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
                           <option value="">Select effort level...</option>
                           <option value="High-touch">High-touch (Personal outreach)</option>
                           <option value="Low-touch">Low-touch (Some interaction)</option>
@@ -653,7 +710,11 @@ const Step3 = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Time Investment
                         </label>
-                        <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <select 
+                          value={leadSourceForm.timeInvestment}
+                          onChange={(e) => handleFormChange('timeInvestment', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
                           <option value="">Select time investment...</option>
                           <option value="Daily">Daily (Requires daily attention)</option>
                           <option value="Weekly">Weekly (Weekly maintenance)</option>
@@ -666,7 +727,11 @@ const Step3 = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Skill Level Required
                         </label>
-                        <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <select 
+                          value={leadSourceForm.skillLevel}
+                          onChange={(e) => handleFormChange('skillLevel', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
                           <option value="">Select skill level...</option>
                           <option value="Beginner">Beginner (Easy to start)</option>
                           <option value="Intermediate">Intermediate (Some experience needed)</option>
@@ -687,11 +752,7 @@ const Step3 = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        // Handle form submission here
-                        alert('Lead source form submission coming soon!');
-                        setShowAddLeadSourceModal(false);
-                      }}
+                      onClick={handleSubmitLeadSource}
                       className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                     >
                       Add Lead Source
