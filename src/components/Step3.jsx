@@ -331,7 +331,10 @@ const Step3 = () => {
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Current Lead Sources Audit</h3>
                 <p className="text-gray-600 mb-6">
-                  Let's inventory the lead generation channels you're currently using. This helps us understand your starting poi                <div className="bg-white p-6 rounded-lg border">
+                  Let's inventory the lead generation channels you're currently using. This helps us understand your starting point and build from there.
+                </p>
+                
+                <div className="bg-white p-6 rounded-lg border">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Current Lead Sources</h3>
                     <button
