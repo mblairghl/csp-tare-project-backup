@@ -48,14 +48,22 @@ const Step3 = () => {
   const [showAddExpansionModal, setShowAddExpansionModal] = useState(false);
   const [highlevelSetup, setHighlevelSetup] = useState(null);
 
+  // Expansion opportunity form state
+  const [expansionForm, setExpansionForm] = useState({
+    name: '',
+    type: '',
+    priority: '',
+    description: ''
+  });
+
   // Load saved data on component mount
   useEffect(() => {
     const savedLeadSources = safeLocalStorageGet('step3_current_lead_sources', []);
     const savedExpansionOpportunities = safeLocalStorageGet('step3_expansion_opportunities', []);
     const savedHighlevelSetup = safeLocalStorageGet('step3_highlevel_setup', null);
     
-    setCurrentLeadSources(savedLeadSources);
-    setExpansionOpportunities(savedExpansionOpportunities);
+    setCurrentLeadSources(Array.isArray(savedLeadSources) ? savedLeadSources : []);
+    setExpansionOpportunities(Array.isArray(savedExpansionOpportunities) ? savedExpansionOpportunities : []);
     setHighlevelSetup(savedHighlevelSetup);
   }, []);
   useEffect(() => {
@@ -202,6 +210,52 @@ const Step3 = () => {
     } catch (error) {
       console.error('Error saving lead sources:', error);
     }
+  };
+
+  // Expansion opportunity form handlers
+  const handleExpansionFormChange = (field, value) => {
+    setExpansionForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const resetExpansionForm = () => {
+    setExpansionForm({
+      name: '',
+      type: '',
+      priority: '',
+      description: ''
+    });
+  };
+
+  const handleSubmitExpansionOpportunity = () => {
+    // Validate required fields
+    if (!expansionForm.name.trim() || !expansionForm.type) {
+      alert('Please fill in the required fields (Name and Type).');
+      return;
+    }
+
+    // Create new expansion opportunity
+    const newOpportunity = {
+      id: Date.now().toString(),
+      name: expansionForm.name.trim(),
+      type: expansionForm.type,
+      priority: expansionForm.priority || 'Medium',
+      description: expansionForm.description.trim(),
+      dateAdded: new Date().toISOString()
+    };
+
+    // Add to list
+    const updatedOpportunities = [...expansionOpportunities, newOpportunity];
+    setExpansionOpportunities(updatedOpportunities);
+
+    // Save to localStorage
+    safeLocalStorageSet('step3_expansion_opportunities', updatedOpportunities);
+
+    // Reset form and close modal
+    resetExpansionForm();
+    setShowAddExpansionModal(false);
   };
 
   // Handle adding expansion opportunity
@@ -960,6 +1014,8 @@ const Step3 = () => {
                     </label>
                     <input
                       type="text"
+                      value={expansionForm.name}
+                      onChange={(e) => handleExpansionFormChange('name', e.target.value)}
                       placeholder="e.g., Podcast Guest Appearances"
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -969,7 +1025,11 @@ const Step3 = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Type <span className="text-red-500">*</span>
                     </label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <select 
+                      value={expansionForm.type}
+                      onChange={(e) => handleExpansionFormChange('type', e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
                       <option value="">Select a type...</option>
                       <option value="Content Marketing">Content Marketing</option>
                       <option value="Social Media">Social Media</option>
@@ -986,7 +1046,11 @@ const Step3 = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Priority Level
                     </label>
-                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <select 
+                      value={expansionForm.priority}
+                      onChange={(e) => handleExpansionFormChange('priority', e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
                       <option value="">Select priority...</option>
                       <option value="High">High Priority</option>
                       <option value="Medium">Medium Priority</option>
@@ -999,6 +1063,8 @@ const Step3 = () => {
                       Description
                     </label>
                     <textarea
+                      value={expansionForm.description}
+                      onChange={(e) => handleExpansionFormChange('description', e.target.value)}
                       placeholder="Brief description of this expansion opportunity..."
                       rows={3}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1008,17 +1074,16 @@ const Step3 = () => {
                 
                 <div className="flex justify-end space-x-3 pt-6">
                   <button
-                    onClick={() => setShowAddExpansionModal(false)}
+                    onClick={() => {
+                      resetExpansionForm();
+                      setShowAddExpansionModal(false);
+                    }}
                     className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={() => {
-                      // For now, just close the modal - will implement form handling later
-                      alert('Expansion opportunity form submission coming soon!');
-                      setShowAddExpansionModal(false);
-                    }}
+                    onClick={handleSubmitExpansionOpportunity}
                     className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
                     Add Opportunity
