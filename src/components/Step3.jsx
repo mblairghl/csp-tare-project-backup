@@ -6,6 +6,30 @@ import AIModal from './AIModal';
 import APIKeyModal from './APIKeyModal';
 import aiService from '../services/aiService';
 
+// Utility functions for localStorage management
+const safeLocalStorageGet = (key, defaultValue = null) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (error) {
+    console.warn(`Error reading from localStorage key "${key}":`, error);
+    return defaultValue;
+  }
+};
+
+const safeLocalStorageSet = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    console.error(`Error writing to localStorage key "${key}":`, error);
+    if (error.name === 'QuotaExceededError') {
+      alert('Browser storage is full. Please use the "Clear All My Data & Fix App" button on the Dashboard to continue.');
+    }
+    return false;
+  }
+};
+
 const Step3 = () => {
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('current-sources'); // Default to first sub step
@@ -20,6 +44,12 @@ const Step3 = () => {
   });
   const [currentLeadSources, setCurrentLeadSources] = useState([]);
   const [showAddLeadSourceModal, setShowAddLeadSourceModal] = useState(false);
+
+  // Load saved lead sources on component mount
+  useEffect(() => {
+    const savedLeadSources = safeLocalStorageGet('step3_current_lead_sources', []);
+    setCurrentLeadSources(savedLeadSources);
+  }, []);
   useEffect(() => {
     const handleResize = () => {
       setWindowDimensions({
@@ -745,10 +775,22 @@ const Step3 = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex justify-end gap-3 pt-4">
+                  <div className="flex justify-end space-x-3 pt-4">
                     <button
                       type="button"
-                      onClick={() => setShowAddLeadSourceModal(false)}
+                      onClick={() => {
+                        // Reset form when canceling
+                        setLeadSourceForm({
+                          type: '',
+                          name: '',
+                          description: '',
+                          channelCategory: '',
+                          effortLevel: '',
+                          timeInvestment: '',
+                          skillLevel: ''
+                        });
+                        setShowAddLeadSourceModal(false);
+                      }}
                       className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
                     >
                       Cancel
