@@ -654,16 +654,91 @@ const Step2 = () => {
             )}
 
             {activeSubStep === 'marketing-copy' && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Marketing Copy & TARE</h3>
-                <p className="text-gray-600 mb-6">
-                  Create compelling marketing copy for each funnel stage using the TARE framework.
-                </p>
-                
-                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                  <p className="text-yellow-700">
-                    🔒 This section will be unlocked after mapping content to at least 3 funnel stages.
+              <div className="space-y-8">
+                {/* Header Section */}
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">📝</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Marketing Copy Strategy & TARE Framework</h3>
+                  <p className="text-gray-600 max-w-3xl mx-auto">
+                    Generate comprehensive marketing copy based on your Project Setup, Step 1 personas, and mapped content assets using the proven TARE Framework.
                   </p>
+                </div>
+
+                {/* AI Marketing Copy Generator */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <Sparkles className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">AI Marketing Copy Generator</h4>
+                        <p className="text-sm text-gray-600">
+                          Create personalized marketing copy across multiple formats and channels, leveraging your project data and content mapping to ensure consistent messaging throughout your authority-building funnel.
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      className="text-black px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90 flex items-center space-x-2 whitespace-nowrap"
+                      style={{ backgroundColor: '#d7df21' }}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>Generate Comprehensive Copy</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Understanding the TARE Framework */}
+                <div className="bg-white border rounded-lg p-8">
+                  <h4 className="text-xl font-semibold text-gray-900 mb-8 text-center">Understanding the TARE Framework</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {/* Trust */}
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-white text-xl font-bold">T</span>
+                      </div>
+                      <h5 className="text-lg font-semibold text-gray-900 mb-3">Trust</h5>
+                      <p className="text-sm text-gray-600">
+                        Build credibility and establish authority through authentic messaging and social proof.
+                      </p>
+                    </div>
+
+                    {/* Authority */}
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-white text-xl font-bold">A</span>
+                      </div>
+                      <h5 className="text-lg font-semibold text-gray-900 mb-3">Authority</h5>
+                      <p className="text-sm text-gray-600">
+                        Demonstrate expertise and thought leadership in your industry or niche.
+                      </p>
+                    </div>
+
+                    {/* Relevance */}
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-white text-xl font-bold">R</span>
+                      </div>
+                      <h5 className="text-lg font-semibold text-gray-900 mb-3">Relevance</h5>
+                      <p className="text-sm text-gray-600">
+                        Ensure messaging resonates with your target audience's specific needs and challenges.
+                      </p>
+                    </div>
+
+                    {/* Engagement */}
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-white text-xl font-bold">E</span>
+                      </div>
+                      <h5 className="text-lg font-semibold text-gray-900 mb-3">Engagement</h5>
+                      <p className="text-sm text-gray-600">
+                        Create compelling calls-to-action that drive meaningful interactions and conversions.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
