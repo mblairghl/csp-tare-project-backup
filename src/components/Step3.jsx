@@ -62,11 +62,51 @@ const Step3 = () => {
   };
 
   const howThisWorksContent = {
-    description: "Step 3 detailed description of how this works.",
-    steps: [{'title': 'Sub Step 1', 'description': 'Description for sub step 1 of step 3.', 'color': 'bg-green-600', 'textColor': '#16a34a'}, {'title': 'Sub Step 2', 'description': 'Description for sub step 2 of step 3.', 'color': 'bg-blue-600', 'textColor': '#2563eb'}, {'title': 'Sub Step 3', 'description': 'Description for sub step 3 of step 3.', 'color': 'bg-yellow-600', 'textColor': '#ca8a04'}]
+    description: "Transform your scattered lead generation into a strategic plan that sets the foundation for accurate tracking and measurement in HighLevel.",
+    steps: [
+      {
+        'title': 'Current Lead Sources', 
+        'description': 'Audit and inventory your existing lead generation channels and activities.', 
+        'color': 'bg-green-600', 
+        'textColor': '#16a34a'
+      }, 
+      {
+        'title': 'Expansion Opportunities', 
+        'description': 'Discover new lead sources that align with your market and business model.', 
+        'color': 'bg-blue-600', 
+        'textColor': '#2563eb'
+      }, 
+      {
+        'title': 'HighLevel Setup Planning', 
+        'description': 'Prepare lead scoring and tracking configuration for proper implementation.', 
+        'color': 'bg-yellow-600', 
+        'textColor': '#ca8a04'
+      }
+    ]
   };
 
-  const subSteps = [{'id': 'tab-1', 'title': 'Tab 1', 'description': 'Tab 1 description'}, {'id': 'tab-2', 'title': 'Tab 2', 'description': 'Tab 2 description'}, {'id': 'milestone-reflection', 'title': 'Milestone Reflection', 'description': 'Celebrate progress'}];
+  const subSteps = [
+    {
+      'id': 'current-sources', 
+      'title': 'Current Lead Sources', 
+      'description': 'Audit existing channels'
+    }, 
+    {
+      'id': 'expansion-opportunities', 
+      'title': 'Expansion Opportunities', 
+      'description': 'Discover new channels'
+    }, 
+    {
+      'id': 'highlevel-setup', 
+      'title': 'HighLevel Setup', 
+      'description': 'Plan tracking configuration'
+    },
+    {
+      'id': 'milestone-reflection', 
+      'title': 'Milestone Reflection', 
+      'description': 'Celebrate progress'
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -78,12 +118,12 @@ const Step3 = () => {
 
         {/* Component 2: Step Name */}
         <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          Step 3 Title
+          Lead Intelligence
         </h1>
 
         {/* Component 3: Step Objective */}
         <p className="text-lg text-gray-600 mb-6">
-          Step 3 objective description goes here.
+          Plan your lead source strategy and prepare for proper tracking setup in HighLevel.
         </p>
 
         {/* Component 4: How This Works Section */}
@@ -170,56 +210,145 @@ const Step3 = () => {
           </div>
 
           <div className="p-6">
-            {activeTab === 'tab-1' && (
+            {activeTab === 'current-sources' && (
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Lead Intelligence Analysis</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Current Lead Sources Audit</h3>
                 <p className="text-gray-600 mb-6">
-                  Use AI to identify and analyze the best lead sources for your business and create a lead qualification system.
+                  Let's inventory the lead generation channels you're currently using. This helps us understand your starting point before planning improvements.
                 </p>
                 
                 <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button 
-                      onClick={() => {
-                        alert('Manual lead intelligence coming soon!');
-                      }}
-                      className="text-white px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
-                      style={{ backgroundColor: '#fbae42' }}
-                    >
-                      Manual Lead Analysis
-                    </button>
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <h4 className="font-semibold text-green-800 mb-3">Add Your Current Lead Sources</h4>
+                    <p className="text-green-700 text-sm mb-4">
+                      List each lead generation method you're currently using. Don't worry about metrics - we're just taking inventory.
+                    </p>
                     
                     <button 
-                      onClick={handleAILeadStrategy}
-                      className="text-black px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
-                      style={{ backgroundColor: '#d7df21' }}
+                      onClick={() => {
+                        alert('Add Current Lead Source modal coming soon!');
+                      }}
+                      className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors hover:bg-green-700"
                     >
-                      🤖 Generate AI Lead Strategy
+                      + Add Current Lead Source
                     </button>
                   </div>
                   
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-blue-800 mb-2">How to use AI results:</h4>
-                    <ol className="text-blue-700 text-sm space-y-1">
-                      <li>1. Click "Generate AI Lead Strategy" to open ChatGPT</li>
-                      <li>2. Fill in your business details and current lead sources</li>
-                      <li>3. Copy the AI-generated lead intelligence strategy</li>
-                      <li>4. Use "Manual Lead Analysis" to implement and track your results</li>
-                    </ol>
+                  <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                    <div className="text-gray-400 text-4xl mb-2">📋</div>
+                    <h4 className="text-gray-600 font-medium mb-2">No Lead Sources Added Yet</h4>
+                    <p className="text-gray-500 text-sm">
+                      Start by adding your current lead generation channels. Examples: LinkedIn outreach, referrals, content marketing, networking events, etc.
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {activeTab === 'tab-2' && (
+            {activeTab === 'expansion-opportunities' && (
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Tab 2</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Lead Source Expansion Opportunities</h3>
                 <p className="text-gray-600 mb-6">
-                  Content for the second tab goes here.
+                  Discover new lead generation channels that could work well for your business and market. Focus on strategic expansion, not just more channels.
                 </p>
                 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-600">Second tab content area.</p>
+                <div className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h4 className="font-semibold text-blue-800 mb-3">🤖 AI Lead Source Recommendations</h4>
+                    <p className="text-blue-700 text-sm mb-4">
+                      Get personalized lead source suggestions based on your business type, target market, and current channels.
+                    </p>
+                    
+                    <button 
+                      onClick={handleAILeadStrategy}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors hover:bg-blue-700"
+                    >
+                      🚀 Get AI Recommendations
+                    </button>
+                  </div>
+                  
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <h4 className="font-semibold text-yellow-800 mb-3">💡 Manual Research</h4>
+                    <p className="text-yellow-700 text-sm mb-4">
+                      Research and add potential lead sources you've identified through market analysis or competitor research.
+                    </p>
+                    
+                    <button 
+                      onClick={() => {
+                        alert('Add Potential Lead Source modal coming soon!');
+                      }}
+                      className="bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium transition-colors hover:bg-yellow-700"
+                    >
+                      + Add Potential Source
+                    </button>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                    <div className="text-gray-400 text-4xl mb-2">🎯</div>
+                    <h4 className="text-gray-600 font-medium mb-2">No Expansion Opportunities Added Yet</h4>
+                    <p className="text-gray-500 text-sm">
+                      Use AI recommendations or manual research to identify new lead generation opportunities for your business.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'highlevel-setup' && (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">HighLevel Lead Scoring Setup</h3>
+                <p className="text-gray-600 mb-6">
+                  Prepare your lead scoring and tracking configuration for HighLevel implementation. This ensures accurate measurement from day one.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <h4 className="font-semibold text-purple-800 mb-3">🎯 Lead Scoring Criteria</h4>
+                    <p className="text-purple-700 text-sm mb-4">
+                      Define how leads will be scored in your HighLevel system based on source quality, engagement, and fit.
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <div className="bg-white p-3 rounded border">
+                        <h5 className="font-medium text-gray-800 mb-2">Source Quality Scoring</h5>
+                        <p className="text-gray-600 text-sm">High-quality sources (referrals, warm introductions) = +20 points</p>
+                        <p className="text-gray-600 text-sm">Medium-quality sources (content marketing, SEO) = +10 points</p>
+                        <p className="text-gray-600 text-sm">Low-quality sources (cold outreach, ads) = +5 points</p>
+                      </div>
+                      
+                      <div className="bg-white p-3 rounded border">
+                        <h5 className="font-medium text-gray-800 mb-2">Engagement Scoring</h5>
+                        <p className="text-gray-600 text-sm">Email opens = +2 points</p>
+                        <p className="text-gray-600 text-sm">Link clicks = +5 points</p>
+                        <p className="text-gray-600 text-sm">Form submissions = +10 points</p>
+                        <p className="text-gray-600 text-sm">Phone/video calls = +15 points</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <h4 className="font-semibold text-orange-800 mb-3">📊 Tracking Configuration</h4>
+                    <p className="text-orange-700 text-sm mb-4">
+                      Set up proper attribution and tracking tags for each lead source in HighLevel.
+                    </p>
+                    
+                    <button 
+                      onClick={() => {
+                        alert('HighLevel configuration guide coming soon!');
+                      }}
+                      className="bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors hover:bg-orange-700"
+                    >
+                      📋 Generate Setup Checklist
+                    </button>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                    <div className="text-gray-400 text-4xl mb-2">⚙️</div>
+                    <h4 className="text-gray-600 font-medium mb-2">Ready for HighLevel Implementation</h4>
+                    <p className="text-gray-500 text-sm">
+                      Your lead scoring criteria and tracking plan will be used to configure HighLevel properly for accurate measurement.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -238,13 +367,24 @@ const Step3 = () => {
                 
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
                 <p className="text-gray-600 mb-6">
-                  Celebrate your progress and reflect on what you've accomplished in this step.
+                  Celebrate your progress! You've completed your lead source planning and are ready for proper HighLevel implementation.
                 </p>
                 
                 <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-800 mb-2">Congratulations!</h4>
-                  <p className="text-green-700">
-                    You've successfully completed Step 3. Great work on your progress!
+                  <h4 className="font-semibold text-green-800 mb-3">🎯 What You've Accomplished:</h4>
+                  <ul className="text-green-700 space-y-2">
+                    <li>✅ Audited your current lead generation channels</li>
+                    <li>✅ Identified expansion opportunities for new lead sources</li>
+                    <li>✅ Planned your HighLevel lead scoring and tracking setup</li>
+                    <li>✅ Created a strategic foundation for accurate measurement</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 mt-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">🚀 What's Next:</h4>
+                  <p className="text-blue-700">
+                    Step 4 will help you build your signature funnel and implement the tracking systems you've planned here. 
+                    Your lead intelligence strategy will guide the technical setup for accurate measurement.
                   </p>
                 </div>
               </div>
