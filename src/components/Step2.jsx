@@ -158,7 +158,7 @@ const Step2 = () => {
           gaps: gaps.map(g => g.stage)
         };
         
-        const suggestions = await aiService.generateGapSuggestions(businessInfo);
+        const suggestions = await aiService.generateGapAnalysis(businessInfo);
         setAiContentSuggestions(suggestions);
       }
     } catch (error) {
@@ -236,7 +236,7 @@ const Step2 = () => {
           }
         });
         businessInfo.gaps = gaps;
-        newSuggestions = await aiService.generateGapSuggestions(businessInfo);
+        newSuggestions = await aiService.generateGapAnalysis(businessInfo);
       } else {
         // For regular placement suggestions, generate for all stages
         newSuggestions = await aiService.generateContentSuggestions(businessInfo);
