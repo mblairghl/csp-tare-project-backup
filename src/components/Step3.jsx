@@ -94,7 +94,7 @@ const Step3 = () => {
     'YouTube Channel'
   ];
 
-  co  // Lead source form state
+  // Lead source form state
   const [leadSourceForm, setLeadSourceForm] = useState({
     type: '',
     name: '',
