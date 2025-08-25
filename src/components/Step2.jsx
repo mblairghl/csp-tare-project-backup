@@ -59,6 +59,11 @@ const Step2 = () => {
   const [selectedSuggestions, setSelectedSuggestions] = useState([]);
   const [aiSuggestionSet, setAiSuggestionSet] = useState(1);
 
+  // Marketing copy generator state
+  const [showMarketingCopyModal, setShowMarketingCopyModal] = useState(false);
+  const [marketingCopy, setMarketingCopy] = useState(null);
+  const [marketingCopyLoading, setMarketingCopyLoading] = useState(false);
+
   useEffect(() => {
     const handleResize = () => {
       setWindowDimensions({
@@ -345,6 +350,63 @@ const Step2 = () => {
       });
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const handleGenerateMarketingCopy = async () => {
+    setMarketingCopyLoading(true);
+    setShowMarketingCopyModal(true);
+    
+    try {
+      // Get data from localStorage
+      const projectSetup = safeLocalStorageGet('projectSetup', {});
+      const personas = safeLocalStorageGet('personas', []);
+      const savedPersonas = safeLocalStorageGet('savedPersonas', []);
+      
+      // Combine all personas
+      const allPersonas = [...personas, ...savedPersonas];
+      
+      // Get content from funnel stages
+      const contentSummary = Object.entries(funnelStages)
+        .map(([stage, items]) => `${stage}: ${items.length} items`)
+        .join(', ');
+      
+      // Generate marketing copy using TARE framework
+      const businessData = {
+        business: projectSetup.business || 'Business consulting services',
+        industry: projectSetup.industry || 'Business consulting',
+        offer: projectSetup.offer || 'Authority Revenue Toolkit',
+        targetAudience: allPersonas.length > 0 ? allPersonas.map(p => p.name || p.title).join(', ') : 'Business owners and entrepreneurs',
+        contentMapping: contentSummary,
+        framework: 'TARE' // Trust, Authority, Relevance, Engagement
+      };
+      
+      // Mock marketing copy generation (replace with actual AI service call)
+      const generatedCopy = {
+        primaryValueProposition: `Transform your expertise into industry authority through strategic content positioning and systematic relationship building, generating qualified leads while establishing yourself as the go-to expert in your field.`,
+        elevatorPitch: `I help professionals in your industry build authentic authority and generate consistent leads through strategic content and relationship building. Unlike traditional marketing approaches that feel pushy, my system focuses on genuine value creation and thought leadership that naturally attracts your ideal clients.`,
+        missionStatement: `To empower business leaders to build sustainable authority in their industry through authentic expertise sharing, strategic content creation, and meaningful professional relationships that drive both personal fulfillment and business growth.`
+      };
+      
+      setMarketingCopy(generatedCopy);
+    } catch (error) {
+      console.error('Error generating marketing copy:', error);
+      // Fallback copy
+      setMarketingCopy({
+        primaryValueProposition: "Transform your expertise into consistent revenue through strategic authority building.",
+        elevatorPitch: "I help business professionals establish authority and generate leads through strategic content and relationship building.",
+        missionStatement: "To empower business leaders to build sustainable authority through authentic expertise sharing and strategic content creation."
+      });
+    } finally {
+      setMarketingCopyLoading(false);
+    }
+  };
+
+  const handleSaveMarketingCopy = () => {
+    if (marketingCopy) {
+      safeLocalStorageSet('marketingCopy', marketingCopy);
+      setShowMarketingCopyModal(false);
+      // Could show a success message here
     }
   };
 
@@ -681,6 +743,7 @@ const Step2 = () => {
                       </div>
                     </div>
                     <button 
+                      onClick={handleGenerateMarketingCopy}
                       className="text-black px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90 flex items-center space-x-2 whitespace-nowrap"
                       style={{ backgroundColor: '#d7df21' }}
                     >
@@ -995,6 +1058,100 @@ const Step2 = () => {
           onClose={() => setContentAssetModalOpen(false)}
           onSave={handleSaveContentAsset}
         />
+
+        {/* Marketing Copy Generator Modal */}
+        {showMarketingCopyModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-lg">📝</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900">AI Marketing Copy Generator</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowMarketingCopyModal(false)}
+                    className="text-gray-400 hover:text-gray-600 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <p className="text-gray-600 mb-6">
+                  Personalized marketing copy based on your Project Setup, Step 1 personas, and mapped content assets.
+                </p>
+
+                {marketingCopyLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Generating your marketing copy...</p>
+                  </div>
+                ) : marketingCopy ? (
+                  <div className="space-y-6">
+                    {/* Core Brand Messaging */}
+                    <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
+                      <div className="flex items-center mb-4">
+                        <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-white text-sm">🎯</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-green-800">Core Brand Messaging</h4>
+                      </div>
+
+                      {/* Primary Value Proposition */}
+                      <div className="mb-6">
+                        <h5 className="font-semibold text-green-700 mb-2">Primary Value Proposition</h5>
+                        <div className="bg-white border-l-4 border-green-400 p-4 rounded-r">
+                          <p className="text-gray-800 italic">"{marketingCopy.primaryValueProposition}"</p>
+                        </div>
+                      </div>
+
+                      {/* Elevator Pitch */}
+                      <div className="mb-6">
+                        <h5 className="font-semibold text-green-700 mb-2">Elevator Pitch (30 seconds)</h5>
+                        <div className="bg-white border-l-4 border-green-400 p-4 rounded-r">
+                          <p className="text-gray-800 italic">"{marketingCopy.elevatorPitch}"</p>
+                        </div>
+                      </div>
+
+                      {/* Mission Statement */}
+                      <div>
+                        <h5 className="font-semibold text-green-700 mb-2">Mission Statement</h5>
+                        <div className="bg-white border-l-4 border-green-400 p-4 rounded-r">
+                          <p className="text-gray-800 italic">"{marketingCopy.missionStatement}"</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="text-center text-sm text-gray-500 py-4">
+                      Copy generated using your project data and content mapping
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end space-x-3 pt-4 border-t">
+                      <button
+                        onClick={() => setShowMarketingCopyModal(false)}
+                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveMarketingCopy}
+                        className="px-6 py-2 text-black rounded-lg font-medium transition-colors hover:opacity-90"
+                        style={{ backgroundColor: '#d7df21' }}
+                      >
+                        Save Marketing Copy
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
