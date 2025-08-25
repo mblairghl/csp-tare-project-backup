@@ -8,17 +8,17 @@ import aiService from '../services/aiService';
 
 const Step3 = () => {
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('tab-1');
+  const [activeTab, setActiveTab] = useState('current-sources'); // Default to first sub step
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [aiLeadStrategy, setAiLeadStrategy] = useState(null);
-  const [aiLoading, setAiLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
-    height: window.innerHeight
+    height: window.innerHeight,
   });
-
+  const [currentLeadSources, setCurrentLeadSources] = useState([]);
+  const [showAddLeadSourceModal, setShowAddLeadSourceModal] = useState(false);
   useEffect(() => {
     const handleResize = () => {
       setWindowDimensions({
@@ -60,6 +60,83 @@ const Step3 = () => {
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
   };
+
+  // Lead source options (alphabetized)
+  const leadSourceOptions = [
+    'Affiliate Marketing',
+    'Blog Content',
+    'Cold Email Outreach',
+    'Cold Calling',
+    'Community Building',
+    'Content Marketing',
+    'Direct Mail',
+    'Email Marketing',
+    'Facebook Ads',
+    'Google Ads',
+    'Industry Events',
+    'Influencer Partnerships',
+    'LinkedIn Outreach',
+    'Local Networking',
+    'Organic Social Media',
+    'Paid Social Media',
+    'Partnerships',
+    'Podcast Appearances',
+    'Podcast Hosting',
+    'Public Relations',
+    'Referral Program',
+    'SEO/Organic Search',
+    'Speaking Engagements',
+    'Trade Shows',
+    'Video Marketing',
+    'Webinars',
+    'Word of Mouth',
+    'YouTube Channel'
+  ];
+
+  const handleAddCurrentLeadSource = (leadSource) => {
+    const newSource = {
+      id: Date.now(),
+      name: leadSource,
+      type: 'current',
+      dateAdded: new Date().toISOString()
+    };
+    
+    const updatedSources = [...currentLeadSources, newSource];
+    setCurrentLeadSources(updatedSources);
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('step3_current_lead_sources', JSON.stringify(updatedSources));
+    } catch (error) {
+      console.error('Error saving lead sources:', error);
+    }
+    
+    setShowAddLeadSourceModal(false);
+  };
+
+  const handleDeleteLeadSource = (sourceId) => {
+    const updatedSources = currentLeadSources.filter(source => source.id !== sourceId);
+    setCurrentLeadSources(updatedSources);
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('step3_current_lead_sources', JSON.stringify(updatedSources));
+    } catch (error) {
+      console.error('Error saving lead sources:', error);
+    }
+  };
+
+  // Load saved lead sources on component mount
+  useEffect(() => {
+    try {
+      const savedSources = localStorage.getItem('step3_current_lead_sources');
+      if (savedSources) {
+        setCurrentLeadSources(JSON.parse(savedSources));
+      }
+    } catch (error) {
+      console.error('Error loading lead sources:', error);
+    }
+  }, []);
 
   const howThisWorksContent = {
     description: "Transform your scattered lead generation into a strategic plan that sets the foundation for accurate tracking and measurement in HighLevel.",
@@ -218,29 +295,46 @@ const Step3 = () => {
                 </p>
                 
                 <div className="space-y-4">
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <h4 className="font-semibold text-green-800 mb-3">Add Your Current Lead Sources</h4>
-                    <p className="text-green-700 text-sm mb-4">
-                      List each lead generation method you're currently using. Don't worry about metrics - we're just taking inventory.
-                    </p>
-                    
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button 
-                      onClick={() => {
-                        alert('Add Current Lead Source modal coming soon!');
-                      }}
-                      className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors hover:bg-green-700"
+                      onClick={() => setShowAddLeadSourceModal(true)}
+                      className="text-white px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
+                      style={{ backgroundColor: '#fbae42' }}
                     >
                       + Add Current Lead Source
                     </button>
                   </div>
                   
-                  <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
-                    <div className="text-gray-400 text-4xl mb-2">📋</div>
-                    <h4 className="text-gray-600 font-medium mb-2">No Lead Sources Added Yet</h4>
-                    <p className="text-gray-500 text-sm">
-                      Start by adding your current lead generation channels. Examples: LinkedIn outreach, referrals, content marketing, networking events, etc.
-                    </p>
-                  </div>
+                  {/* Display Current Lead Sources */}
+                  {currentLeadSources.length > 0 ? (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-900">Your Current Lead Sources:</h4>
+                      <div className="grid gap-3">
+                        {currentLeadSources.map((source) => (
+                          <div key={source.id} className="bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-center">
+                            <div>
+                              <h5 className="font-medium text-gray-900">{source.name}</h5>
+                              <p className="text-sm text-gray-500">Added {new Date(source.dateAdded).toLocaleDateString()}</p>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteLeadSource(source.id)}
+                              className="text-red-600 hover:text-red-800 px-3 py-1 rounded transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                      <div className="text-gray-400 text-4xl mb-2">📋</div>
+                      <h4 className="text-gray-600 font-medium mb-2">No Lead Sources Added Yet</h4>
+                      <p className="text-gray-500 text-sm">
+                        Start by adding your current lead generation channels. Examples: LinkedIn outreach, referrals, content marketing, networking events, etc.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -253,31 +347,21 @@ const Step3 = () => {
                 </p>
                 
                 <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-blue-800 mb-3">🤖 AI Lead Source Recommendations</h4>
-                    <p className="text-blue-700 text-sm mb-4">
-                      Get personalized lead source suggestions based on your business type, target market, and current channels.
-                    </p>
-                    
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button 
                       onClick={handleAILeadStrategy}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors hover:bg-blue-700"
+                      className="text-black px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
+                      style={{ backgroundColor: '#d7df21' }}
                     >
-                      🚀 Get AI Recommendations
+                      🤖 Get AI Recommendations
                     </button>
-                  </div>
-                  
-                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                    <h4 className="font-semibold text-yellow-800 mb-3">💡 Manual Research</h4>
-                    <p className="text-yellow-700 text-sm mb-4">
-                      Research and add potential lead sources you've identified through market analysis or competitor research.
-                    </p>
                     
                     <button 
                       onClick={() => {
                         alert('Add Potential Lead Source modal coming soon!');
                       }}
-                      className="bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium transition-colors hover:bg-yellow-700"
+                      className="text-white px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
+                      style={{ backgroundColor: '#fbae42' }}
                     >
                       + Add Potential Source
                     </button>
@@ -302,9 +386,9 @@ const Step3 = () => {
                 </p>
                 
                 <div className="space-y-4">
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <h4 className="font-semibold text-purple-800 mb-3">🎯 Lead Scoring Criteria</h4>
-                    <p className="text-purple-700 text-sm mb-4">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-800 mb-3">🎯 Lead Scoring Criteria</h4>
+                    <p className="text-gray-700 text-sm mb-4">
                       Define how leads will be scored in your HighLevel system based on source quality, engagement, and fit.
                     </p>
                     
@@ -326,17 +410,13 @@ const Step3 = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                    <h4 className="font-semibold text-orange-800 mb-3">📊 Tracking Configuration</h4>
-                    <p className="text-orange-700 text-sm mb-4">
-                      Set up proper attribution and tracking tags for each lead source in HighLevel.
-                    </p>
-                    
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button 
                       onClick={() => {
                         alert('HighLevel configuration guide coming soon!');
                       }}
-                      className="bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors hover:bg-orange-700"
+                      className="text-white px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
+                      style={{ backgroundColor: '#fbae42' }}
                     >
                       📋 Generate Setup Checklist
                     </button>
@@ -466,6 +546,62 @@ const Step3 = () => {
           onSave={handleSaveApiKey}
           currentApiKey={aiService.getApiKey()}
         />
+
+        {/* Add Lead Source Modal */}
+        {showAddLeadSourceModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Add Current Lead Source</h3>
+                  <button
+                    onClick={() => setShowAddLeadSourceModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <p className="text-gray-600 mb-6">
+                  Select the lead generation channels you're currently using. Choose all that apply.
+                </p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                  {leadSourceOptions.map((source) => (
+                    <button
+                      key={source}
+                      onClick={() => handleAddCurrentLeadSource(source)}
+                      className="text-left p-3 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                      disabled={currentLeadSources.some(existing => existing.name === source)}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className={`font-medium ${
+                          currentLeadSources.some(existing => existing.name === source) 
+                            ? 'text-gray-400' 
+                            : 'text-gray-900'
+                        }`}>
+                          {source}
+                        </span>
+                        {currentLeadSources.some(existing => existing.name === source) && (
+                          <span className="text-green-600 text-sm">✓ Added</span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => setShowAddLeadSourceModal(false)}
+                    className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
