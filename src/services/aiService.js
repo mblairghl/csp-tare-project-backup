@@ -1,7 +1,6 @@
-// AI Service with Mock Responses (No API Key Required)
 class AIService {
   constructor() {
-    // No API key needed - using mock responses
+    // Mock service - no API calls needed
   }
 
   setApiKey(apiKey) {
@@ -48,80 +47,80 @@ class AIService {
           "Predictable revenue growth",
           "Industry recognition and authority"
         ],
-        current_status_quo_solution: "DIY approach with scattered tools and manual processes",
-        triggering_event: "Revenue plateau or major operational breakdown",
-        platforms_active_on: ["LinkedIn", "Instagram", "Industry Forums"],
+        current_status_quo_solution: "Manual processes and personal involvement in everything",
+        triggering_event: "Realizing they can't scale without systems",
+        platforms_active_on: ["LinkedIn", "Facebook Groups", "Industry Forums"],
         tools_currently_used: ["Basic CRM", "Email marketing", "Accounting software"],
         influencers_they_follow: ["Business coaches", "Industry thought leaders"],
         communication_style: "Direct, results-focused, values efficiency"
       },
       {
         id: `persona_${Date.now()}_2`,
-        name: "Mike the Methodical Manager",
-        summary: "Detail-oriented professional seeking structured growth frameworks",
+        name: "Marcus the Revenue Optimizer",
+        summary: "Established business owner looking to optimize and systematize revenue generation",
         demographics: {
           age_range: "40-55",
-          occupation: "Senior Manager/Director",
-          income_level: "$75K-$200K annually",
-          location: "Metropolitan areas"
+          occupation: "CEO/Founder",
+          income_level: "$250K-$1M annually",
+          location: "Major metropolitan areas"
         },
         pain_points: [
-          "Lack of clear growth strategy",
-          "Inconsistent team performance",
-          "Difficulty measuring ROI"
+          "Inconsistent revenue streams",
+          "Too dependent on personal sales efforts",
+          "Lack of predictable growth systems"
         ],
         goals: [
-          "Implement proven systems",
-          "Achieve consistent results",
-          "Advance to executive level"
+          "Create predictable revenue systems",
+          "Reduce personal involvement in sales",
+          "Build a sellable business asset"
         ],
-        problem_that_bothers_most: "Uncertainty about which strategies actually work",
-        primary_goal_to_achieve: "Implement systematic approaches that deliver predictable results",
+        problem_that_bothers_most: "Revenue depends too heavily on personal effort and relationships",
+        primary_goal_to_achieve: "Build systematic, scalable revenue generation that works without constant personal involvement",
         benefits_they_crave: [
-          "Clear frameworks and processes",
-          "Measurable outcomes",
-          "Professional advancement"
+          "Predictable monthly revenue",
+          "Business that runs without them",
+          "Higher business valuation"
         ],
-        current_status_quo_solution: "Trial and error with various business books and courses",
-        triggering_event: "Performance review or new role requirements",
-        platforms_active_on: ["LinkedIn", "Professional associations", "Webinars"],
-        tools_currently_used: ["Project management tools", "Analytics platforms", "Team collaboration software"],
-        influencers_they_follow: ["Management consultants", "Business strategists"],
-        communication_style: "Analytical, data-driven, prefers detailed explanations"
+        current_status_quo_solution: "Personal networking and relationship-based sales",
+        triggering_event: "Realizing the business can't grow beyond their personal capacity",
+        platforms_active_on: ["LinkedIn", "Industry conferences", "Mastermind groups"],
+        tools_currently_used: ["Advanced CRM", "Marketing automation", "Analytics tools"],
+        influencers_they_follow: ["Revenue strategists", "Business exit experts"],
+        communication_style: "Strategic, data-driven, focused on ROI"
       },
       {
         id: `persona_${Date.now()}_3`,
-        name: "Lisa the Learning Leader",
-        summary: "Growth-minded professional committed to continuous improvement",
+        name: "Jennifer the Authority Builder",
+        summary: "Expert consultant wanting to establish thought leadership and premium positioning",
         demographics: {
-          age_range: "30-40",
-          occupation: "Team Lead/Small Business Owner",
-          income_level: "$50K-$150K annually",
-          location: "Diverse geographic areas"
+          age_range: "30-50",
+          occupation: "Consultant/Coach",
+          income_level: "$75K-$300K annually",
+          location: "Diverse geographic locations"
         },
         pain_points: [
-          "Information overload from too many sources",
-          "Difficulty implementing what she learns",
-          "Limited budget for premium solutions"
+          "Competing on price instead of value",
+          "Difficulty standing out in crowded market",
+          "Inconsistent client acquisition"
         ],
         goals: [
-          "Build sustainable business practices",
-          "Develop leadership skills",
-          "Create multiple income streams"
+          "Establish thought leadership position",
+          "Command premium pricing",
+          "Build a recognized personal brand"
         ],
-        problem_that_bothers_most: "Knowing what to do but struggling with consistent execution",
-        primary_goal_to_achieve: "Transform knowledge into actionable, profitable systems",
+        problem_that_bothers_most: "Being seen as just another service provider instead of a trusted authority",
+        primary_goal_to_achieve: "Become the go-to expert in their niche with premium pricing power",
         benefits_they_crave: [
-          "Step-by-step implementation guides",
-          "Community support and accountability",
-          "Affordable, comprehensive solutions"
+          "Industry recognition and respect",
+          "Premium pricing without pushback",
+          "Inbound leads from reputation"
         ],
-        current_status_quo_solution: "Free content, online courses, and networking groups",
-        triggering_event: "Career transition or business growth opportunity",
-        platforms_active_on: ["Facebook groups", "YouTube", "Podcasts"],
-        tools_currently_used: ["Free/basic versions of business tools", "Social media", "Online learning platforms"],
-        influencers_they_follow: ["Online educators", "Success coaches"],
-        communication_style: "Enthusiastic, collaborative, values community input"
+        current_status_quo_solution: "Traditional marketing and networking",
+        triggering_event: "Losing a deal to a less qualified but better-positioned competitor",
+        platforms_active_on: ["LinkedIn", "Industry publications", "Speaking events"],
+        tools_currently_used: ["Content management", "Social media tools", "Email marketing"],
+        influencers_they_follow: ["Thought leaders", "Personal branding experts"],
+        communication_style: "Professional, educational, relationship-focused"
       }
     ];
   }
@@ -129,734 +128,178 @@ class AIService {
   async generateContentSuggestions(businessInfo) {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     // Get existing content from localStorage
     const existingContent = JSON.parse(localStorage.getItem('contentAssets') || '[]');
     
-    console.log('DEBUG - AI Service - Content found:', existingContent);
-    console.log('DEBUG - AI Service - Content length:', existingContent.length);
-    
     if (existingContent.length === 0) {
       return {
-        message: "No content found to analyze. Please add some content first using the 'Add New Content Asset' button."
+        message: "No content found to analyze. Please add some content first.",
+        contentAnalysis: [],
+        totalItems: 0
       };
     }
-    
-    // Analyze each piece of content and suggest funnel stage placement
-    const suggestions = existingContent.map((content, index) => {
-      console.log('DEBUG - Analyzing content:', content);
+
+    // Mock analysis of existing content
+    const contentAnalysis = existingContent.map((content, index) => {
+      const stages = [
+        'discover-possibility',
+        'resonate-mission', 
+        'envision-transformation',
+        'trust-process',
+        'step-into-authority'
+      ];
       
-      // Simple AI logic to suggest funnel stage based on content type and title
-      let suggestedStage = 'discover-possibility'; // default
-      let reasoning = '';
+      const stageNames = [
+        'Discover the Possibility',
+        'Resonate with the Mission',
+        'Envision Their Transformation', 
+        'Trust the Process',
+        'Step Into Authority'
+      ];
+
+      // Assign content to stages based on content type and title
+      let suggestedStage = stages[index % stages.length];
+      let stageName = stageNames[index % stageNames.length];
       
-      const title = (content.name || content.title || '').toLowerCase();
-      const description = content.description?.toLowerCase() || '';
-      const type = content.type?.toLowerCase() || '';
-      
-      console.log('DEBUG - Title:', title, 'Type:', type);
-      
-      // AI logic for stage placement
-      if (title.includes('sign') || title.includes('problem') || title.includes('struggle') || 
-          title.includes('challenge') || title.includes('mistake') || title.includes('why') ||
-          type.includes('blog') || type.includes('article')) {
+      // More intelligent stage assignment based on content
+      if (content.title.toLowerCase().includes('sign') || content.title.toLowerCase().includes('problem')) {
         suggestedStage = 'discover-possibility';
-        reasoning = 'This content helps prospects recognize problems and discover new possibilities.';
-      } else if (title.includes('story') || title.includes('mission') || title.includes('believe') || 
-                 title.includes('philosophy') || title.includes('about') || title.includes('journey')) {
+        stageName = 'Discover the Possibility';
+      } else if (content.title.toLowerCase().includes('solution') || content.title.toLowerCase().includes('method')) {
         suggestedStage = 'resonate-mission';
-        reasoning = 'This content builds emotional connection and shares your mission/story.';
-      } else if (title.includes('result') || title.includes('success') || title.includes('case study') || 
-                 title.includes('transformation') || title.includes('before') || title.includes('after') ||
-                 type.includes('case study') || type.includes('testimonial')) {
+        stageName = 'Resonate with the Mission';
+      } else if (content.title.toLowerCase().includes('result') || content.title.toLowerCase().includes('success')) {
         suggestedStage = 'envision-transformation';
-        reasoning = 'This content shows prospects the results and transformation possible.';
-      } else if (title.includes('how') || title.includes('method') || title.includes('process') || 
-                 title.includes('system') || title.includes('framework') || title.includes('guide') ||
-                 type.includes('guide') || type.includes('webinar')) {
+        stageName = 'Envision Their Transformation';
+      } else if (content.title.toLowerCase().includes('process') || content.title.toLowerCase().includes('system')) {
         suggestedStage = 'trust-process';
-        reasoning = 'This content demonstrates your methodology and builds trust in your process.';
-      } else if (title.includes('ready') || title.includes('start') || title.includes('book') || 
-                 title.includes('call') || title.includes('consultation') || title.includes('apply') ||
-                 type.includes('landing page') || type.includes('sales page')) {
+        stageName = 'Trust the Process';
+      } else if (content.title.toLowerCase().includes('start') || content.title.toLowerCase().includes('action')) {
         suggestedStage = 'step-into-authority';
-        reasoning = 'This content encourages prospects to take action and engage with you.';
+        stageName = 'Step Into Authority';
       }
-      
-      const result = {
-        id: content.id,
-        title: content.name || content.title,
-        description: content.description || 'No description provided',
-        type: content.type,
-        suggestedStage,
-        reasoning,
-        confidence: 'High' // Could be High, Medium, Low based on matching criteria
+
+      return {
+        contentId: content.id,
+        contentTitle: content.title,
+        contentType: content.type,
+        suggestedStage: suggestedStage,
+        stageName: stageName,
+        reasoning: `This ${content.type.toLowerCase()} appears to be focused on helping prospects ${stageName.toLowerCase()}.`,
+        confidence: 'High'
       };
-      
-      console.log('DEBUG - Analysis result:', result);
-      return result;
     });
-    
-    const finalResult = {
-      contentAnalysis: suggestions,
-      totalItems: existingContent.length,
-      message: `Analyzed ${existingContent.length} content item(s) and provided placement suggestions.`
+
+    return {
+      message: `Analyzed ${existingContent.length} content item(s) and provided placement suggestions.`,
+      contentAnalysis: contentAnalysis,
+      totalItems: existingContent.length
     };
-    
-    console.log('DEBUG - Final AI result:', finalResult);
-    return finalResult;
   }
 
-  async generateGapSuggestions(businessInfo) {
+  async generateGapAnalysis(businessInfo) {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Get existing funnel stage content
+    const funnelStages = JSON.parse(localStorage.getItem('funnelStages') || '{}');
     
-    const gapStages = businessInfo.gaps || [];
-    const suggestions = {};
-    
-    const allSuggestions = {
-      "discover-possibility": [
-        {
-          title: "The Business Growth Reality Check Quiz",
-          description: "Interactive assessment helping prospects identify their current growth stage and biggest obstacles.",
-          type: "Interactive Quiz"
-        },
-        {
-          title: "3 Myths About Business Scaling That Keep You Stuck",
-          description: "Myth-busting article that challenges common misconceptions about business growth.",
-          type: "Article"
-        },
-        {
-          title: "Is Your Business Ready for Systematic Growth?",
-          description: "Checklist-style content helping prospects evaluate their readiness for transformation.",
-          type: "Checklist"
-        },
-        {
-          title: "The Entrepreneur's Dilemma: Growth vs. Control",
-          description: "Thought-provoking piece about the challenges of scaling while maintaining quality.",
-          type: "Blog Post"
-        }
-      ],
-      "resonate-mission": [
-        {
-          title: "Why We're Obsessed with Business Systems",
-          description: "Behind-the-scenes look at the passion and purpose driving our systematic approach.",
-          type: "Behind the Scenes"
-        },
-        {
-          title: "The Authority Revenue Philosophy",
-          description: "Core principles and beliefs that guide our approach to business transformation.",
-          type: "Manifesto"
-        },
-        {
-          title: "Our Promise: No More Business Guesswork",
-          description: "Clear statement of commitment to providing systematic, proven business solutions.",
-          type: "Value Proposition"
-        },
-        {
-          title: "From Overwhelmed to Organized: Our Story",
-          description: "Founder's journey from business chaos to systematic success.",
-          type: "Origin Story"
-        }
-      ],
-      "envision-transformation": [
-        {
-          title: "ROI Calculator: Your Potential Business Growth",
-          description: "Interactive tool showing prospects their potential return on investment with systematic approaches.",
-          type: "ROI Calculator"
-        },
-        {
-          title: "Success Timeline: What to Expect in Your First Year",
-          description: "Month-by-month breakdown of typical transformation milestones and achievements.",
-          type: "Timeline"
-        },
-        {
-          title: "The Authority Revenue Transformation Gallery",
-          description: "Visual showcase of client transformations with specific metrics and outcomes.",
-          type: "Success Gallery"
-        },
-        {
-          title: "Your Business in 12 Months: A Visualization Exercise",
-          description: "Guided visualization helping prospects imagine their transformed business reality.",
-          type: "Guided Exercise"
-        }
-      ],
-      "trust-process": [
-        {
-          title: "The Authority Revenue Methodology Explained",
-          description: "Comprehensive breakdown of our proven 9-step framework with supporting research.",
-          type: "Methodology Guide"
-        },
-        {
-          title: "Credentials & Certifications: Why Trust Our System",
-          description: "Detailed overview of qualifications, experience, and third-party validations.",
-          type: "Credentials Page"
-        },
-        {
-          title: "Risk Reversal: Our Guarantee to You",
-          description: "Clear explanation of guarantees, support, and risk mitigation for new clients.",
-          type: "Guarantee"
-        },
-        {
-          title: "FAQ: Everything You Need to Know",
-          description: "Comprehensive answers to common questions about the system and implementation.",
-          type: "FAQ"
-        }
-      ],
-      "step-into-authority": [
-        {
-          title: "Start Your Authority Revenue Journey Today",
-          description: "Primary call-to-action page with clear next steps and immediate value.",
-          type: "CTA Page"
-        },
-        {
-          title: "Limited Time: Authority Revenue Toolkit Bonus",
-          description: "Urgency-driven offer page with additional incentives for immediate action.",
-          type: "Offer Page"
-        },
-        {
-          title: "Schedule Your Free Strategy Session",
-          description: "No-pressure consultation booking page with clear value and next steps.",
-          type: "Booking Page"
-        },
-        {
-          title: "Join the Authority Revenue Community",
-          description: "Community-focused entry point for prospects who prefer group learning environments.",
-          type: "Community Page"
-        }
-      ]
+    const stageInfo = {
+      'discover-possibility': { name: 'Discover the Possibility', target: 2 },
+      'resonate-mission': { name: 'Resonate with the Mission', target: 2 },
+      'envision-transformation': { name: 'Envision Their Transformation', target: 2 },
+      'trust-process': { name: 'Trust the Process', target: 2 },
+      'step-into-authority': { name: 'Step Into Authority', target: 2 }
     };
-    
-    // Only return suggestions for gap stages
-    gapStages.forEach(stage => {
-      if (allSuggestions[stage]) {
-        suggestions[stage] = allSuggestions[stage];
+
+    const gaps = [];
+    const suggestions = [];
+
+    Object.keys(stageInfo).forEach((stageKey, index) => {
+      const stageContent = funnelStages[stageKey] || [];
+      const stageData = stageInfo[stageKey];
+      
+      if (stageContent.length < stageData.target) {
+        const needed = stageData.target - stageContent.length;
+        gaps.push({
+          stage: stageKey,
+          stageName: stageData.name,
+          currentCount: stageContent.length,
+          targetCount: stageData.target,
+          needed: needed
+        });
+
+        // Generate suggestions for this gap
+        const stageSuggestions = this.generateStageSuggestions(stageKey, stageData.name, needed);
+        suggestions.push(...stageSuggestions);
       }
     });
-    
-    return suggestions;
+
+    if (gaps.length === 0) {
+      return {
+        message: "Great job! All funnel stages have sufficient content (2+ items each).",
+        gaps: [],
+        suggestions: [],
+        overallStatus: "Complete"
+      };
+    }
+
+    return {
+      message: `Found ${gaps.length} stage(s) that need more content. Here are targeted suggestions:`,
+      gaps: gaps,
+      suggestions: suggestions,
+      overallStatus: "Needs Content"
+    };
   }
 
-  async generatePersonas(businessInfo) {
-    if (!this.hasApiKey()) {
-      throw new Error('OpenAI API key not set');
-    }
-
-    const prompt = `Create 3 detailed customer personas for: ${businessInfo.business || 'Business coaching and consulting services'}
-
-Generate personas as a JSON array with this structure:
-{
-  "name": "Persona Name",
-  "summary": "Brief summary",
-  "demographics": {
-    "age_range": "Age range",
-    "occupation": "Occupation",
-    "income_level": "Income level",
-    "location": "Location"
-  },
-  "pain_points": ["3 specific pain points"],
-  "goals": ["3 primary goals"],
-  "problem_that_bothers_most": "Biggest problem",
-  "primary_goal_to_achieve": "Top goal",
-  "benefits_they_crave": ["3 benefits they want"],
-  "current_status_quo_solution": "Current solution",
-  "triggering_event": "What makes them buy",
-  "platforms_active_on": ["3 platforms"],
-  "tools_currently_used": ["3 tools"],
-  "influencers_they_follow": ["2 influencer types"],
-  "communication_style": "Communication preference"
-}
-
-Focus on entrepreneurs and business owners seeking growth. Make personas realistic and actionable.
-
-Return ONLY valid JSON array, no extra text.`;
-
-    try {
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a business strategist. Return only valid JSON arrays.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          max_tokens: 2000,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices[0].message.content.trim();
-      
-      // Parse the JSON response
-      let personas;
-      try {
-        personas = JSON.parse(content);
-      } catch (parseError) {
-        // If JSON parsing fails, try to extract JSON from the response
-        const jsonMatch = content.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-          personas = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('Invalid JSON response from API');
-        }
-      }
-
-      // Ensure we have an array of personas
-      if (!Array.isArray(personas)) {
-        throw new Error('API did not return an array of personas');
-      }
-
-      // Add unique IDs to each persona and ensure all required fields exist
-      return personas.map((persona, index) => ({
-        id: `persona_${Date.now()}_${index}`,
-        name: persona.name || `Persona ${index + 1}`,
-        summary: persona.summary || '',
-        demographics: persona.demographics || {},
-        pain_points: persona.pain_points || [],
-        goals: persona.goals || [],
-        challenges: persona.challenges || [],
-        platforms_active_on: persona.platforms_active_on || [],
-        problem_that_bothers_most: persona.problem_that_bothers_most || '',
-        pains_that_irritate: persona.pains_that_irritate || [],
-        primary_goal_to_achieve: persona.primary_goal_to_achieve || '',
-        benefits_they_crave: persona.benefits_they_crave || [],
-        current_status_quo_solution: persona.current_status_quo_solution || '',
-        context_about_other_solutions: persona.context_about_other_solutions || '',
-        triggering_event: persona.triggering_event || '',
-        barriers_that_slow_them_down: persona.barriers_that_slow_them_down || [],
-        advisors_who_impact_decisions: persona.advisors_who_impact_decisions || [],
-        tools_currently_used: persona.tools_currently_used || [],
-        communities_they_know_about: persona.communities_they_know_about || [],
-        content_they_consume: persona.content_they_consume || [],
-        influencers_they_follow: persona.influencers_they_follow || [],
-        communication_style: persona.communication_style || ''
-      }));
-
-    } catch (error) {
-      console.error('Error calling OpenAI API:', error);
-      throw error;
-    }
-  }
-
-  async generateFunnelMap(businessInfo) {
-    if (!this.hasApiKey()) {
-      throw new Error('OpenAI API key not set');
-    }
-
-    const prompt = `Based on the following business information, create a comprehensive marketing funnel map:
-
-Business: ${businessInfo.business || '[Business description needed]'}
-Signature Offer: ${businessInfo.offer || '[Signature offer needed]'}
-Ideal Clients: ${businessInfo.personas || '[Personas from Step 1 needed]'}
-
-Provide content ideas for each funnel stage as a JSON object:
-{
-  "awareness": [
-    {"title": "Content Title", "description": "Brief description", "type": "blog/social/podcast"}
-  ],
-  "interest": [
-    {"title": "Content Title", "description": "Brief description", "type": "lead magnet/email/webinar"}
-  ],
-  "consideration": [
-    {"title": "Content Title", "description": "Brief description", "type": "case study/testimonial/demo"}
-  ],
-  "decision": [
-    {"title": "Content Title", "description": "Brief description", "type": "sales page/consultation/proposal"}
-  ],
-  "retention": [
-    {"title": "Content Title", "description": "Brief description", "type": "onboarding/upsell/referral"}
-  ]
-}
-
-Provide 3-5 specific content pieces for each stage with actionable titles and descriptions.`;
-
-    try {
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert marketing strategist. Always respond with valid JSON format.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          max_tokens: 2000,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices[0].message.content;
-      
-      try {
-        const funnelMap = JSON.parse(content);
-        return funnelMap;
-      } catch (parseError) {
-        console.error('Failed to parse AI response as JSON:', content);
-        throw new Error('AI response was not in the expected format');
-      }
-    } catch (error) {
-      console.error('AI Service Error:', error);
-      throw error;
-    }
-  }
-
-  async generateLeadStrategy(businessInfo) {
-    if (!this.hasApiKey()) {
-      throw new Error('OpenAI API key not set');
-    }
-
-    const prompt = `Create a lead intelligence strategy based on:
-
-Business: ${businessInfo.business || '[Business description needed]'}
-Ideal Clients: ${businessInfo.personas || '[Personas needed]'}
-Current Lead Sources: ${businessInfo.leadSources || '[Current sources needed]'}
-
-Provide recommendations as JSON:
-{
-  "topLeadSources": [
-    {"source": "Source Name", "description": "Why this source works", "priority": "High/Medium/Low"}
-  ],
-  "qualificationCriteria": [
-    {"criteria": "Qualification point", "description": "How to assess this"}
-  ],
-  "trackingMetrics": [
-    {"metric": "Metric name", "description": "What to measure and why"}
-  ]
-}`;
-
-    return this.makeAIRequest(prompt, 'lead intelligence expert');
-  }
-
-  async generateContentSuggestions(businessInfo) {
-    if (!this.hasApiKey()) {
-      throw new Error('OpenAI API key not set');
-    }
-
-    const prompt = `Based on the following business information, suggest content for each funnel stage:
-
-Business: ${businessInfo.business || 'Business coaching and consulting services'}
-Signature Offer: ${businessInfo.offer || 'Authority Revenue Toolkit - systematic business growth framework'}
-Ideal Clients: ${businessInfo.personas || 'Business owners and entrepreneurs seeking systematic growth'}
-
-Create content suggestions for these 5 funnel stages as JSON:
-{
-  "discover-possibility": [
-    {"title": "Content Title", "description": "Brief description", "type": "Blog Post"}
-  ],
-  "resonate-mission": [
-    {"title": "Content Title", "description": "Brief description", "type": "Video"}
-  ],
-  "envision-transformation": [
-    {"title": "Content Title", "description": "Brief description", "type": "Case Study"}
-  ],
-  "trust-process": [
-    {"title": "Content Title", "description": "Brief description", "type": "Webinar"}
-  ],
-  "step-into-authority": [
-    {"title": "Content Title", "description": "Brief description", "type": "Sales Page"}
-  ]
-}
-
-Provide 2-3 specific, actionable content pieces for each stage. Focus on business growth and authority building.
-
-Return ONLY valid JSON, no extra text.`;
-
-    try {
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a content marketing strategist. Return only valid JSON.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          max_tokens: 1500,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices[0].message.content.trim();
-      
-      try {
-        const suggestions = JSON.parse(content);
-        return suggestions;
-      } catch (parseError) {
-        // Try to extract JSON from the response
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          return JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('Invalid JSON response from API');
-        }
-      }
-    } catch (error) {
-      console.error('Error generating content suggestions:', error);
-      throw error;
-    }
-  }
-
-  async generateGapAnalysis(currentContent, businessInfo) {
-    if (!this.hasApiKey()) {
-      throw new Error('OpenAI API key not set');
-    }
-
-    const contentSummary = Object.entries(currentContent).map(([stage, items]) => 
-      `${stage}: ${items.length} items (${items.map(item => item.title).join(', ')})`
-    ).join('\n');
-
-    const prompt = `Analyze the current content distribution and provide gap analysis:
-
-Business: ${businessInfo.business || 'Business coaching and consulting services'}
-Current Content Distribution:
-${contentSummary}
-
-Target: At least 2 content items per stage
-
-Provide analysis as JSON:
-{
-  "overallScore": "Percentage complete (0-100)",
-  "gaps": [
-    {"stage": "Stage name", "currentCount": 0, "recommendedCount": 2, "priority": "High/Medium/Low"}
-  ],
-  "recommendations": [
-    {"stage": "Stage name", "suggestion": "Specific recommendation", "contentType": "Recommended type"}
-  ],
-  "nextSteps": [
-    "Prioritized action item 1",
-    "Prioritized action item 2"
-  ]
-}
-
-Focus on business growth content strategy and authority building.
-
-Return ONLY valid JSON, no extra text.`;
-
-    try {
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a content strategy analyst. Return only valid JSON.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          max_tokens: 1000,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices[0].message.content.trim();
-      
-      try {
-        const analysis = JSON.parse(content);
-        return analysis;
-      } catch (parseError) {
-        // Try to extract JSON from the response
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          return JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('Invalid JSON response from API');
-        }
-      }
-    } catch (error) {
-      console.error('Error generating gap analysis:', error);
-      throw error;
-    }
-  }
-
-  async generateGapSuggestions(businessInfo) {
-    if (!this.hasApiKey()) {
-      throw new Error('OpenAI API key not set');
-    }
-
-    const gapStages = businessInfo.gaps || [];
-    const stageDescriptions = {
-      'discover-possibility': 'They become aware that a better way exists',
-      'resonate-mission': 'They connect emotionally with your message and positioning',
-      'envision-transformation': 'They see the tangible results of working with you',
-      'trust-process': 'They gain confidence in your ability to deliver',
-      'step-into-authority': 'They are ready to take action and invest'
+  generateStageSuggestions(stageKey, stageName, needed) {
+    const suggestionTemplates = {
+      'discover-possibility': [
+        { type: 'Blog Post', title: '5 Signs Your Business Has Hit a Growth Ceiling', description: 'Help prospects recognize when they need systematic solutions.' },
+        { type: 'Video', title: 'The Hidden Costs of Manual Business Processes', description: 'Eye-opening content about inefficiencies they might not see.' },
+        { type: 'Infographic', title: 'Business Growth Bottlenecks Checklist', description: 'Visual guide to identifying growth limitations.' },
+        { type: 'Podcast', title: 'Why Smart Entrepreneurs Are Stuck in Survival Mode', description: 'Interview-style content exploring common challenges.' }
+      ],
+      'resonate-mission': [
+        { type: 'Article', title: 'The Authority Revenue Method: Our Proven Framework', description: 'Introduce your systematic approach to business growth.' },
+        { type: 'Video', title: 'Why Most Business Advice Fails (And What Works Instead)', description: 'Position your unique methodology against common approaches.' },
+        { type: 'Case Study', title: 'How We Helped [Client] Build Systematic Revenue', description: 'Real example of your methodology in action.' },
+        { type: 'Webinar', title: 'The 3 Pillars of Scalable Business Systems', description: 'Educational content that showcases your expertise.' }
+      ],
+      'envision-transformation': [
+        { type: 'Case Study', title: 'From Chaos to $1M: A Complete Business Transformation', description: 'Detailed success story showing the end result.' },
+        { type: 'Video', title: 'A Day in the Life: Business Owner with Systematic Revenue', description: 'Show what life looks like after transformation.' },
+        { type: 'Testimonial', title: 'Client Success Stories: Real Results from Real People', description: 'Multiple short testimonials showing various outcomes.' },
+        { type: 'ROI Calculator', title: 'Calculate Your Revenue Potential with Systems', description: 'Interactive tool showing potential transformation.' }
+      ],
+      'trust-process': [
+        { type: 'Behind-the-Scenes', title: 'Inside Our Client Onboarding Process', description: 'Show the professional systems and support they\'ll receive.' },
+        { type: 'FAQ', title: 'Common Questions About Working with Us', description: 'Address concerns and build confidence in your process.' },
+        { type: 'Credentials', title: 'Our Track Record: Results and Recognition', description: 'Showcase experience, certifications, and client outcomes.' },
+        { type: 'Process Guide', title: 'What to Expect: Your Journey to Systematic Revenue', description: 'Step-by-step overview of the client experience.' }
+      ],
+      'step-into-authority': [
+        { type: 'Sales Page', title: 'Ready to Build Your Revenue System? Start Here', description: 'Clear call-to-action for prospects ready to invest.' },
+        { type: 'Application', title: 'Apply for Strategic Business Growth Consultation', description: 'Qualification process for serious prospects.' },
+        { type: 'Urgency Content', title: 'Limited Spots: Why Timing Matters for Growth', description: 'Create appropriate urgency for decision-making.' },
+        { type: 'Guarantee', title: 'Our Results Promise: What We Guarantee', description: 'Risk-reversal content to overcome final objections.' }
+      ]
     };
 
-    const prompt = `Generate content suggestions to fill gaps in these specific funnel stages:
-
-Business: ${businessInfo.business || 'Business coaching and consulting services'}
-Signature Offer: ${businessInfo.offer || 'Authority Revenue Toolkit - systematic business growth framework'}
-Ideal Clients: ${businessInfo.personas || 'Business owners and entrepreneurs seeking systematic growth'}
-
-Focus ONLY on these stages that need more content:
-${gapStages.map(stage => `- ${stage.replace(/-/g, ' ')}: ${stageDescriptions[stage]}`).join('\n')}
-
-Create 3-4 specific content suggestions for ONLY the gap stages as JSON:
-{
-${gapStages.map(stage => `  "${stage}": [
-    {"title": "Content Title", "description": "Brief description", "type": "Content Type"}
-  ]`).join(',\n')}
-}
-
-Focus on high-impact content that addresses the specific purpose of each stage. Make titles actionable and descriptions compelling.
-
-Return ONLY valid JSON, no extra text.`;
-
-    try {
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a content marketing strategist focused on filling content gaps. Return only valid JSON.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          max_tokens: 1500,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices[0].message.content.trim();
-      
-      try {
-        const suggestions = JSON.parse(content);
-        return suggestions;
-      } catch (parseError) {
-        // Try to extract JSON from the response
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          return JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('Invalid JSON response from API');
-        }
-      }
-    } catch (error) {
-      console.error('Error generating gap suggestions:', error);
-      throw error;
-    }
-  }
-
-  async makeAIRequest(prompt, systemRole = 'business expert') {
-
-    try {
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert ${systemRole}. Always respond with valid JSON format when requested.`
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          max_tokens: 2000,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices[0].message.content;
-      
-      try {
-        return JSON.parse(content);
-      } catch (parseError) {
-        console.error('Failed to parse AI response as JSON:', content);
-        throw new Error('AI response was not in the expected format');
-      }
-    } catch (error) {
-      console.error('AI Service Error:', error);
-      throw error;
-    }
+    const templates = suggestionTemplates[stageKey] || [];
+    return templates.slice(0, needed + 1).map((template, index) => ({
+      id: `suggestion_${stageKey}_${Date.now()}_${index}`,
+      stage: stageKey,
+      stageName: stageName,
+      type: template.type,
+      title: template.title,
+      description: template.description,
+      priority: index === 0 ? 'High' : 'Medium'
+    }));
   }
 }
 
-export default new AIService();
+const aiService = new AIService();
+export default aiService;
 
