@@ -188,7 +188,7 @@ const Step3 = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6">
         {/* Component 1: Step Progress Indicator */}
         <div className="text-sm text-gray-500 mb-2">
           STEP 3 OF 9
@@ -551,10 +551,10 @@ const Step3 = () => {
         {/* Add Lead Source Modal */}
         {showAddLeadSourceModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900">Add Current Lead Source</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">Add Your Lead Source</h3>
                   <button
                     onClick={() => setShowAddLeadSourceModal(false)}
                     className="text-gray-400 hover:text-gray-600"
@@ -563,42 +563,141 @@ const Step3 = () => {
                   </button>
                 </div>
                 
-                <p className="text-gray-600 mb-6">
-                  Select the lead generation channels you're currently using. Choose all that apply.
-                </p>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-                  {leadSourceOptions.map((source) => (
-                    <button
-                      key={source}
-                      onClick={() => handleAddCurrentLeadSource(source)}
-                      className="text-left p-3 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                      disabled={currentLeadSources.some(existing => existing.name === source)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className={`font-medium ${
-                          currentLeadSources.some(existing => existing.name === source) 
-                            ? 'text-gray-400' 
-                            : 'text-gray-900'
-                        }`}>
-                          {source}
-                        </span>
-                        {currentLeadSources.some(existing => existing.name === source) && (
-                          <span className="text-green-600 text-sm">✓ Added</span>
-                        )}
+                <form className="space-y-4">
+                  {/* Type Dropdown */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Type <span className="text-red-500">*</span>
+                    </label>
+                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <option value="">Select a type...</option>
+                      <option value="Social Media">Social Media</option>
+                      <option value="Content Marketing">Content Marketing</option>
+                      <option value="Email Marketing">Email Marketing</option>
+                      <option value="Paid Advertising">Paid Advertising</option>
+                      <option value="SEO/Organic Search">SEO/Organic Search</option>
+                      <option value="Referrals">Referrals</option>
+                      <option value="Networking">Networking</option>
+                      <option value="Speaking">Speaking</option>
+                      <option value="Partnerships">Partnerships</option>
+                      <option value="Direct Mail">Direct Mail</option>
+                      <option value="Cold Outreach">Cold Outreach</option>
+                      <option value="Webinars">Webinars</option>
+                      <option value="Podcasts">Podcasts</option>
+                      <option value="Trade Shows">Trade Shows</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  {/* Lead Source Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Lead Source Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., LinkedIn Content Strategy"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      placeholder="Brief description of this lead source..."
+                      rows="3"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    ></textarea>
+                  </div>
+
+                  {/* Lead Source Intelligence Section */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                      📊 Lead Source Intelligence
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Channel Category */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Channel Category <span className="text-red-500">*</span>
+                          <span className="text-xs text-gray-500 block">(Required for dashboard insights)</span>
+                        </label>
+                        <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                          <option value="">Select channel...</option>
+                          <option value="Organic">Organic (SEO, Content, Social)</option>
+                          <option value="Paid">Paid (Ads, Sponsored Content)</option>
+                          <option value="Referral">Referral (Partners, Word-of-mouth)</option>
+                          <option value="Direct">Direct (Website, Email List)</option>
+                        </select>
                       </div>
+
+                      {/* Effort Level */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Effort Level
+                        </label>
+                        <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                          <option value="">Select effort level...</option>
+                          <option value="High-touch">High-touch (Personal outreach)</option>
+                          <option value="Low-touch">Low-touch (Some interaction)</option>
+                          <option value="Automated">Automated (Set and forget)</option>
+                        </select>
+                      </div>
+
+                      {/* Time Investment */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Time Investment
+                        </label>
+                        <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                          <option value="">Select time investment...</option>
+                          <option value="Daily">Daily (Requires daily attention)</option>
+                          <option value="Weekly">Weekly (Weekly maintenance)</option>
+                          <option value="One-time">One-time setup (Minimal ongoing)</option>
+                        </select>
+                      </div>
+
+                      {/* Skill Level Required */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Skill Level Required
+                        </label>
+                        <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                          <option value="">Select skill level...</option>
+                          <option value="Beginner">Beginner (Easy to start)</option>
+                          <option value="Intermediate">Intermediate (Some experience needed)</option>
+                          <option value="Expert">Expert (Advanced skills required)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddLeadSourceModal(false)}
+                      className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
                     </button>
-                  ))}
-                </div>
-                
-                <div className="mt-6 flex justify-end">
-                  <button
-                    onClick={() => setShowAddLeadSourceModal(false)}
-                    className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
-                  >
-                    Done
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Handle form submission here
+                        alert('Lead source form submission coming soon!');
+                        setShowAddLeadSourceModal(false);
+                      }}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Add Lead Source
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
