@@ -74,36 +74,79 @@ const Dashboard = () => {
 
   const clearAllData = () => {
     if (window.confirm('Are you sure you want to clear all your data? This action cannot be undone.')) {
-      // Preserve important settings before clearing
-      const apiKey = localStorage.getItem('openai_api_key');
-      const userSettings = localStorage.getItem('userSettings');
-      
-      // Clear localStorage
-      localStorage.clear();
-      
-      // Restore preserved settings
-      if (apiKey) {
-        localStorage.setItem('openai_api_key', apiKey);
+      try {
+        // Preserve important settings before clearing
+        const apiKey = localStorage.getItem('openai_api_key');
+        const userSettings = localStorage.getItem('userSettings');
+        
+        // Clear localStorage completely
+        localStorage.clear();
+        
+        // Clear sessionStorage
+        sessionStorage.clear();
+
+        // Clear any cookies (if applicable)
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+
+        // Restore preserved settings
+        if (apiKey) {
+          try {
+            localStorage.setItem('openai_api_key', apiKey);
+          } catch (e) {
+            console.warn('Could not restore API key:', e);
+          }
+        }
+        if (userSettings) {
+          try {
+            localStorage.setItem('userSettings', userSettings);
+          } catch (e) {
+            console.warn('Could not restore user settings:', e);
+          }
+        }
+
+        alert('All content data has been cleared successfully! Your API key and settings have been preserved. The page will now reload.');
+        
+        // Force reload to clear any cached state
+        window.location.reload();
+      } catch (error) {
+        console.error('Error clearing data:', error);
+        alert('There was an issue clearing the data. Please try refreshing the page manually.');
       }
-      if (userSettings) {
-        localStorage.setItem('userSettings', userSettings);
-      }
-
-      // Clear sessionStorage
-      sessionStorage.clear();
-
-      // Clear any cookies (if applicable)
-      document.cookie.split(";").forEach(function(c) { 
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-      });
-
-      alert('All content data has been cleared successfully! Your API key and settings have been preserved. The page will now reload.');
-      
-      // Reload the page to reset state
-      window.location.reload();
     }
   };
 
+  const emergencyClearStorage = () => {
+    if (window.confirm('EMERGENCY CLEAR: This will clear ALL browser storage including API keys. Continue?')) {
+      try {
+        // Clear everything completely
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear IndexedDB if it exists
+        if ('indexedDB' in window) {
+          indexedDB.databases().then(databases => {
+            databases.forEach(db => {
+              indexedDB.deleteDatabase(db.name);
+            });
+          }).catch(e => console.warn('Could not clear IndexedDB:', e));
+        }
+
+        // Clear cookies
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+
+        alert('Emergency clear completed! All storage has been cleared. The page will now reload.');
+        window.location.reload();
+      } catch (error) {
+        console.error('Emergency clear failed:', error);
+        alert('Emergency clear failed. Please manually clear your browser cache and cookies.');
+      }
+    }
+  };
+      
   const frameworkSteps = [
     {
       id: 1,
@@ -376,12 +419,21 @@ const Dashboard = () => {
           <p className="text-sm text-gray-700 mb-4">
             <strong>Important:</strong> If the application stops responding (e.g., buttons don't open pop-ups), you may see the 'Device Exceeded' error in your browser console. This happens during testing when too much data is generated. Use the button below to reset your application data and resolve the issue.
           </p>
-          <button 
-            onClick={clearAllData}
-            className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
-          >
-            Clear All My Data & Fix App
-          </button>
+          <div className="flex gap-3">
+            <button 
+              onClick={clearAllData}
+              className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
+            >
+              Clear All My Data & Fix App
+            </button>
+            <button 
+              onClick={emergencyClearStorage}
+              className="bg-red-800 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-900 transition-colors"
+              title="Use if regular clear doesn't work - removes everything including API keys"
+            >
+              Emergency Clear (All Storage)
+            </button>
+          </div>
         </div>
 
         <Footer />
