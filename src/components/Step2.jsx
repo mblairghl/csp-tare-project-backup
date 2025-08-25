@@ -793,72 +793,98 @@ const Step2 = () => {
               </div>
             )}
 
-            {/* Gap Analysis Results */}
+            {/* Gap Analysis Results - Redesigned to show one stage at a time */}
             {aiGapAnalysis && aiGapAnalysis.gaps && aiGapAnalysis.suggestions && (
               <div className="space-y-6">
-                <p className="text-gray-600 mb-4">
-                  {aiGapAnalysis.message}
-                  {selectedSuggestions.length > 0 && (
-                    <span className="text-green-600 font-semibold ml-2">
-                      {selectedSuggestions.length} suggestion(s) added!
-                    </span>
-                  )}
-                </p>
+                {/* Process each gap stage individually */}
+                {aiGapAnalysis.gaps.map((gap, gapIndex) => {
+                  // Get suggestions for this specific stage
+                  const stageSuggestions = aiGapAnalysis.suggestions.filter(s => s.stage === gap.stage);
+                  
+                  if (stageSuggestions.length === 0) return null;
+                  
+                  return (
+                    <div key={gap.stage} className="space-y-4">
+                      {/* Stage Header with Gap Info */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {gap.stageName} ({gap.currentCount}/{gap.targetCount} content pieces)
+                        </h3>
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 mb-4">
+                        {gap.stageName === 'Discover the Possibility' && 'They become aware that a better way exists.'}
+                        {gap.stageName === 'Resonate with the Mission' && 'They connect emotionally with your message and positioning.'}
+                        {gap.stageName === 'Envision Their Transformation' && 'They see the tangible results of working with you.'}
+                        {gap.stageName === 'Trust the Process' && 'They gain confidence in your ability to deliver.'}
+                        {gap.stageName === 'Step Into Authority' && 'They are ready to take action and invest.'}
+                      </p>
 
-                {/* Gap Summary */}
-                <div className="bg-blue-50 p-4 rounded-lg mb-6">
-                  <h4 className="font-semibold text-blue-800 mb-3">Content Gaps Identified:</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {aiGapAnalysis.gaps.map((gap, index) => (
-                      <div key={gap.stage} className="bg-white p-3 rounded border-l-4 border-blue-500">
-                        <h5 className="font-medium text-gray-900">{gap.stageName}</h5>
-                        <p className="text-sm text-gray-600">
-                          Has {gap.currentCount} item(s), needs {gap.needed} more
+                      {/* Gap Identification */}
+                      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                        <p className="text-yellow-800 font-medium">
+                          <strong>Gap Identified:</strong> This stage needs {gap.needed} more content piece{gap.needed > 1 ? 's' : ''} for optimal funnel coverage.
                         </p>
                       </div>
-                    ))}
-                  </div>
-                </div>
 
-                {/* Content Suggestions */}
-                {aiGapAnalysis.suggestions.length > 0 ? (
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Targeted Content Suggestions:</h4>
-                    {aiGapAnalysis.suggestions.map((suggestion, index) => (
-                      <div key={suggestion.id} className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                                {suggestion.stageName}
-                              </span>
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                suggestion.priority === 'High' ? 'bg-red-100 text-red-800' :
-                                suggestion.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
-                              }`}>
-                                {suggestion.priority} Priority
-                              </span>
+                      {/* AI Recommendations */}
+                      <h4 className="font-semibold text-gray-900 mb-3">AI Recommendations:</h4>
+                      
+                      <div className="space-y-4">
+                        {stageSuggestions.map((suggestion, index) => (
+                          <div key={suggestion.id} className="bg-white border rounded-lg p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900 mb-2">{suggestion.title}</h4>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                                    {suggestion.type}
+                                  </span>
+                                  <span className={`text-xs px-2 py-1 rounded ${
+                                    suggestion.priority === 'High' ? 'bg-red-100 text-red-800' :
+                                    suggestion.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-green-100 text-green-800'
+                                  }`}>
+                                    {suggestion.priority} Priority
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-600 mb-3">{suggestion.description}</p>
+                                
+                                <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                                  <p className="text-sm text-blue-800">
+                                    <strong>AI Reasoning:</strong> Addresses core frustration and helps prospects realize a better way exists.
+                                  </p>
+                                </div>
+                                
+                                <p className="text-sm text-gray-600 mt-2">
+                                  <strong>Target:</strong> Primary Persona
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleAddGapSuggestion(suggestion, index)}
+                                className="ml-4 px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors whitespace-nowrap"
+                              >
+                                + Add to {gap.stageName}
+                              </button>
                             </div>
-                            <h4 className="font-semibold text-gray-900 mb-2">{suggestion.title}</h4>
-                            <p className="text-sm text-gray-600 mb-2">{suggestion.description}</p>
-                            <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
-                              {suggestion.type}
-                            </span>
                           </div>
-                          <button
-                            onClick={() => handleAddGapSuggestion(suggestion, index)}
-                            className="ml-3 px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
-                          >
-                            Add
-                          </button>
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">All gap suggestions have been added!</p>
+                      
+                      {/* Separator between stages */}
+                      {gapIndex < aiGapAnalysis.gaps.length - 1 && (
+                        <hr className="my-8 border-gray-200" />
+                      )}
+                    </div>
+                  );
+                })}
+                
+                {selectedSuggestions.length > 0 && (
+                  <div className="text-center py-4">
+                    <p className="text-green-600 font-semibold">
+                      {selectedSuggestions.length} suggestion(s) added to funnel stages!
+                    </p>
                   </div>
                 )}
               </div>
