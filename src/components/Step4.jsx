@@ -15,6 +15,7 @@ const Step4 = () => {
   const [aiFunnelBuild, setAiFunnelBuild] = useState(null);
   const [aiResult, setAiResult] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [addedComponents, setAddedComponents] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
@@ -46,18 +47,22 @@ const Step4 = () => {
       const prompt = `Create a signature funnel build strategy for a business coaching service. Provide as JSON:
       {
         "funnelStructure": [
-          {"step": "Step name", "description": "What happens", "tools": ["Tool 1", "Tool 2"]}
+          {"component": "Landing Page", "description": "High-converting landing page with clear value proposition", "priority": "High"},
+          {"component": "Lead Magnet", "description": "Free valuable resource to capture leads", "priority": "High"},
+          {"component": "Email Sequence", "description": "5-part nurture sequence building trust and authority", "priority": "Medium"}
         ],
         "landingPageElements": [
-          {"element": "Element name", "description": "Purpose and content"}
+          {"element": "Hero Section", "description": "Compelling headline and subheadline addressing main pain point", "priority": "High"},
+          {"element": "Social Proof", "description": "Client testimonials and success stories", "priority": "Medium"}
         ],
         "emailSequence": [
-          {"email": "Email 1", "subject": "Subject line", "purpose": "Why this email"}
+          {"email": "Welcome Email", "subject": "Your [Lead Magnet] is here + what's next", "purpose": "Deliver lead magnet and set expectations", "priority": "High"},
+          {"email": "Value Email #1", "subject": "The #1 mistake I see coaches make", "purpose": "Provide valuable insight and build authority", "priority": "Medium"}
         ]
       }`;
       
       const result = await aiService.makeAIRequest(prompt, 'funnel building expert');
-      setAiFunnelBuild(result);
+      setAiResult(result);
     } catch (error) {
       console.error('Error generating funnel build:', error);
       alert('Error generating funnel build. Please check your API key and try again.');
@@ -68,6 +73,19 @@ const Step4 = () => {
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
+  };
+
+  // Handle adding AI component
+  const handleAddComponent = (component, type) => {
+    const componentKey = `${type}_${component.component || component.element || component.email}`;
+    setAddedComponents(prev => [...prev, componentKey]);
+    console.log(`Added ${type}:`, component);
+  };
+
+  // Handle closing AI modal and resetting state
+  const handleCloseAIModal = () => {
+    setAiModalOpen(false);
+    setAddedComponents([]);
   };
 
   const howThisWorksContent = {
@@ -188,29 +206,7 @@ const Step4 = () => {
                 
                 <div className="space-y-4">
                   <button 
-                    onClick={() => {
-                      const aiPrompt = `I'm working on Step 4 of my Authority Revenue Toolkit - Signature Funnel Build. I need help creating a high-converting funnel for my signature solution.
-
-Based on my previous work, please help me design my signature funnel:
-
-My Signature Offer: [DESCRIBE YOUR MAIN OFFER HERE]
-My Ideal Clients: [PASTE YOUR PERSONAS FROM STEP 1 HERE]
-My Lead Sources: [PASTE FROM STEP 3 HERE]
-
-Please provide:
-1. Funnel structure (landing page → email sequence → sales page → checkout)
-2. Landing page copy outline with headlines and key points
-3. Email sequence (5-7 emails) with subject lines and content themes
-4. Sales page structure with persuasion elements
-5. Objection handling strategies for each funnel stage
-6. Call-to-action recommendations
-7. Follow-up sequences for non-buyers
-
-Focus on conversion optimization and addressing my ideal client's specific pain points.`;
-                      
-                      const encodedPrompt = encodeURIComponent(aiPrompt);
-                      window.open(`https://chat.openai.com/?q=${encodedPrompt}`, '_blank');
-                    }}
+                    onClick={handleAIFunnelBuild}
                     className="text-black px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
                     style={{ backgroundColor: '#d7df21' }}
                   >
@@ -227,9 +223,9 @@ Focus on conversion optimization and addressing my ideal client's specific pain 
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <h4 className="font-semibold text-blue-800 mb-2">How to use AI results:</h4>
                     <ol className="text-blue-700 text-sm space-y-1">
-                      <li>1. Click "Generate AI Funnel Blueprint" to open ChatGPT</li>
-                      <li>2. Fill in your signature offer and paste data from previous steps</li>
-                      <li>3. Copy the AI-generated funnel structure</li>
+                      <li>1. Click "Generate AI Funnel Blueprint" to get AI suggestions</li>
+                      <li>2. Review the AI-generated funnel components in the popup</li>
+                      <li>3. Click "Add" on suggestions you want to use</li>
                       <li>4. Use "Manual Funnel Building" to implement and customize your funnel</li>
                     </ol>
                   </div>
@@ -283,18 +279,123 @@ Focus on conversion optimization and addressing my ideal client's specific pain 
         {/* AI Modal */}
         <AIModal
           isOpen={aiModalOpen}
-          onClose={() => setAiModalOpen(false)}
-          title="AI-Generated Step 4 Strategy"
+          onClose={handleCloseAIModal}
+          title="AI-Generated Funnel Blueprint"
           loading={aiLoading}
         >
           {aiResult && (
-            <div>
+            <div className="space-y-6">
               <p className="text-gray-600 mb-6">
-                Here's your AI-generated strategy for Step 4:
+                Here's your AI-generated funnel blueprint with actionable components:
               </p>
-              <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto">
-                {JSON.stringify(aiResult, null, 2)}
-              </pre>
+              
+              {aiResult.funnelStructure && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-3">Funnel Structure</h4>
+                  <div className="space-y-2">
+                    {(aiResult.funnelStructure || [])
+                      .filter(component => !addedComponents.includes(`funnelStructure_${component.component}`))
+                      .map((component, index) => (
+                      <div key={index} className="bg-white p-3 rounded border">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-800">{component.component}</h5>
+                            <p className="text-sm text-gray-600">{component.description}</p>
+                            <span className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
+                              component.priority === 'High' ? 'bg-red-100 text-red-600' :
+                              component.priority === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
+                              'bg-green-100 text-green-600'
+                            }`}>
+                              {component.priority} Priority
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleAddComponent(component, 'funnelStructure')}
+                            className="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                          >
+                            + Add
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {aiResult.landingPageElements && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-3">Landing Page Elements</h4>
+                  <div className="space-y-2">
+                    {(aiResult.landingPageElements || [])
+                      .filter(element => !addedComponents.includes(`landingPageElements_${element.element}`))
+                      .map((element, index) => (
+                      <div key={index} className="bg-white p-3 rounded border">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-800">{element.element}</h5>
+                            <p className="text-sm text-gray-600">{element.description}</p>
+                            <span className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
+                              element.priority === 'High' ? 'bg-red-100 text-red-600' :
+                              element.priority === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
+                              'bg-green-100 text-green-600'
+                            }`}>
+                              {element.priority} Priority
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleAddComponent(element, 'landingPageElements')}
+                            className="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                          >
+                            + Add
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {aiResult.emailSequence && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-3">Email Sequence</h4>
+                  <div className="space-y-2">
+                    {(aiResult.emailSequence || [])
+                      .filter(email => !addedComponents.includes(`emailSequence_${email.email}`))
+                      .map((email, index) => (
+                      <div key={index} className="bg-white p-3 rounded border">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-800">{email.email}</h5>
+                            <p className="text-sm text-gray-600 mb-1"><strong>Subject:</strong> {email.subject}</p>
+                            <p className="text-sm text-gray-600">{email.purpose}</p>
+                            <span className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
+                              email.priority === 'High' ? 'bg-red-100 text-red-600' :
+                              email.priority === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
+                              'bg-green-100 text-green-600'
+                            }`}>
+                              {email.priority} Priority
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleAddComponent(email, 'emailSequence')}
+                            className="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                          >
+                            + Add
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {addedComponents.length > 0 && (
+                <div className="bg-green-50 p-3 rounded border border-green-200">
+                  <p className="text-green-700 text-sm">
+                    ✅ {addedComponents.length} component(s) added to your funnel blueprint
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </AIModal>
