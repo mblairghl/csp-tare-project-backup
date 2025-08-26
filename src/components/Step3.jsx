@@ -5,30 +5,7 @@ import StepFooter from './StepFooter';
 import AIModal from './AIModal';
 import APIKeyModal from './APIKeyModal';
 import aiService from '../services/aiService';
-
-// Utility functions for localStorage management
-const safeLocalStorageGet = (key, defaultValue = null) => {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
-  } catch (error) {
-    console.warn(`Error reading from localStorage key "${key}":`, error);
-    return defaultValue;
-  }
-};
-
-const safeLocalStorageSet = (key, value) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch (error) {
-    console.error(`Error writing to localStorage key "${key}":`, error);
-    if (error.name === 'QuotaExceededError') {
-      alert('Browser storage is full. Please use the "Clear All My Data & Fix App" button on the Dashboard to continue.');
-    }
-    return false;
-  }
-};
+import storageOptimizer from '../utils/storageOptimizer';
 
 const Step3 = () => {
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
@@ -56,15 +33,24 @@ const Step3 = () => {
     description: ''
   });
 
-  // Load saved data on component mount
+  // Load saved data on component mount with optimization
   useEffect(() => {
-    const savedLeadSources = safeLocalStorageGet('step3_current_lead_sources', []);
-    const savedExpansionOpportunities = safeLocalStorageGet('step3_expansion_opportunities', []);
-    const savedHighlevelSetup = safeLocalStorageGet('step3_highlevel_setup', null);
+    // Perform storage monitoring and cleanup if needed
+    const storageStatus = storageOptimizer.monitorStorage();
+    if (storageStatus.status === 'critical') {
+      console.warn('Critical storage situation detected, performing emergency cleanup');
+      storageOptimizer.emergencyCleanup();
+    } else if (storageStatus.status === 'warning') {
+      console.warn('Storage getting full, performing regular cleanup');
+      storageOptimizer.performCleanup();
+    }
+
+    // Load Step 3 data using optimized storage
+    const step3Data = storageOptimizer.getStep3Data();
     
-    setCurrentLeadSources(Array.isArray(savedLeadSources) ? savedLeadSources : []);
-    setExpansionOpportunities(Array.isArray(savedExpansionOpportunities) ? savedExpansionOpportunities : []);
-    setHighlevelSetup(savedHighlevelSetup);
+    setCurrentLeadSources(Array.isArray(step3Data.currentLeadSources) ? step3Data.currentLeadSources : []);
+    setExpansionOpportunities(Array.isArray(step3Data.expansionOpportunities) ? step3Data.expansionOpportunities : []);
+    setHighlevelSetup(step3Data.highlevelSetup);
   }, []);
   useEffect(() => {
     const handleResize = () => {
@@ -183,9 +169,9 @@ const Step3 = () => {
     // Add to current lead sources
     const updatedSources = [...currentLeadSources, newLeadSource];
     setCurrentLeadSources(updatedSources);
-
-    // Save to localStorage
-    safeLocalStorageSet('step3_current_lead_sources', JSON.stringify(updatedSources));
+    
+    // Save to optimized localStorage
+    storageOptimizer.setStep3Data('current_lead_sources', updatedSources);
 
     // Reset form and close modal
     setLeadSourceForm({
@@ -204,12 +190,8 @@ const Step3 = () => {
     const updatedSources = currentLeadSources.filter(source => source.id !== sourceId);
     setCurrentLeadSources(updatedSources);
     
-    // Save to localStorage
-    try {
-      localStorage.setItem('step3_current_lead_sources', JSON.stringify(updatedSources));
-    } catch (error) {
-      console.error('Error saving lead sources:', error);
-    }
+    // Save to optimized localStorage
+    storageOptimizer.setStep3Data('current_lead_sources', updatedSources);
   };
 
   // Expansion opportunity form handlers
@@ -246,12 +228,12 @@ const Step3 = () => {
       dateAdded: new Date().toISOString()
     };
 
-    // Add to list
+    // Add to expansion opportunities
     const updatedOpportunities = [...expansionOpportunities, newOpportunity];
     setExpansionOpportunities(updatedOpportunities);
-
-    // Save to localStorage
-    safeLocalStorageSet('step3_expansion_opportunities', updatedOpportunities);
+    
+    // Save to optimized localStorage
+    storageOptimizer.setStep3Data('expansion_opportunities', updatedOpportunities);
 
     // Reset form and close modal
     resetExpansionForm();
@@ -309,44 +291,26 @@ const Step3 = () => {
     };
 
     setHighlevelSetup(checklist);
-    safeLocalStorageSet('step3_highlevel_setup', checklist);
+    
+    // Save to optimized localStorage
+    storageOptimizer.setStep3Data('highlevel_setup', checklist);
   };
 
-  // Load saved lead sources on component mount
-  useEffect(() => {
-    try {
-      const savedSources = localStorage.getItem('step3_current_lead_sources');
-      if (savedSources) {
-        setCurrentLeadSources(JSON.parse(savedSources));
-      }
-    } catch (error) {
-      console.error('Error loading lead sources:', error);
-    }
-  }, []);
+  const leadSourceTypes = [
+    'Affiliate Marketing', 'Blog Content', 'Cold Email Outreach', 'Cold Calling',
+    'Community Building', 'Content Marketing', 'Direct Mail', 'Email Marketing',
+    'Facebook Ads', 'Google Ads', 'Industry Events', 'Influencer Partnerships',
+    'LinkedIn Outreach', 'Local Networking', 'Organic Social Media', 'Paid Social Media',
+    'Partnerships', 'Podcast Appearances', 'Podcast Hosting', 'Public Relations',
+    'Referral Program', 'SEO/Organic Search', 'Speaking Engagements', 'Trade Shows',
+    'Video Marketing', 'Webinars', 'Word of Mouth', 'YouTube Channel'
+  ];
 
-  const howThisWorksContent = {
-    description: "Transform your scattered lead generation into a strategic plan that sets the foundation for accurate tracking and measurement in HighLevel.",
-    steps: [
-      {
-        'title': 'Current Lead Sources', 
-        'description': 'Audit and inventory your existing lead generation channels and activities.', 
-        'color': 'bg-green-600', 
-        'textColor': '#16a34a'
-      }, 
-      {
-        'title': 'Expansion Opportunities', 
-        'description': 'Discover new lead sources that align with your market and business model.', 
-        'color': 'bg-blue-600', 
-        'textColor': '#2563eb'
-      }, 
-      {
-        'title': 'HighLevel Setup Planning', 
-        'description': 'Prepare lead scoring and tracking configuration for proper implementation.', 
-        'color': 'bg-yellow-600', 
-        'textColor': '#ca8a04'
-      }
-    ]
-  };
+  const expansionTypes = [
+    'Social Media Platform', 'Paid Advertising', 'Content Marketing', 'Email Marketing',
+    'Referral Program', 'Partnership', 'Event Marketing', 'SEO/Organic Search',
+    'Influencer Marketing', 'Direct Outreach', 'Community Building', 'Public Relations'
+  ];
 
   const subSteps = [
     {
@@ -574,7 +538,7 @@ const Step3 = () => {
                               onClick={() => {
                                 const updated = expansionOpportunities.filter(opp => opp.id !== opportunity.id);
                                 setExpansionOpportunities(updated);
-                                safeLocalStorageSet('step3_expansion_opportunities', updated);
+                                storageOptimizer.setStep3Data('expansion_opportunities', updated);
                               }}
                               className="text-red-500 hover:text-red-700 text-sm"
                             >
@@ -670,7 +634,7 @@ const Step3 = () => {
                         <button
                           onClick={() => {
                             setHighlevelSetup(null);
-                            safeLocalStorageSet('step3_highlevel_setup', null);
+                            storageOptimizer.setStep3Data('highlevel_setup', null);
                           }}
                           className="text-red-600 hover:text-red-800 text-sm font-medium"
                         >
