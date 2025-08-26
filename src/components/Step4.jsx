@@ -16,6 +16,12 @@ const Step4 = () => {
   const [aiResult, setAiResult] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [addedComponents, setAddedComponents] = useState([]);
+  const [leadMagnet, setLeadMagnet] = useState({
+    title: '',
+    format: '',
+    problem: '',
+    valueProposition: ''
+  });
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
@@ -76,10 +82,18 @@ const Step4 = () => {
   };
 
   // Handle adding AI component
-  const handleAddComponent = (component, type) => {
-    const componentKey = `${type}_${component.component || component.element || component.email}`;
-    setAddedComponents(prev => [...prev, componentKey]);
-    console.log(`Added ${type}:`, component);
+  const handleAddComponent = (leadMagnetIdea) => {
+    // Populate lead magnet form with the selected AI idea
+    setLeadMagnet({
+      title: leadMagnetIdea.title,
+      format: leadMagnetIdea.format,
+      problem: leadMagnetIdea.problem,
+      valueProposition: leadMagnetIdea.valueProposition
+    });
+    
+    // Close modal after adding
+    setAiModalOpen(false);
+    setAddedComponents([]);
   };
 
   // Handle closing AI modal and resetting state
@@ -199,35 +213,87 @@ const Step4 = () => {
           <div className="p-6">
             {activeTab === 'tab-1' && (
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Signature Funnel Builder</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Lead Magnet Strategy</h3>
                 <p className="text-gray-600 mb-6">
-                  Use AI to create a high-converting funnel structure for your signature solution based on your previous framework work.
+                  Add your existing lead magnet or get AI-powered ideas based on your project setup and previous steps.
                 </p>
                 
-                <div className="space-y-4">
-                  <button 
-                    onClick={handleAIFunnelBuild}
-                    className="text-black px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
-                    style={{ backgroundColor: '#d7df21' }}
-                  >
-                    🤖 Generate AI Funnel Blueprint
-                  </button>
-                  
-                  <button 
-                    className="text-white px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90"
-                    style={{ backgroundColor: '#fbae42' }}
-                  >
-                    Manual Funnel Building
-                  </button>
-                  
+                <div className="space-y-6">
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Add Your Lead Magnet</h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Lead Magnet Title</label>
+                        <input
+                          type="text"
+                          value={leadMagnet.title}
+                          onChange={(e) => setLeadMagnet(prev => ({...prev, title: e.target.value}))}
+                          placeholder="e.g., The Authority Success Blueprint"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Format</label>
+                        <select
+                          value={leadMagnet.format}
+                          onChange={(e) => setLeadMagnet(prev => ({...prev, format: e.target.value}))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select format...</option>
+                          <option value="PDF Guide + Checklist">PDF Guide + Checklist</option>
+                          <option value="Video Training Series">Video Training Series</option>
+                          <option value="Interactive Quiz + Report">Interactive Quiz + Report</option>
+                          <option value="Email Course">Email Course</option>
+                          <option value="Template Pack">Template Pack</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Problem It Solves</label>
+                      <textarea
+                        value={leadMagnet.problem}
+                        onChange={(e) => setLeadMagnet(prev => ({...prev, problem: e.target.value}))}
+                        placeholder="What specific problem does your lead magnet solve?"
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Value Proposition</label>
+                      <textarea
+                        value={leadMagnet.valueProposition}
+                        onChange={(e) => setLeadMagnet(prev => ({...prev, valueProposition: e.target.value}))}
+                        placeholder="What value does your lead magnet provide?"
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {leadMagnet.title && (
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <h4 className="font-semibold text-green-800 mb-2">Current Lead Magnet</h4>
+                      <div className="text-green-700">
+                        <p className="font-medium">{leadMagnet.title}</p>
+                        <p className="text-sm">{leadMagnet.format}</p>
+                        <p className="text-sm mt-1">{leadMagnet.problem}</p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-blue-800 mb-2">How to use AI results:</h4>
-                    <ol className="text-blue-700 text-sm space-y-1">
-                      <li>1. Click "Generate AI Funnel Blueprint" to get AI suggestions</li>
-                      <li>2. Review the AI-generated funnel components in the popup</li>
-                      <li>3. Click "Add" on suggestions you want to use</li>
-                      <li>4. Use "Manual Funnel Building" to implement and customize your funnel</li>
-                    </ol>
+                    <h4 className="font-semibold text-blue-800 mb-2">Need Lead Magnet Ideas?</h4>
+                    <p className="text-blue-700 text-sm mb-3">Get AI-powered lead magnet suggestions based on your project setup and previous steps.</p>
+                    <button 
+                      onClick={handleAIFunnelBuild}
+                      className="text-black px-4 py-2 rounded-lg font-medium transition-colors hover:opacity-90"
+                      style={{ backgroundColor: '#d7df21' }}
+                    >
+                      🤖 Get Ideas
+                    </button>
                   </div>
                 </div>
               </div>
@@ -280,121 +346,49 @@ const Step4 = () => {
         <AIModal
           isOpen={aiModalOpen}
           onClose={handleCloseAIModal}
-          title="AI-Generated Funnel Blueprint"
+          title="Lead Magnet Ideas"
           loading={aiLoading}
-          selectedCount={addedComponents.length}
+          selectedCount={0}
         >
           {aiResult && (
             <div className="space-y-6">
               <p className="text-gray-600 mb-6">
-                Here's your AI-generated funnel blueprint with actionable components:
+                AI-generated lead magnet ideas based on your project setup and previous steps. Click "ADD" to use any idea.
               </p>
               
-              {aiResult.funnelStructure && (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-3">Funnel Structure</h4>
-                  <div className="space-y-2">
-                    {(aiResult.funnelStructure || [])
-                      .filter(component => !addedComponents.includes(`funnelStructure_${component.component}`))
-                      .map((component, index) => (
-                      <div key={index} className="bg-white p-3 rounded border">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1">
-                            <h5 className="font-medium text-gray-800">{component.component}</h5>
-                            <p className="text-sm text-gray-600">{component.description}</p>
-                            <span className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
-                              component.priority === 'High' ? 'bg-red-100 text-red-600' :
-                              component.priority === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
-                              'bg-green-100 text-green-600'
-                            }`}>
-                              {component.priority} Priority
-                            </span>
+              {aiResult.leadMagnetIdeas && (
+                <div className="space-y-4">
+                  {(aiResult.leadMagnetIdeas || []).map((idea, index) => (
+                    <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h4 className="text-lg font-semibold text-gray-900 mb-2">{idea.title}</h4>
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <span className="font-medium text-gray-700">Format:</span>
+                              <span className="text-gray-600 ml-2">{idea.format}</span>
+                              <span className="ml-4 font-medium text-gray-700">CTA:</span>
+                              <span className="text-gray-600 ml-2">{idea.cta}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">Problem:</span>
+                              <p className="text-gray-600 mt-1">{idea.problem}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">Value Proposition:</span>
+                              <p className="text-gray-600 mt-1">{idea.valueProposition}</p>
+                            </div>
                           </div>
-                          <button
-                            onClick={() => handleAddComponent(component, 'funnelStructure')}
-                            className="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
-                          >
-                            + Add
-                          </button>
                         </div>
+                        <button
+                          onClick={() => handleAddComponent(idea)}
+                          className="ml-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded font-medium transition-colors"
+                        >
+                          ADD
+                        </button>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {aiResult.landingPageElements && (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-3">Landing Page Elements</h4>
-                  <div className="space-y-2">
-                    {(aiResult.landingPageElements || [])
-                      .filter(element => !addedComponents.includes(`landingPageElements_${element.element}`))
-                      .map((element, index) => (
-                      <div key={index} className="bg-white p-3 rounded border">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1">
-                            <h5 className="font-medium text-gray-800">{element.element}</h5>
-                            <p className="text-sm text-gray-600">{element.description}</p>
-                            <span className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
-                              element.priority === 'High' ? 'bg-red-100 text-red-600' :
-                              element.priority === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
-                              'bg-green-100 text-green-600'
-                            }`}>
-                              {element.priority} Priority
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => handleAddComponent(element, 'landingPageElements')}
-                            className="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
-                          >
-                            + Add
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {aiResult.emailSequence && (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-3">Email Sequence</h4>
-                  <div className="space-y-2">
-                    {(aiResult.emailSequence || [])
-                      .filter(email => !addedComponents.includes(`emailSequence_${email.email}`))
-                      .map((email, index) => (
-                      <div key={index} className="bg-white p-3 rounded border">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1">
-                            <h5 className="font-medium text-gray-800">{email.email}</h5>
-                            <p className="text-sm text-gray-600 mb-1"><strong>Subject:</strong> {email.subject}</p>
-                            <p className="text-sm text-gray-600">{email.purpose}</p>
-                            <span className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
-                              email.priority === 'High' ? 'bg-red-100 text-red-600' :
-                              email.priority === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
-                              'bg-green-100 text-green-600'
-                            }`}>
-                              {email.priority} Priority
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => handleAddComponent(email, 'emailSequence')}
-                            className="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
-                          >
-                            + Add
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {addedComponents.length > 0 && (
-                <div className="bg-green-50 p-3 rounded border border-green-200">
-                  <p className="text-green-700 text-sm">
-                    ✅ {addedComponents.length} component(s) added to your funnel blueprint
-                  </p>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

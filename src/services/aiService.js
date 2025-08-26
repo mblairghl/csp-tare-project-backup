@@ -378,93 +378,33 @@ class AIService {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Generate mock funnel blueprint based on the prompt
+    // Generate mock lead magnet ideas based on the prompt
     if (prompt.includes('funnel build strategy')) {
       return {
-        funnelStructure: [
+        leadMagnetIdeas: [
           {
-            component: "Landing Page",
-            description: "High-converting landing page with clear value proposition and compelling headline",
+            title: "The Authority Success Blueprint",
+            format: "PDF Guide + Checklist",
+            problem: "Struggling to systematically grow their business without overwhelming complexity",
+            valueProposition: "Get the exact framework that successful authorities use to achieve consistent results",
+            cta: "Get My Free Blueprint Now",
             priority: "High"
           },
           {
-            component: "Lead Magnet",
-            description: "Free valuable resource (guide, checklist, or mini-course) to capture leads",
-            priority: "High"
-          },
-          {
-            component: "Email Sequence",
-            description: "5-part nurture sequence building trust and demonstrating expertise",
+            title: "Business Growth Assessment",
+            format: "Interactive Quiz + Report",
+            problem: "Not knowing which growth strategies will work best for their specific business situation",
+            valueProposition: "Discover your biggest growth opportunities and get a personalized action plan in under 5 minutes",
+            cta: "Take The Assessment Now",
             priority: "Medium"
           },
           {
-            component: "Sales Page",
-            description: "Detailed sales page showcasing your signature solution with social proof",
-            priority: "High"
-          },
-          {
-            component: "Checkout Process",
-            description: "Streamlined checkout with payment options and order confirmation",
+            title: "The Success Roadmap",
+            format: "Video Training Series",
+            problem: "Feeling overwhelmed by all the different strategies and not knowing where to start with their goals",
+            valueProposition: "Get a clear, step-by-step roadmap that eliminates confusion and accelerates your progress",
+            cta: "Watch Free Training Now",
             priority: "Medium"
-          }
-        ],
-        landingPageElements: [
-          {
-            element: "Hero Section",
-            description: "Compelling headline addressing main pain point with clear value proposition",
-            priority: "High"
-          },
-          {
-            element: "Social Proof",
-            description: "Client testimonials, success stories, and credibility indicators",
-            priority: "Medium"
-          },
-          {
-            element: "Benefits Section",
-            description: "Clear benefits and transformation your solution provides",
-            priority: "High"
-          },
-          {
-            element: "Call-to-Action",
-            description: "Strong, action-oriented CTA button with urgency or scarcity",
-            priority: "High"
-          },
-          {
-            element: "Trust Signals",
-            description: "Guarantees, certifications, media mentions, or awards",
-            priority: "Medium"
-          }
-        ],
-        emailSequence: [
-          {
-            email: "Welcome Email",
-            subject: "Your [Lead Magnet] is here + what's next",
-            purpose: "Deliver lead magnet and set expectations for the sequence",
-            priority: "High"
-          },
-          {
-            email: "Value Email #1",
-            subject: "The #1 mistake I see coaches make (and how to avoid it)",
-            purpose: "Provide valuable insight and build authority in your field",
-            priority: "Medium"
-          },
-          {
-            email: "Story Email",
-            subject: "How I went from struggling to 6-figures",
-            purpose: "Share your transformation story to build connection and credibility",
-            priority: "Medium"
-          },
-          {
-            email: "Social Proof Email",
-            subject: "Sarah's amazing results (case study inside)",
-            purpose: "Showcase client success story and demonstrate your solution works",
-            priority: "High"
-          },
-          {
-            email: "Soft Pitch Email",
-            subject: "Ready to get similar results?",
-            purpose: "Introduce your signature solution with a soft sales approach",
-            priority: "High"
           }
         ]
       };
