@@ -16,8 +16,8 @@ const AIModal = ({
   if (!isOpen) return null;
 
   const handleClose = () => {
-    // For content suggestions, allow closing without selection requirement
-    if (title === "AI Content Suggestions") {
+    // For content suggestions and lead strategy, allow closing without selection requirement
+    if (title === "AI Content Suggestions" || title === "AI-Generated Lead Strategy") {
       onClose();
       return;
     }

@@ -14,6 +14,7 @@ const Step3 = () => {
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [aiLeadStrategy, setAiLeadStrategy] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [addedRecommendations, setAddedRecommendations] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
@@ -265,8 +266,17 @@ const Step3 = () => {
     // Save to optimized localStorage
     storageOptimizer.setStep3Data('expansion_opportunities', updatedOpportunities);
 
+    // Track this recommendation as added
+    setAddedRecommendations(prev => [...prev, aiSource.source]);
+
     // Optional: Show success feedback
     console.log(`Added AI recommendation: ${aiSource.source}`);
+  };
+
+  // Handle closing AI modal and resetting state
+  const handleCloseAIModal = () => {
+    setAiModalOpen(false);
+    setAddedRecommendations([]);
   };
 
   // Handle generating CSP setup checklist
@@ -723,7 +733,7 @@ const Step3 = () => {
         {/* AI Lead Strategy Modal */}
         <AIModal
           isOpen={aiModalOpen}
-          onClose={() => setAiModalOpen(false)}
+          onClose={handleCloseAIModal}
           title="AI-Generated Lead Strategy"
           loading={aiLoading}
         >
@@ -737,7 +747,9 @@ const Step3 = () => {
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-semibold text-gray-900 mb-3">Top Lead Sources</h4>
                   <div className="space-y-2">
-                    {(aiLeadStrategy.topLeadSources || []).map((source, index) => (
+                    {(aiLeadStrategy.topLeadSources || [])
+                      .filter(source => !addedRecommendations.includes(source.source))
+                      .map((source, index) => (
                       <div key={index} className="bg-white p-3 rounded border">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
@@ -760,6 +772,13 @@ const Step3 = () => {
                         </div>
                       </div>
                     ))}
+                    {addedRecommendations.length > 0 && (
+                      <div className="bg-green-50 p-3 rounded border border-green-200">
+                        <p className="text-green-700 text-sm">
+                          ✅ {addedRecommendations.length} recommendation(s) added to your Expansion Opportunities
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
