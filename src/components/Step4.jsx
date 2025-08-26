@@ -22,6 +22,8 @@ const Step4 = () => {
     problem: '',
     valueProposition: ''
   });
+  const [nurtureSequence, setNurtureSequence] = useState([]);
+  const [funnelPages, setFunnelPages] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
@@ -100,6 +102,105 @@ const Step4 = () => {
   const handleCloseAIModal = () => {
     setAiModalOpen(false);
     setAddedComponents([]);
+  };
+
+  // Generate nurture sequence
+  const handleGenerateNurtureSequence = async () => {
+    setAiLoading(true);
+    try {
+      const mockSequence = [
+        {
+          id: 1,
+          title: "Welcome! Your The Authority Success Blueprint is Here",
+          purpose: "Deliver the lead magnet and set expectations",
+          timing: "Immediately after opt-in",
+          content: `Hi [First Name], Thank you for downloading "The Authority Success Blueprint"! I'm excited to share this PDF Guide + Checklist with you because I know how challenging it can be to achieve consistent results in today's competitive landscape. Over the next few days, I'll be sending you additional insights and strategies that have helped hundreds of business owners like you transform their approach to business growth. Your PDF Guide + Checklist is attached to this email. Take a few minutes to review it, and don't hesitate to reply if you have any questions. To your success, [Your Name] P.S. Keep an eye on your inbox - I have some valuable insights coming your way that you won't want to miss!`
+        },
+        {
+          id: 2,
+          title: "The #1 Mistake Most Business Owners Make",
+          purpose: "Identify common problems and position your expertise",
+          timing: "2 days after opt-in",
+          content: `Hi [First Name], I've been working with business owners for over [X years], and I see the same costly mistake over and over again. Most people try to solve their challenges by doing MORE - more marketing, more networking, more content creation. But here's what I've learned: Success isn't about doing more. It's about doing the RIGHT things in the RIGHT order. The The Authority Success Blueprint I shared with you yesterday shows you exactly what those "right things" are. But there's something even more important... [Share a specific insight or story about the mistake and how to avoid it] Tomorrow, I'll share a real case study of how one of my clients avoided this mistake and achieved incredible results in just [timeframe]. Talk soon, [Your Name]`
+        },
+        {
+          id: 3,
+          title: "How [Client Name] Achieved Amazing Results",
+          purpose: "Build credibility through social proof",
+          timing: "4 days after opt-in",
+          content: `Hi [First Name], I want to share a quick story about [Client Name], a business owner just like you. When [Client Name] first came to me, they were struggling with the same challenges you might be facing. They had tried everything - different strategies, various tools, even hired other consultants. Nothing worked. But within [timeframe] of implementing the system I'm going to tell you about, they achieved: • [Specific result #1] • [Specific result #2] • [Specific result #3] The breakthrough came when they stopped trying to figure it out alone and started following a proven system. The same system that's helped over [number] business owners achieve their goals. If you're ready to stop struggling and start seeing real results, I'd love to show you exactly how this system works. More details coming tomorrow... Best regards, [Your Name] P.S. [Client Name] told me last week that this was the best investment they've ever made in their business. I think you'd feel the same way.`
+        },
+        {
+          id: 4,
+          title: "The Secret to Consistent Success",
+          purpose: "Share valuable insights and build authority",
+          timing: "7 days after opt-in",
+          content: `Hi [First Name], After working with hundreds of business owners, I've discovered something fascinating: The difference between those who achieve consistent success and those who struggle isn't talent, luck, or even hard work. It's having the right SYSTEM. Most people approach their goals randomly - trying different tactics, hoping something will stick. But successful people follow a proven framework that eliminates guesswork. Here's the 3-step system that's worked for over [number] business owners: Step 1: [Specific strategy related to their business] Step 2: [Implementation tactic that gets results] Step 3: [Optimization method for scaling] This is exactly what I teach in my signature program, and it's why my clients see results so quickly. The The Authority Success Blueprint you downloaded gives you a taste of this approach, but there's so much more... If you're serious about achieving your goals, I'd love to show you the complete system. Keep an eye on your inbox. [Your Name]`
+        },
+        {
+          id: 5,
+          title: "Ready to Take the Next Step?",
+          purpose: "Soft introduction to your signature offer",
+          timing: "10 days after opt-in",
+          content: `Hi [First Name], Over the past week, I've shared some of my best strategies for achieving success. You've learned: ✓ The #1 mistake that keeps most business owners stuck ✓ How [Client Name] achieved amazing results using our system ✓ The 3-step framework that eliminates guesswork and delivers consistent results But here's the thing - knowledge without implementation is just entertainment. If you're ready to stop learning and start DOING, I have something special for you. My signature program takes everything I've shared (and much more) and gives you a step-by-step roadmap to achieve your goals in the next [timeframe]. This isn't just another course. It's a complete system with: • Done-for-you templates and frameworks • Weekly group coaching calls • Direct access to me for questions • A community of like-minded business owners I only work with [number] clients at a time to ensure everyone gets the attention they deserve. If you're interested in learning more, simply reply to this email with "TELL ME MORE" and I'll send you the details. To your success, [Your Name] P.S. Don't wait too long - I have limited spots available and they fill up quickly.`
+        }
+      ];
+      
+      setNurtureSequence(mockSequence);
+    } catch (error) {
+      console.error('Error generating nurture sequence:', error);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // Generate funnel pages
+  const handleGenerateFunnelPages = async () => {
+    setAiLoading(true);
+    try {
+      const mockPages = [
+        {
+          id: 1,
+          type: "Landing Page",
+          title: "Get Your Free Authority Success Blueprint",
+          content: {
+            headline: "Finally! The Proven Framework That Transforms Struggling Business Owners Into Recognized Authorities",
+            subheadline: "Download your free PDF Guide + Checklist and discover the exact system successful authorities use to achieve consistent results",
+            bullets: [
+              "The 3-step authority framework that eliminates guesswork",
+              "How to systematically grow your business without overwhelming complexity",
+              "The exact strategies that have helped 500+ business owners achieve their goals"
+            ],
+            cta: "Get My Free Blueprint Now",
+            form: {
+              fields: ["First Name", "Email Address"],
+              button: "Download Now"
+            }
+          }
+        },
+        {
+          id: 2,
+          type: "Thank You Page",
+          title: "Success! Your Blueprint is On Its Way",
+          content: {
+            headline: "Check Your Email - Your Authority Success Blueprint is Coming!",
+            message: "I've just sent your PDF Guide + Checklist to your email address. It should arrive within the next few minutes.",
+            nextSteps: [
+              "Check your email (including spam folder) for your blueprint",
+              "Download and review the PDF Guide + Checklist",
+              "Watch for my follow-up emails with additional strategies"
+            ],
+            socialProof: "Join 2,500+ business owners who are already using this framework to grow their authority and revenue."
+          }
+        }
+      ];
+      
+      setFunnelPages(mockPages);
+    } catch (error) {
+      console.error('Error generating funnel pages:', error);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const howThisWorksContent = {
@@ -301,13 +402,198 @@ const Step4 = () => {
 
             {activeTab === 'tab-2' && (
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Tab 2</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Nurture Sequence Planning</h3>
                 <p className="text-gray-600 mb-6">
-                  Content for the second tab goes here.
+                  Plan your email sequence that builds trust and guides prospects toward your signature offer.
                 </p>
                 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-600">Second tab content area.</p>
+                <div className="space-y-6">
+                  {nurtureSequence.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">No Nurture Sequence Planned</h4>
+                      <p className="text-gray-600 mb-4">Generate your personalized email sequence that bridges your lead magnet to your signature offer.</p>
+                      <button 
+                        onClick={handleGenerateNurtureSequence}
+                        disabled={aiLoading}
+                        className="text-black px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+                        style={{ backgroundColor: '#d7df21' }}
+                      >
+                        {aiLoading ? '🤖 Generating...' : '🤖 Generate Sequence'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-lg font-semibold text-gray-900">Your Nurture Sequence</h4>
+                        <button 
+                          onClick={handleGenerateNurtureSequence}
+                          disabled={aiLoading}
+                          className="text-black px-4 py-2 rounded-lg font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+                          style={{ backgroundColor: '#d7df21' }}
+                        >
+                          {aiLoading ? '🤖 Regenerating...' : '🤖 Generate Sequence'}
+                        </button>
+                      </div>
+                      
+                      {nurtureSequence.map((email, index) => (
+                        <div key={email.id} className="bg-white p-6 rounded-lg border border-gray-200">
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="flex-1">
+                              <h5 className="text-lg font-semibold text-gray-900 mb-2">
+                                Email {email.id}: {email.title}
+                              </h5>
+                              <p className="text-sm text-gray-600 mb-2">{email.purpose}</p>
+                              <p className="text-sm font-medium text-blue-600">Send: {email.timing}</p>
+                            </div>
+                            <div className="flex space-x-2">
+                              <button className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                Edit
+                              </button>
+                              <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 p-4 rounded border">
+                            <h6 className="font-medium text-gray-900 mb-2">Content:</h6>
+                            <div className="text-sm text-gray-700 whitespace-pre-line">
+                              {email.content}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'tab-3' && (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Funnel Pages</h3>
+                <p className="text-gray-600 mb-6">
+                  Create your lead magnet landing page and thank you page using a high converting funnel framework.
+                </p>
+                
+                <div className="space-y-6">
+                  {funnelPages.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clipRule="evenodd"/>
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">No Funnel Pages Created</h4>
+                      <p className="text-gray-600 mb-4">Generate your high converting landing page and thank you page.</p>
+                      <button 
+                        onClick={handleGenerateFunnelPages}
+                        disabled={aiLoading}
+                        className="text-black px-6 py-3 rounded-lg font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+                        style={{ backgroundColor: '#d7df21' }}
+                      >
+                        {aiLoading ? '🤖 Generating...' : '🤖 Generate Pages'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-lg font-semibold text-gray-900">Your Funnel Pages</h4>
+                        <button 
+                          onClick={handleGenerateFunnelPages}
+                          disabled={aiLoading}
+                          className="text-black px-4 py-2 rounded-lg font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+                          style={{ backgroundColor: '#d7df21' }}
+                        >
+                          {aiLoading ? '🤖 Regenerating...' : '🤖 Generate Pages'}
+                        </button>
+                      </div>
+                      
+                      {funnelPages.map((page, index) => (
+                        <div key={page.id} className="bg-white p-6 rounded-lg border border-gray-200">
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="flex-1">
+                              <h5 className="text-lg font-semibold text-gray-900 mb-2">
+                                {page.type}: {page.title}
+                              </h5>
+                            </div>
+                            <div className="flex space-x-2">
+                              <button className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                Edit
+                              </button>
+                              <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 p-4 rounded border">
+                            <h6 className="font-medium text-gray-900 mb-3">Page Content:</h6>
+                            
+                            {page.type === "Landing Page" && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="font-medium text-gray-800">Headline:</p>
+                                  <p className="text-gray-700">{page.content.headline}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">Subheadline:</p>
+                                  <p className="text-gray-700">{page.content.subheadline}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">Key Benefits:</p>
+                                  <ul className="list-disc list-inside text-gray-700 ml-2">
+                                    {page.content.bullets.map((bullet, idx) => (
+                                      <li key={idx}>{bullet}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">Call-to-Action:</p>
+                                  <p className="text-gray-700">{page.content.cta}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">Form Fields:</p>
+                                  <p className="text-gray-700">{page.content.form.fields.join(", ")}</p>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {page.type === "Thank You Page" && (
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="font-medium text-gray-800">Headline:</p>
+                                  <p className="text-gray-700">{page.content.headline}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">Message:</p>
+                                  <p className="text-gray-700">{page.content.message}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">Next Steps:</p>
+                                  <ul className="list-disc list-inside text-gray-700 ml-2">
+                                    {page.content.nextSteps.map((step, idx) => (
+                                      <li key={idx}>{step}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">Social Proof:</p>
+                                  <p className="text-gray-700">{page.content.socialProof}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
