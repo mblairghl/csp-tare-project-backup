@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import Confetti from 'react-confetti';
 import StepFooter from './StepFooter';
 import AIModal from './AIModal';
 import APIKeyModal from './APIKeyModal';
 import aiService from '../services/aiService';
+import storageOptimizer from '../utils/storageOptimizer';
 
 const Step4 = () => {
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);

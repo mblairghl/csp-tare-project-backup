@@ -245,7 +245,31 @@ const Step3 = () => {
     setShowAddExpansionModal(true);
   };
 
-  // Handle generating HighLevel setup checklist
+  // Handle adding AI recommendation to expansion opportunities
+  const handleAddAIRecommendation = (aiSource) => {
+    // Create new expansion opportunity from AI recommendation
+    const newOpportunity = {
+      id: Date.now().toString(),
+      name: aiSource.source,
+      type: 'AI Recommendation',
+      priority: aiSource.priority || 'Medium',
+      description: aiSource.description,
+      dateAdded: new Date().toISOString(),
+      source: 'AI Generated'
+    };
+
+    // Add to expansion opportunities
+    const updatedOpportunities = [...expansionOpportunities, newOpportunity];
+    setExpansionOpportunities(updatedOpportunities);
+    
+    // Save to optimized localStorage
+    storageOptimizer.setStep3Data('expansion_opportunities', updatedOpportunities);
+
+    // Optional: Show success feedback
+    console.log(`Added AI recommendation: ${aiSource.source}`);
+  };
+
+  // Handle generating CSP setup checklist
   const handleGenerateSetupChecklist = () => {
     const checklist = {
       id: Date.now(),
@@ -255,7 +279,7 @@ const Step3 = () => {
           category: 'Lead Source Tracking',
           tasks: [
             'Set up UTM parameters for each lead source',
-            'Configure lead source attribution in HighLevel',
+            'Configure lead source attribution in CSP',
             'Create custom fields for lead source details',
             'Set up automated lead source tagging'
           ]
@@ -281,7 +305,7 @@ const Step3 = () => {
         {
           category: 'Integration Setup',
           tasks: [
-            'Connect all lead sources to HighLevel',
+            'Connect all lead sources to CSP',
             'Set up webhook integrations where needed',
             'Configure API connections for data sync',
             'Test all lead source data flows'
@@ -325,7 +349,7 @@ const Step3 = () => {
     }, 
     {
       'id': 'highlevel-setup', 
-      'title': 'HighLevel Setup', 
+      'title': 'CSP Setup', 
       'description': 'Plan tracking configuration'
     },
     {
@@ -350,7 +374,7 @@ const Step3 = () => {
 
         {/* Component 3: Step Objective */}
         <p className="text-lg text-gray-600 mb-6">
-          Plan your lead source strategy and prepare for proper tracking setup in HighLevel.
+          Plan your lead source strategy and prepare for proper tracking setup in CSP.
         </p>
 
         {/* Component 4: How This Works Section */}
@@ -562,16 +586,16 @@ const Step3 = () => {
 
             {activeTab === 'highlevel-setup' && (
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">HighLevel Lead Scoring Setup</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">CSP Lead Scoring Setup</h3>
                 <p className="text-gray-600 mb-6">
-                  Prepare your lead scoring and tracking configuration for HighLevel implementation. This ensures accurate measurement from day one.
+                  Prepare your lead scoring and tracking configuration for CSP implementation. This ensures accurate measurement from day one.
                 </p>
                 
                 <div className="space-y-4">
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <h4 className="font-semibold text-gray-800 mb-3">🎯 Lead Scoring Criteria</h4>
                     <p className="text-gray-700 text-sm mb-4">
-                      Define how leads will be scored in your HighLevel system based on source quality, engagement, and fit.
+                      Define how leads will be scored in your CSP system based on source quality, engagement, and fit.
                     </p>
                     
                     <div className="space-y-3">
@@ -605,7 +629,7 @@ const Step3 = () => {
                   {highlevelSetup ? (
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
                       <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-lg font-semibold text-gray-900">HighLevel Setup Checklist</h4>
+                        <h4 className="text-lg font-semibold text-gray-900">CSP Setup Checklist</h4>
                         <span className="text-sm text-gray-500">
                           Generated: {new Date(highlevelSetup.dateGenerated).toLocaleDateString()}
                         </span>
@@ -647,7 +671,7 @@ const Step3 = () => {
                       <div className="text-gray-400 text-4xl mb-2">⚙️</div>
                       <h4 className="text-gray-600 font-medium mb-2">No Setup Checklist Generated Yet</h4>
                       <p className="text-gray-500 text-sm">
-                        Generate a comprehensive HighLevel setup checklist based on your lead sources and scoring requirements.
+                        Generate a comprehensive CSP setup checklist based on your lead sources and scoring requirements.
                       </p>
                     </div>
                   )}
@@ -669,7 +693,7 @@ const Step3 = () => {
                 
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
                 <p className="text-gray-600 mb-6">
-                  Celebrate your progress! You've completed your lead source planning and are ready for proper HighLevel implementation.
+                  Celebrate your progress! You've completed your lead source planning and are ready for proper CSP implementation.
                 </p>
                 
                 <div className="bg-green-50 p-6 rounded-lg border border-green-200">
@@ -677,7 +701,7 @@ const Step3 = () => {
                   <ul className="text-green-700 space-y-2">
                     <li>✅ Audited your current lead generation channels</li>
                     <li>✅ Identified expansion opportunities for new lead sources</li>
-                    <li>✅ Planned your HighLevel lead scoring and tracking setup</li>
+                    <li>✅ Planned your CSP lead scoring and tracking setup</li>
                     <li>✅ Created a strategic foundation for accurate measurement</li>
                   </ul>
                 </div>
@@ -715,15 +739,25 @@ const Step3 = () => {
                   <div className="space-y-2">
                     {(aiLeadStrategy.topLeadSources || []).map((source, index) => (
                       <div key={index} className="bg-white p-3 rounded border">
-                        <h5 className="font-medium text-gray-800">{source.source}</h5>
-                        <p className="text-sm text-gray-600">{source.description}</p>
-                        <span className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
-                          source.priority === 'High' ? 'bg-red-100 text-red-600' :
-                          source.priority === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
-                          'bg-green-100 text-green-600'
-                        }`}>
-                          {source.priority} Priority
-                        </span>
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-800">{source.source}</h5>
+                            <p className="text-sm text-gray-600">{source.description}</p>
+                            <span className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
+                              source.priority === 'High' ? 'bg-red-100 text-red-600' :
+                              source.priority === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
+                              'bg-green-100 text-green-600'
+                            }`}>
+                              {source.priority} Priority
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleAddAIRecommendation(source)}
+                            className="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                          >
+                            + Add
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
