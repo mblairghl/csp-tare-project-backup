@@ -9,7 +9,14 @@ import storageOptimizer from '../utils/storageOptimizer';
 
 const Step4 = () => {
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('tab-1');
+  const subSteps = [
+    { id: 'lead-magnet-strategy', title: 'Lead Magnet Strategy', description: 'Create your lead magnet' },
+    { id: 'nurture-sequence', title: 'Nurture Sequence', description: 'Plan your email sequence' },
+    { id: 'funnel-pages', title: 'Funnel Pages', description: 'Create your landing pages' },
+    { id: 'milestone-reflection', title: 'Milestone Reflection', description: 'Celebrate your progress' }
+  ];
+
+  const [activeSubStep, setActiveSubStep] = useState(1);
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [aiFunnelBuild, setAiFunnelBuild] = useState(null);
@@ -205,10 +212,12 @@ const Step4 = () => {
 
   const howThisWorksContent = {
     description: "Step 4 detailed description of how this works.",
-    steps: [{'title': 'Sub Step 1', 'description': 'Description for sub step 1 of step 4.', 'color': 'bg-green-600', 'textColor': '#16a34a'}, {'title': 'Sub Step 2', 'description': 'Description for sub step 2 of step 4.', 'color': 'bg-blue-600', 'textColor': '#2563eb'}, {'title': 'Sub Step 3', 'description': 'Description for sub step 3 of step 4.', 'color': 'bg-yellow-600', 'textColor': '#ca8a04'}]
+    steps: [
+      { title: 'Lead Magnet Creation', description: 'Create compelling lead magnets that attract your ideal clients.', color: 'bg-green-600', textColor: '#16a34a' },
+      { title: 'Nurture Sequence', description: 'Build trust with automated email sequences that guide prospects to purchase.', color: 'bg-blue-600', textColor: '#2563eb' },
+      { title: 'Funnel Pages', description: 'Create high-converting landing pages and thank you pages.', color: 'bg-yellow-600', textColor: '#ca8a04' }
+    ]
   };
-
-  const subSteps = [{'id': 'tab-1', 'title': 'Tab 1', 'description': 'Tab 1 description'}, {'id': 'tab-2', 'title': 'Tab 2', 'description': 'Tab 2 description'}, {'id': 'milestone-reflection', 'title': 'Milestone Reflection', 'description': 'Celebrate progress'}];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -312,7 +321,7 @@ const Step4 = () => {
           </div>
 
           <div className="p-6">
-            {activeTab === 'tab-1' && (
+            {activeSubStep === 1 && (
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Lead Magnet Strategy</h3>
                 <p className="text-gray-600 mb-6">
@@ -400,7 +409,7 @@ const Step4 = () => {
               </div>
             )}
 
-            {activeTab === 'tab-2' && (
+            {activeSubStep === 2 && (
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Nurture Sequence Planning</h3>
                 <p className="text-gray-600 mb-6">
@@ -475,7 +484,7 @@ const Step4 = () => {
               </div>
             )}
 
-            {activeTab === 'tab-3' && (
+            {activeSubStep === 3 && (
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Funnel Pages</h3>
                 <p className="text-gray-600 mb-6">
@@ -598,7 +607,7 @@ const Step4 = () => {
               </div>
             )}
 
-            {activeTab === 'milestone-reflection' && (
+              {activeSubStep === 4 && (
               <div>
                 {showConfetti && (
                   <Confetti
@@ -610,23 +619,76 @@ const Step4 = () => {
                   />
                 )}
                 
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
-                <p className="text-gray-600 mb-6">
-                  Celebrate your progress and reflect on what you've accomplished in this step.
-                </p>
-                
-                <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-800 mb-2">Congratulations!</h4>
-                  <p className="text-green-700">
-                    You've successfully completed Step 4. Great work on your progress!
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-white text-2xl">🎯</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">🎉 Milestone Achieved!</h3>
+                  <p className="text-gray-600 text-lg">
+                    You've successfully completed Step 4: Signature Funnel Build
                   </p>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  {/* What You've Accomplished */}
+                  <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                    <h4 className="font-semibold text-green-800 mb-4 flex items-center">
+                      <span className="mr-2">✅</span>
+                      What You've Accomplished
+                    </h4>
+                    <ul className="text-green-700 space-y-2">
+                      <li>• Created your lead magnet strategy with clear value proposition</li>
+                      <li>• Developed a complete 5-email nurture sequence</li>
+                      <li>• Generated high-converting landing page and thank you page templates</li>
+                      <li>• Built the foundation for your signature funnel system</li>
+                    </ul>
+                  </div>
+                  
+                  {/* What This Means */}
+                  <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                    <h4 className="font-semibold text-blue-800 mb-4 flex items-center">
+                      <span className="mr-2">🚀</span>
+                      What This Means
+                    </h4>
+                    <ul className="text-blue-700 space-y-2">
+                      <li>• You have a complete funnel blueprint ready to implement</li>
+                      <li>• Your lead magnet will attract and convert your ideal clients</li>
+                      <li>• Your nurture sequence builds trust and guides prospects to purchase</li>
+                      <li>• You're ready to move on to sales pipeline automation</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 mb-6">
+                  <h4 className="font-semibold text-yellow-800 mb-3 flex items-center">
+                    <span className="mr-2">💡</span>
+                    Key Insight
+                  </h4>
+                  <p className="text-yellow-700">
+                    Your signature funnel is the engine that transforms strangers into clients. With your lead magnet, 
+                    nurture sequence, and landing pages in place, you now have a systematic way to attract, educate, 
+                    and convert your ideal clients consistently.
+                  </p>
+                </div>
+                
+                <div className="text-center">
+                  <p className="text-gray-600 mb-4">
+                    Ready to automate your sales pipeline and scale your authority business?
+                  </p>
+                  <div className="text-sm text-gray-500">
+                    Continue to Step 5: Sales Pipeline Automation
+                  </div>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        <StepFooter currentStep={4} />
+        <StepFooter 
+          currentStep={4} 
+          totalSteps={9} 
+          showNextStep={activeSubStep === 4}
+        />
 
         {/* AI Modal */}
         <AIModal
