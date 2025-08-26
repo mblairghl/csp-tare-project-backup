@@ -373,6 +373,109 @@ class AIService {
       ]
     };
   }
+
+  async makeAIRequest(prompt, role = 'business consultant') {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Generate mock funnel blueprint based on the prompt
+    if (prompt.includes('funnel build strategy')) {
+      return {
+        funnelStructure: [
+          {
+            component: "Landing Page",
+            description: "High-converting landing page with clear value proposition and compelling headline",
+            priority: "High"
+          },
+          {
+            component: "Lead Magnet",
+            description: "Free valuable resource (guide, checklist, or mini-course) to capture leads",
+            priority: "High"
+          },
+          {
+            component: "Email Sequence",
+            description: "5-part nurture sequence building trust and demonstrating expertise",
+            priority: "Medium"
+          },
+          {
+            component: "Sales Page",
+            description: "Detailed sales page showcasing your signature solution with social proof",
+            priority: "High"
+          },
+          {
+            component: "Checkout Process",
+            description: "Streamlined checkout with payment options and order confirmation",
+            priority: "Medium"
+          }
+        ],
+        landingPageElements: [
+          {
+            element: "Hero Section",
+            description: "Compelling headline addressing main pain point with clear value proposition",
+            priority: "High"
+          },
+          {
+            element: "Social Proof",
+            description: "Client testimonials, success stories, and credibility indicators",
+            priority: "Medium"
+          },
+          {
+            element: "Benefits Section",
+            description: "Clear benefits and transformation your solution provides",
+            priority: "High"
+          },
+          {
+            element: "Call-to-Action",
+            description: "Strong, action-oriented CTA button with urgency or scarcity",
+            priority: "High"
+          },
+          {
+            element: "Trust Signals",
+            description: "Guarantees, certifications, media mentions, or awards",
+            priority: "Medium"
+          }
+        ],
+        emailSequence: [
+          {
+            email: "Welcome Email",
+            subject: "Your [Lead Magnet] is here + what's next",
+            purpose: "Deliver lead magnet and set expectations for the sequence",
+            priority: "High"
+          },
+          {
+            email: "Value Email #1",
+            subject: "The #1 mistake I see coaches make (and how to avoid it)",
+            purpose: "Provide valuable insight and build authority in your field",
+            priority: "Medium"
+          },
+          {
+            email: "Story Email",
+            subject: "How I went from struggling to 6-figures",
+            purpose: "Share your transformation story to build connection and credibility",
+            priority: "Medium"
+          },
+          {
+            email: "Social Proof Email",
+            subject: "Sarah's amazing results (case study inside)",
+            purpose: "Showcase client success story and demonstrate your solution works",
+            priority: "High"
+          },
+          {
+            email: "Soft Pitch Email",
+            subject: "Ready to get similar results?",
+            purpose: "Introduce your signature solution with a soft sales approach",
+            priority: "High"
+          }
+        ]
+      };
+    }
+    
+    // Default response for other prompts
+    return {
+      message: "AI response generated successfully",
+      content: "This is a mock AI response for demonstration purposes."
+    };
+  }
 }
 
 const aiService = new AIService();
