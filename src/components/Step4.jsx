@@ -282,6 +282,7 @@ const Step4 = () => {
           onClose={handleCloseAIModal}
           title="AI-Generated Funnel Blueprint"
           loading={aiLoading}
+          selectedCount={addedComponents.length}
         >
           {aiResult && (
             <div className="space-y-6">

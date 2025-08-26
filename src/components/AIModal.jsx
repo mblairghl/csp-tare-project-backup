@@ -16,8 +16,8 @@ const AIModal = ({
   if (!isOpen) return null;
 
   const handleClose = () => {
-    // For content suggestions and lead strategy, allow closing without selection requirement
-    if (title === "AI Content Suggestions" || title === "AI-Generated Lead Strategy") {
+    // For content suggestions, lead strategy, and funnel blueprint, allow closing without selection requirement
+    if (title === "AI Content Suggestions" || title === "AI-Generated Lead Strategy" || title === "AI-Generated Funnel Blueprint") {
       onClose();
       return;
     }
@@ -91,17 +91,20 @@ const AIModal = ({
             </div>
             <div className="flex items-center space-x-3">
               <span className="text-sm text-gray-600">
-                {selectedCount} persona(s) selected
+                {title === "AI-Generated Funnel Blueprint" 
+                  ? `${selectedCount} component(s) selected`
+                  : `${selectedCount} persona(s) selected`
+                }
               </span>
               <button
                 onClick={handleClose}
                 className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                  selectedCount > 0 
+                  selectedCount > 0 || title === "AI-Generated Funnel Blueprint"
                     ? 'bg-gray-600 text-white hover:bg-gray-700' 
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                Done Selecting
+                {title === "AI-Generated Funnel Blueprint" ? "Done" : "Done Selecting"}
               </button>
             </div>
           </div>
