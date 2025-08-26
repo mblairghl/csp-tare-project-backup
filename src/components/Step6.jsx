@@ -32,6 +32,10 @@ const Step6 = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const handleSaveApiKey = (apiKey) => {
+    aiService.setApiKey(apiKey);
+  };
+
   const howThisWorksContent = {
     description: "Step 6 detailed description of how this works.",
     steps: [{'title': 'Sub Step 1', 'description': 'Description for sub step 1 of step 6.', 'color': 'bg-green-600', 'textColor': '#16a34a'}, {'title': 'Sub Step 2', 'description': 'Description for sub step 2 of step 6.', 'color': 'bg-blue-600', 'textColor': '#2563eb'}, {'title': 'Sub Step 3', 'description': 'Description for sub step 3 of step 6.', 'color': 'bg-yellow-600', 'textColor': '#ca8a04'}]
