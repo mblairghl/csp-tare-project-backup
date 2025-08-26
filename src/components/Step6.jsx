@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import Confetti from 'react-confetti';
 import StepFooter from './StepFooter';
+import storageOptimizer from '../utils/storageOptimizer';
 
 const Step6 = () => {
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('tab-1');
+  const [aiResult, setAiResult] = useState(null);
 
   const howThisWorksContent = {
     description: "Step 6 detailed description of how this works.",
