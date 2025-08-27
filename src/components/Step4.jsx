@@ -17,6 +17,7 @@ const Step4 = () => {
   ];
 
   const [activeSubStep, setActiveSubStep] = useState(1);
+  const [unlockedSubSteps, setUnlockedSubSteps] = useState([1]); // Track which sub-steps are unlocked
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [aiFunnelBuild, setAiFunnelBuild] = useState(null);
@@ -104,10 +105,10 @@ const Step4 = () => {
     setAiModalOpen(false);
     setAddedComponents([]);
     
-    // Auto-progress to next sub-step after a short delay
-    setTimeout(() => {
-      setActiveSubStep(2);
-    }, 1000);
+    // Unlock next sub-step instead of jumping to it
+    if (!unlockedSubSteps.includes(2)) {
+      setUnlockedSubSteps(prev => [...prev, 2]);
+    }
   };
 
   // Handle closing AI modal and resetting state
@@ -160,10 +161,10 @@ const Step4 = () => {
       
       setNurtureSequence(mockSequence);
       
-      // Auto-progress to next sub-step after generating sequence
-      setTimeout(() => {
-        setActiveSubStep(3);
-      }, 1500);
+      // Unlock next sub-step instead of jumping to it
+      if (!unlockedSubSteps.includes(3)) {
+        setUnlockedSubSteps(prev => [...prev, 3]);
+      }
     } catch (error) {
       console.error('Error generating nurture sequence:', error);
     } finally {
@@ -214,12 +215,10 @@ const Step4 = () => {
       
       setFunnelPages(mockPages);
       
-      // Auto-progress to milestone after generating pages
-      setTimeout(() => {
-        setActiveSubStep(4);
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 3000);
-      }, 1500);
+      // Unlock milestone instead of jumping to it
+      if (!unlockedSubSteps.includes(4)) {
+        setUnlockedSubSteps(prev => [...prev, 4]);
+      }
     } catch (error) {
       console.error('Error generating funnel pages:', error);
     } finally {
@@ -230,16 +229,12 @@ const Step4 = () => {
   // Check if lead magnet is complete
   const isLeadMagnetComplete = leadMagnet.title && leadMagnet.format && leadMagnet.problem && leadMagnet.valueProposition;
 
-  // Auto-progress when lead magnet form is manually completed
+  // Auto-unlock next sub-step when lead magnet form is manually completed
   useEffect(() => {
-    if (isLeadMagnetComplete && activeSubStep === 1) {
-      const timer = setTimeout(() => {
-        setActiveSubStep(2);
-      }, 2000); // Give user time to see completion
-      
-      return () => clearTimeout(timer);
+    if (isLeadMagnetComplete && activeSubStep === 1 && !unlockedSubSteps.includes(2)) {
+      setUnlockedSubSteps(prev => [...prev, 2]);
     }
-  }, [isLeadMagnetComplete, activeSubStep]);
+  }, [isLeadMagnetComplete, activeSubStep, unlockedSubSteps]);
 
   const howThisWorksContent = {
     description: "Step 4 detailed description of how this works.",
@@ -314,44 +309,64 @@ const Step4 = () => {
           )}
         </div>
 
-        {/* Component 5: Tabbed Sub Step Section */}
-        <div className="bg-white rounded-lg border shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 mb-8">
-          <div className="flex border-b">
-            {subSteps.map((step, index) => (
-              <button
-                key={step.id}
-                onClick={() => {
-                  setActiveTab(step.id);
-                  // Trigger confetti when milestone tab is clicked
-                  if (step.id === 'milestone-reflection') {
-                    setShowConfetti(true);
-                    // Stop confetti after 3 seconds
-                    setTimeout(() => setShowConfetti(false), 3000);
-                  }
-                }}
-                className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  activeSubStep === index + 1
-                    ? 'border-green-500 text-green-600 bg-green-50'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    step.completed ? 'bg-green-600 text-white' : 
-                    activeSubStep === index + 1 ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'
-                  }`}>
-                    {index + 1}
+        {/* Component 5: Tabb        {/* Component 5: Sub-Step Navigation */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="flex flex-wrap">
+            {subSteps.map((subStep, index) => {
+              const stepNumber = index + 1;
+              const isUnlocked = unlockedSubSteps.includes(stepNumber);
+              const isActive = activeSubStep === stepNumber;
+              
+              return (
+                <button
+                  key={subStep.id}
+                  onClick={() => {
+                    if (isUnlocked) {
+                      if (subStep.id === 'milestone-reflection') {
+                        setActiveSubStep(stepNumber);
+                        setShowConfetti(true);
+                        setTimeout(() => setShowConfetti(false), 3000);
+                      } else {
+                        setActiveSubStep(stepNumber);
+                      }
+                    }
+                  }}
+                  disabled={!isUnlocked}
+                  className={`flex-1 min-w-0 px-4 py-4 text-center border-b-2 transition-colors ${
+                    isActive && isUnlocked
+                      ? 'border-orange-500 bg-orange-50 text-orange-700'
+                      : isUnlocked
+                      ? 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-50 cursor-pointer'
+                      : 'border-transparent text-gray-400 cursor-not-allowed bg-gray-50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center">
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mb-2 ${
+                      isActive && isUnlocked
+                        ? 'bg-orange-500 text-white'
+                        : isUnlocked
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-300 text-gray-500'
+                    }`}>
+                      {subStep.id === 'milestone-reflection' ? '🎉' : stepNumber}
+                    </span>
+                    <span className="font-medium text-sm">{subStep.title}</span>
+                    {subStep.description && (
+                      <span className="text-xs text-gray-500 mt-1">{subStep.description}</span>
+                    )}
+                    {!isUnlocked && stepNumber > 1 && (
+                      <span className="text-xs text-gray-400 mt-1">🔒 Complete previous step</span>
+                    )}
                   </div>
-                  <div className="text-left">
-                    <div className="font-medium">{step.title}</div>
-                    <div className="text-xs text-gray-500">{step.description}</div>
-                  </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          <div className="p-6">
+        {/* Component 6: Sub-Step Content */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="space-y-6">
             {activeSubStep === 1 && (
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Lead Magnet Strategy</h3>
