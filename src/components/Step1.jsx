@@ -105,12 +105,29 @@ const Step1 = () => {
     const hasPainPoints = (idealClient.painPoints && idealClient.painPoints.trim().length > 0) || 
                          addedPersonas.some(p => p.type === 'Pain Points');
     
+    // Debug logging
+    console.log('Step 1 Auto-progression Check:', {
+      activeSubStep,
+      hasDemographics,
+      hasPsychographics,
+      hasPainPoints,
+      demographicsText: idealClient.demographics?.length || 0,
+      demographicsPersonas: addedPersonas.filter(p => p.type === 'Demographics').length,
+      psychographicsText: idealClient.psychographics?.length || 0,
+      psychographicsPersonas: addedPersonas.filter(p => p.type === 'Psychographics').length,
+      painPointsText: idealClient.painPoints?.length || 0,
+      painPointsPersonas: addedPersonas.filter(p => p.type === 'Pain Points').length
+    });
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasDemographics) {
+      console.log('Auto-progressing from Demographics to Psychographics');
       setTimeout(() => setActiveSubStep(2), 500);
     } else if (activeSubStep === 2 && hasPsychographics) {
+      console.log('Auto-progressing from Psychographics to Pain Points');
       setTimeout(() => setActiveSubStep(3), 500);
     } else if (activeSubStep === 3 && hasPainPoints) {
+      console.log('Auto-progressing from Pain Points to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
   }, [idealClient, addedPersonas, activeSubStep]);
@@ -264,10 +281,13 @@ const Step1 = () => {
     ]
   };
 
-  // Check section completion for tab progression
-  const hasDemographics = idealClient.demographics && idealClient.demographics.trim().length > 0;
-  const hasPsychographics = idealClient.psychographics && idealClient.psychographics.trim().length > 0;
-  const hasPainPoints = idealClient.painPoints && idealClient.painPoints.trim().length > 0;
+  // Check section completion for tab progression - UNIFIED LOGIC
+  const hasDemographics = (idealClient.demographics && idealClient.demographics.trim().length > 0) || 
+                         addedPersonas.some(p => p.type === 'Demographics');
+  const hasPsychographics = (idealClient.psychographics && idealClient.psychographics.trim().length > 0) || 
+                           addedPersonas.some(p => p.type === 'Psychographics');
+  const hasPainPoints = (idealClient.painPoints && idealClient.painPoints.trim().length > 0) || 
+                       addedPersonas.some(p => p.type === 'Pain Points');
 
   // Tab progression logic
   const isSubStepUnlocked = (stepNumber) => {
