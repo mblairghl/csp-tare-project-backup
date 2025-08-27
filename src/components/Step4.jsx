@@ -103,6 +103,11 @@ const Step4 = () => {
     // Close modal after adding
     setAiModalOpen(false);
     setAddedComponents([]);
+    
+    // Auto-progress to next sub-step after a short delay
+    setTimeout(() => {
+      setActiveSubStep(2);
+    }, 1000);
   };
 
   // Handle closing AI modal and resetting state
@@ -154,6 +159,11 @@ const Step4 = () => {
       ];
       
       setNurtureSequence(mockSequence);
+      
+      // Auto-progress to next sub-step after generating sequence
+      setTimeout(() => {
+        setActiveSubStep(3);
+      }, 1500);
     } catch (error) {
       console.error('Error generating nurture sequence:', error);
     } finally {
@@ -203,12 +213,33 @@ const Step4 = () => {
       ];
       
       setFunnelPages(mockPages);
+      
+      // Auto-progress to milestone after generating pages
+      setTimeout(() => {
+        setActiveSubStep(4);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      }, 1500);
     } catch (error) {
       console.error('Error generating funnel pages:', error);
     } finally {
       setAiLoading(false);
     }
   };
+
+  // Check if lead magnet is complete
+  const isLeadMagnetComplete = leadMagnet.title && leadMagnet.format && leadMagnet.problem && leadMagnet.valueProposition;
+
+  // Auto-progress when lead magnet form is manually completed
+  useEffect(() => {
+    if (isLeadMagnetComplete && activeSubStep === 1) {
+      const timer = setTimeout(() => {
+        setActiveSubStep(2);
+      }, 2000); // Give user time to see completion
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLeadMagnetComplete, activeSubStep]);
 
   const howThisWorksContent = {
     description: "Step 4 detailed description of how this works.",
