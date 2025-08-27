@@ -23,6 +23,9 @@ const Step1 = () => {
 
   // Step completion tracking
   const [isStepComplete, setIsStepComplete] = useState(false);
+  
+  // Auto-progression control
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Modal states
   const [manualModalOpen, setManualModalOpen] = useState(false);
@@ -77,6 +80,9 @@ const Step1 = () => {
     if (savedPersonas && Array.isArray(savedPersonas)) {
       setAddedPersonas(savedPersonas);
     }
+    
+    // Reset initial load flag after data is loaded
+    setTimeout(() => setIsInitialLoad(false), 100);
   }, []);
 
   // Check completion status and auto-progression
@@ -98,6 +104,9 @@ const Step1 = () => {
 
   // Auto-progression logic for sub-steps
   useEffect(() => {
+    // Don't auto-progress on initial load
+    if (isInitialLoad) return;
+    
     const hasDemographics = (idealClient.demographics && idealClient.demographics.trim().length > 0) || 
                            addedPersonas.some(p => p.type === 'Demographics');
     const hasPsychographics = (idealClient.psychographics && idealClient.psychographics.trim().length > 0) || 
@@ -107,6 +116,7 @@ const Step1 = () => {
     
     // Debug logging
     console.log('Step 1 Auto-progression Check:', {
+      isInitialLoad,
       activeSubStep,
       hasDemographics,
       hasPsychographics,
@@ -130,7 +140,7 @@ const Step1 = () => {
       console.log('Auto-progressing from Pain Points to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [idealClient, addedPersonas, activeSubStep]);
+  }, [idealClient, addedPersonas, activeSubStep, isInitialLoad]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
