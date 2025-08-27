@@ -299,7 +299,7 @@ const Step4 = () => {
                   }
                 }}
                 className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === step.id
+                  activeSubStep === index + 1
                     ? 'border-green-500 text-green-600 bg-green-50'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
@@ -307,7 +307,7 @@ const Step4 = () => {
                 <div className="flex items-center justify-center space-x-2">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                     step.completed ? 'bg-green-600 text-white' : 
-                    activeTab === step.id ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'
+                    activeSubStep === index + 1 ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'
                   }`}>
                     {index + 1}
                   </div>
