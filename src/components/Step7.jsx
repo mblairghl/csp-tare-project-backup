@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, Cog, Zap, BarChart3, Plus, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle2, BarChart3, Layout, Calendar, Plus, Sparkles, X, Edit, Trash2, Target, TrendingUp, Activity } from 'lucide-react';
 import Confetti from 'react-confetti';
 import StepFooter from './StepFooter';
 import AIModal from './AIModal';
@@ -24,30 +24,46 @@ const Step7 = () => {
   // Step completion tracking
   const [isStepComplete, setIsStepComplete] = useState(false);
 
-  // Systems automation data
-  const [systemsAutomation, setSystemsAutomation] = useState({
-    crmSetup: '',
-    emailAutomation: '',
-    socialMediaAutomation: '',
-    contentAutomation: ''
-  });
-
-  // Workflow optimization data
-  const [workflowOptimization, setWorkflowOptimization] = useState({
-    clientOnboarding: '',
-    projectManagement: '',
-    deliveryProcess: '',
-    qualityAssurance: ''
-  });
+  // Modal states
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
+  const [currentModalType, setCurrentModalType] = useState('');
 
   // Performance tracking data
-  const [performanceTracking, setPerformanceTracking] = useState({
-    kpiDashboard: '',
-    reportingSystem: '',
-    analyticsSetup: '',
-    optimizationPlan: ''
+  const [kpiPlanning, setKpiPlanning] = useState({
+    businessMetrics: '',
+    performanceIndicators: '',
+    trackingMethods: '',
+    reportingFrequency: ''
   });
 
+  const [dashboardLayout, setDashboardLayout] = useState({
+    dashboardTools: '',
+    visualizations: '',
+    dataConnections: '',
+    accessPermissions: ''
+  });
+
+  const [reportingSchedule, setReportingSchedule] = useState({
+    reportTypes: '',
+    automatedReports: '',
+    stakeholderReports: '',
+    actionableInsights: ''
+  });
+
+  // Added tracking items list
+  const [addedTrackingItems, setAddedTrackingItems] = useState([]);
+
+  // Manual form data
+  const [manualForm, setManualForm] = useState({
+    type: '',
+    title: '',
+    description: '',
+    details: ''
+  });
+
+  // AI suggestions
+  const [aiSuggestions, setAiSuggestions] = useState([]);
   const [aiResult, setAiResult] = useState(null);
 
   useEffect(() => {
@@ -64,29 +80,33 @@ const Step7 = () => {
 
   // Load saved data
   useEffect(() => {
-    const savedSystems = storageOptimizer.safeGet('step7_systems_automation');
-    const savedWorkflow = storageOptimizer.safeGet('step7_workflow_optimization');
-    const savedTracking = storageOptimizer.safeGet('step7_performance_tracking');
+    const savedKpi = storageOptimizer.safeGet('step7_kpi_planning');
+    const savedDashboard = storageOptimizer.safeGet('step7_dashboard_layout');
+    const savedReporting = storageOptimizer.safeGet('step7_reporting_schedule');
+    const savedItems = storageOptimizer.safeGet('step7_added_tracking_items');
     
-    if (savedSystems && typeof savedSystems === 'object') {
-      setSystemsAutomation(savedSystems);
+    if (savedKpi && typeof savedKpi === 'object') {
+      setKpiPlanning(savedKpi);
     }
-    if (savedWorkflow && typeof savedWorkflow === 'object') {
-      setWorkflowOptimization(savedWorkflow);
+    if (savedDashboard && typeof savedDashboard === 'object') {
+      setDashboardLayout(savedDashboard);
     }
-    if (savedTracking && typeof savedTracking === 'object') {
-      setPerformanceTracking(savedTracking);
+    if (savedReporting && typeof savedReporting === 'object') {
+      setReportingSchedule(savedReporting);
+    }
+    if (savedItems && Array.isArray(savedItems)) {
+      setAddedTrackingItems(savedItems);
     }
   }, []);
 
   // Check completion status
   useEffect(() => {
-    const systemsComplete = Object.values(systemsAutomation).every(value => value && value.trim().length > 0);
-    const workflowComplete = Object.values(workflowOptimization).every(value => value && value.trim().length > 0);
-    const trackingComplete = Object.values(performanceTracking).every(value => value && value.trim().length > 0);
+    const kpiComplete = Object.values(kpiPlanning).every(value => value && value.trim().length > 0);
+    const dashboardComplete = Object.values(dashboardLayout).every(value => value && value.trim().length > 0);
+    const reportingComplete = Object.values(reportingSchedule).every(value => value && value.trim().length > 0);
     
     const wasComplete = isStepComplete;
-    const nowComplete = systemsComplete && workflowComplete && trackingComplete;
+    const nowComplete = kpiComplete && dashboardComplete && reportingComplete;
     
     setIsStepComplete(nowComplete);
     
@@ -95,29 +115,137 @@ const Step7 = () => {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
     }
-  }, [systemsAutomation, workflowOptimization, performanceTracking, isStepComplete]);
+  }, [kpiPlanning, dashboardLayout, reportingSchedule, isStepComplete]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
   };
 
   // Handle form changes
-  const handleSystemsChange = (field, value) => {
-    const updated = { ...systemsAutomation, [field]: value };
-    setSystemsAutomation(updated);
-    storageOptimizer.safeSet('step7_systems_automation', updated);
+  const handleKpiChange = (field, value) => {
+    const updated = { ...kpiPlanning, [field]: value };
+    setKpiPlanning(updated);
+    storageOptimizer.safeSet('step7_kpi_planning', updated);
   };
 
-  const handleWorkflowChange = (field, value) => {
-    const updated = { ...workflowOptimization, [field]: value };
-    setWorkflowOptimization(updated);
-    storageOptimizer.safeSet('step7_workflow_optimization', updated);
+  const handleDashboardChange = (field, value) => {
+    const updated = { ...dashboardLayout, [field]: value };
+    setDashboardLayout(updated);
+    storageOptimizer.safeSet('step7_dashboard_layout', updated);
   };
 
-  const handleTrackingChange = (field, value) => {
-    const updated = { ...performanceTracking, [field]: value };
-    setPerformanceTracking(updated);
-    storageOptimizer.safeSet('step7_performance_tracking', updated);
+  const handleReportingChange = (field, value) => {
+    const updated = { ...reportingSchedule, [field]: value };
+    setReportingSchedule(updated);
+    storageOptimizer.safeSet('step7_reporting_schedule', updated);
+  };
+
+  // Manual entry functions
+  const openManualModal = (type) => {
+    setCurrentModalType(type);
+    setManualForm({
+      type: type,
+      title: '',
+      description: '',
+      details: ''
+    });
+    setManualModalOpen(true);
+  };
+
+  const handleManualSubmit = () => {
+    if (manualForm.title && manualForm.description) {
+      const newItem = {
+        id: Date.now(),
+        type: manualForm.type,
+        title: manualForm.title,
+        description: manualForm.description,
+        details: manualForm.details,
+        source: 'manual'
+      };
+      
+      const updated = [...addedTrackingItems, newItem];
+      setAddedTrackingItems(updated);
+      storageOptimizer.safeSet('step7_added_tracking_items', updated);
+      setManualModalOpen(false);
+    }
+  };
+
+  // AI suggestions functions
+  const openAiSuggestionsModal = async (type) => {
+    setCurrentModalType(type);
+    setAiSuggestionsModalOpen(true);
+    
+    // Generate AI suggestions based on type
+    const suggestions = generateAiSuggestions(type);
+    setAiSuggestions(suggestions);
+  };
+
+  const generateAiSuggestions = (type) => {
+    const suggestionsByType = {
+      'KPIs Planning': [
+        { id: 1, title: 'Revenue Growth Metrics', description: 'Track monthly recurring revenue and growth rate', details: 'Monitor MRR, ARR, revenue growth percentage, and revenue per client' },
+        { id: 2, title: 'Client Acquisition KPIs', description: 'Measure lead generation and conversion effectiveness', details: 'Track lead volume, conversion rates, cost per acquisition, and sales cycle length' },
+        { id: 3, title: 'Client Satisfaction Metrics', description: 'Monitor client happiness and retention', details: 'Net Promoter Score, client retention rate, satisfaction surveys, testimonials' },
+        { id: 4, title: 'Operational Efficiency KPIs', description: 'Track business process effectiveness', details: 'Project completion time, resource utilization, automation adoption rate' },
+        { id: 5, title: 'Authority Building Metrics', description: 'Measure thought leadership and brand growth', details: 'Social media engagement, content reach, speaking opportunities, media mentions' }
+      ],
+      'Dashboard Layout': [
+        { id: 1, title: 'Executive Dashboard', description: 'High-level overview for strategic decisions', details: 'Revenue trends, client metrics, growth indicators, and key alerts' },
+        { id: 2, title: 'Sales Performance Dashboard', description: 'Track sales pipeline and conversion metrics', details: 'Pipeline value, conversion rates, sales activities, and forecasting' },
+        { id: 3, title: 'Marketing Analytics Dashboard', description: 'Monitor marketing campaign effectiveness', details: 'Lead generation, content performance, social media metrics, ROI tracking' },
+        { id: 4, title: 'Client Success Dashboard', description: 'Track client engagement and satisfaction', details: 'Client progress, engagement levels, support tickets, success milestones' },
+        { id: 5, title: 'Financial Performance Dashboard', description: 'Monitor financial health and profitability', details: 'Revenue streams, expenses, profit margins, cash flow analysis' }
+      ],
+      'Reporting Schedule': [
+        { id: 1, title: 'Weekly Performance Reports', description: 'Regular updates on key business metrics', details: 'Automated weekly summaries with trends, alerts, and action items' },
+        { id: 2, title: 'Monthly Business Reviews', description: 'Comprehensive monthly business analysis', details: 'Detailed performance analysis, goal progress, and strategic recommendations' },
+        { id: 3, title: 'Quarterly Strategic Reports', description: 'High-level strategic performance reviews', details: 'Quarterly goal assessment, market analysis, and strategic planning insights' },
+        { id: 4, title: 'Client Progress Reports', description: 'Individual client success tracking', details: 'Client-specific progress reports, milestones achieved, and next steps' },
+        { id: 5, title: 'ROI Analysis Reports', description: 'Return on investment tracking and analysis', details: 'Campaign ROI, investment performance, and optimization recommendations' }
+      ]
+    };
+    
+    return suggestionsByType[type] || [];
+  };
+
+  const addAiSuggestion = (suggestion) => {
+    const newItem = {
+      id: Date.now(),
+      type: currentModalType,
+      title: suggestion.title,
+      description: suggestion.description,
+      details: suggestion.details,
+      source: 'ai'
+    };
+    
+    const updated = [...addedTrackingItems, newItem];
+    setAddedTrackingItems(updated);
+    storageOptimizer.safeSet('step7_added_tracking_items', updated);
+    
+    // Remove suggestion from list
+    setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+  };
+
+  // Edit/Delete functions
+  const editTrackingItem = (id) => {
+    const item = addedTrackingItems.find(i => i.id === id);
+    if (item) {
+      setManualForm({
+        type: item.type,
+        title: item.title,
+        description: item.description,
+        details: item.details
+      });
+      setCurrentModalType(item.type);
+      deleteTrackingItem(id); // Remove original
+      setManualModalOpen(true);
+    }
+  };
+
+  const deleteTrackingItem = (id) => {
+    const updated = addedTrackingItems.filter(i => i.id !== id);
+    setAddedTrackingItems(updated);
+    storageOptimizer.safeSet('step7_added_tracking_items', updated);
   };
 
   // AI content generation
@@ -126,10 +254,10 @@ const Step7 = () => {
     setAiLoading(true);
     
     try {
-      const result = await aiService.generateSystemsOptimization();
+      const result = await aiService.generatePerformanceTracking();
       setAiResult(result);
     } catch (error) {
-      console.error('Error generating systems optimization:', error);
+      console.error('Error generating performance tracking:', error);
     } finally {
       setAiLoading(false);
     }
@@ -138,47 +266,47 @@ const Step7 = () => {
   const handleUseAIContent = (content) => {
     // Apply AI suggestions to current sub-step
     if (activeSubStep === 1) {
-      setSystemsAutomation(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step7_systems_automation', { ...systemsAutomation, ...content });
+      setKpiPlanning(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step7_kpi_planning', { ...kpiPlanning, ...content });
     } else if (activeSubStep === 2) {
-      setWorkflowOptimization(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step7_workflow_optimization', { ...workflowOptimization, ...content });
+      setDashboardLayout(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step7_dashboard_layout', { ...dashboardLayout, ...content });
     } else if (activeSubStep === 3) {
-      setPerformanceTracking(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step7_performance_tracking', { ...performanceTracking, ...content });
+      setReportingSchedule(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step7_reporting_schedule', { ...reportingSchedule, ...content });
     }
     setAiModalOpen(false);
   };
 
   const howThisWorksContent = {
-    description: "Automate your business systems, optimize workflows, and implement performance tracking for maximum efficiency and growth.",
+    description: "Build comprehensive performance tracking systems to monitor your business growth, optimize operations, and make data-driven decisions.",
     steps: [
-      { title: 'Systems Automation', description: 'Automate repetitive tasks and processes to save time and reduce errors.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
-      { title: 'Workflow Optimization', description: 'Streamline your business processes for maximum efficiency and client satisfaction.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
-      { title: 'Performance Tracking', description: 'Implement systems to monitor, measure, and optimize your business performance.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
+      { title: 'KPIs Planning', description: 'Define and track key performance indicators for your business.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
+      { title: 'Dashboard Layout', description: 'Build visual dashboards for real-time performance monitoring.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
+      { title: 'Reporting Schedule', description: 'Create automated reporting for stakeholders and decision-making.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
     ]
   };
 
   // Check section completion for tab progression
-  const hasSystemsAutomation = Object.values(systemsAutomation).every(value => value && value.trim().length > 0);
-  const hasWorkflowOptimization = Object.values(workflowOptimization).every(value => value && value.trim().length > 0);
-  const hasPerformanceTracking = Object.values(performanceTracking).every(value => value && value.trim().length > 0);
+  const hasKpiPlanning = Object.values(kpiPlanning).every(value => value && value.trim().length > 0);
+  const hasDashboardLayout = Object.values(dashboardLayout).every(value => value && value.trim().length > 0);
+  const hasReportingSchedule = Object.values(reportingSchedule).every(value => value && value.trim().length > 0);
 
   // Tab progression logic
   const isSubStepUnlocked = (stepNumber) => {
     switch (stepNumber) {
       case 1: return true; // Always unlocked
-      case 2: return hasSystemsAutomation; // Unlocked when systems complete
-      case 3: return hasSystemsAutomation && hasWorkflowOptimization; // Unlocked when first two complete
-      case 4: return hasSystemsAutomation && hasWorkflowOptimization && hasPerformanceTracking; // Milestone - all complete
+      case 2: return hasKpiPlanning; // Unlocked when KPI planning complete
+      case 3: return hasKpiPlanning && hasDashboardLayout; // Unlocked when first two complete
+      case 4: return hasKpiPlanning && hasDashboardLayout && hasReportingSchedule; // Milestone - all complete
       default: return false;
     }
   };
 
   const subSteps = [
-    { id: 1, title: 'Systems Automation', icon: Cog },
-    { id: 2, title: 'Workflow Optimization', icon: Zap },
-    { id: 3, title: 'Performance Tracking', icon: BarChart3 },
+    { id: 1, title: 'KPIs Planning', icon: Target },
+    { id: 2, title: 'Dashboard Layout', icon: Layout },
+    { id: 3, title: 'Reporting Schedule', icon: Calendar },
     { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
   ];
 
@@ -188,20 +316,20 @@ const Step7 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Systems Automation</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">KPIs Planning</h3>
               <p className="text-gray-600 mb-6">
-                Automate repetitive tasks and processes to save time, reduce errors, and focus on high-value activities.
+                Define and establish key performance indicators that will help you track business growth and make informed decisions.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    CRM Setup & Automation
+                    Business Metrics
                   </label>
                   <textarea
-                    value={systemsAutomation.crmSetup}
-                    onChange={(e) => handleSystemsChange('crmSetup', e.target.value)}
-                    placeholder="Configure your CRM system with automated lead tracking, follow-ups, and pipeline management..."
+                    value={kpiPlanning.businessMetrics}
+                    onChange={(e) => handleKpiChange('businessMetrics', e.target.value)}
+                    placeholder="Define your core business metrics: revenue, profit margins, client acquisition cost, lifetime value..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -209,12 +337,12 @@ const Step7 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Marketing Automation
+                    Performance Indicators
                   </label>
                   <textarea
-                    value={systemsAutomation.emailAutomation}
-                    onChange={(e) => handleSystemsChange('emailAutomation', e.target.value)}
-                    placeholder="Set up automated email sequences for nurturing, onboarding, and client communication..."
+                    value={kpiPlanning.performanceIndicators}
+                    onChange={(e) => handleKpiChange('performanceIndicators', e.target.value)}
+                    placeholder="List specific KPIs you'll track: conversion rates, client satisfaction scores, project completion times..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -222,12 +350,12 @@ const Step7 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Social Media Automation
+                    Tracking Methods
                   </label>
                   <textarea
-                    value={systemsAutomation.socialMediaAutomation}
-                    onChange={(e) => handleSystemsChange('socialMediaAutomation', e.target.value)}
-                    placeholder="Automate social media posting, engagement, and content distribution across platforms..."
+                    value={kpiPlanning.trackingMethods}
+                    onChange={(e) => handleKpiChange('trackingMethods', e.target.value)}
+                    placeholder="How will you track these KPIs? Tools, systems, data sources, collection methods..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -235,26 +363,76 @@ const Step7 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Creation Automation
+                    Reporting Frequency
                   </label>
                   <textarea
-                    value={systemsAutomation.contentAutomation}
-                    onChange={(e) => handleSystemsChange('contentAutomation', e.target.value)}
-                    placeholder="Automate content repurposing, scheduling, and distribution workflows..."
+                    value={kpiPlanning.reportingFrequency}
+                    onChange={(e) => handleKpiChange('reportingFrequency', e.target.value)}
+                    placeholder="How often will you review these KPIs? Daily, weekly, monthly reporting schedules..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('KPIs Planning')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('KPIs Planning')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added KPIs Planning Items */}
+                {addedTrackingItems.filter(i => i.type === 'KPIs Planning').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editTrackingItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteTrackingItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {hasSystemsAutomation && (
+              {hasKpiPlanning && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Systems Automation Complete!</span>
+                    <span className="font-medium">KPIs Planning Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Great! You can now move to workflow optimization.
+                    Great! You can now move to dashboard layout design.
                   </p>
                 </div>
               )}
@@ -266,20 +444,20 @@ const Step7 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Workflow Optimization</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Dashboard Layout</h3>
               <p className="text-gray-600 mb-6">
-                Streamline your business processes for maximum efficiency, consistency, and client satisfaction.
+                Design visual dashboards that provide real-time insights into your business performance and key metrics.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Client Onboarding Process
+                    Dashboard Tools
                   </label>
                   <textarea
-                    value={workflowOptimization.clientOnboarding}
-                    onChange={(e) => handleWorkflowChange('clientOnboarding', e.target.value)}
-                    placeholder="Design a smooth onboarding process from initial contact to project kickoff..."
+                    value={dashboardLayout.dashboardTools}
+                    onChange={(e) => handleDashboardChange('dashboardTools', e.target.value)}
+                    placeholder="What tools will you use for dashboards? Google Data Studio, Tableau, Power BI, custom solutions..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -287,12 +465,12 @@ const Step7 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Project Management Workflow
+                    Visualizations
                   </label>
                   <textarea
-                    value={workflowOptimization.projectManagement}
-                    onChange={(e) => handleWorkflowChange('projectManagement', e.target.value)}
-                    placeholder="Optimize your project management process for efficiency and client communication..."
+                    value={dashboardLayout.visualizations}
+                    onChange={(e) => handleDashboardChange('visualizations', e.target.value)}
+                    placeholder="What types of charts and visualizations will you include? Graphs, tables, gauges, trend lines..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -300,12 +478,12 @@ const Step7 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Service Delivery Process
+                    Data Connections
                   </label>
                   <textarea
-                    value={workflowOptimization.deliveryProcess}
-                    onChange={(e) => handleWorkflowChange('deliveryProcess', e.target.value)}
-                    placeholder="Streamline how you deliver your services or products to ensure consistent quality..."
+                    value={dashboardLayout.dataConnections}
+                    onChange={(e) => handleDashboardChange('dataConnections', e.target.value)}
+                    placeholder="What data sources will connect to your dashboard? CRM, analytics, financial systems, marketing tools..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -313,26 +491,76 @@ const Step7 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quality Assurance & Feedback
+                    Access Permissions
                   </label>
                   <textarea
-                    value={workflowOptimization.qualityAssurance}
-                    onChange={(e) => handleWorkflowChange('qualityAssurance', e.target.value)}
-                    placeholder="Implement quality checks and feedback loops to continuously improve your processes..."
+                    value={dashboardLayout.accessPermissions}
+                    onChange={(e) => handleDashboardChange('accessPermissions', e.target.value)}
+                    placeholder="Who will have access to which dashboards? Team roles, client access, stakeholder permissions..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Dashboard Layout')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Dashboard Layout')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added Dashboard Layout Items */}
+                {addedTrackingItems.filter(i => i.type === 'Dashboard Layout').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editTrackingItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteTrackingItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {hasWorkflowOptimization && (
+              {hasDashboardLayout && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Workflow Optimization Complete!</span>
+                    <span className="font-medium">Dashboard Layout Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to performance tracking.
+                    Excellent! You can now move to reporting schedule setup.
                   </p>
                 </div>
               )}
@@ -344,20 +572,20 @@ const Step7 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Performance Tracking</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Reporting Schedule</h3>
               <p className="text-gray-600 mb-6">
-                Implement systems to monitor, measure, and optimize your business performance for continuous growth.
+                Create automated reporting schedules that provide regular insights and support data-driven decision making.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    KPI Dashboard Setup
+                    Report Types
                   </label>
                   <textarea
-                    value={performanceTracking.kpiDashboard}
-                    onChange={(e) => handleTrackingChange('kpiDashboard', e.target.value)}
-                    placeholder="Set up a dashboard to track key performance indicators and business metrics..."
+                    value={reportingSchedule.reportTypes}
+                    onChange={(e) => handleReportingChange('reportTypes', e.target.value)}
+                    placeholder="What types of reports will you create? Performance reports, financial summaries, client progress reports..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -365,12 +593,12 @@ const Step7 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reporting System
+                    Automated Reports
                   </label>
                   <textarea
-                    value={performanceTracking.reportingSystem}
-                    onChange={(e) => handleTrackingChange('reportingSystem', e.target.value)}
-                    placeholder="Create automated reporting systems for regular performance reviews..."
+                    value={reportingSchedule.automatedReports}
+                    onChange={(e) => handleReportingChange('automatedReports', e.target.value)}
+                    placeholder="Which reports will be automated? Daily summaries, weekly performance, monthly reviews..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -378,12 +606,12 @@ const Step7 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Analytics & Data Collection
+                    Stakeholder Reports
                   </label>
                   <textarea
-                    value={performanceTracking.analyticsSetup}
-                    onChange={(e) => handleTrackingChange('analyticsSetup', e.target.value)}
-                    placeholder="Implement analytics tools to collect and analyze business data..."
+                    value={reportingSchedule.stakeholderReports}
+                    onChange={(e) => handleReportingChange('stakeholderReports', e.target.value)}
+                    placeholder="What reports will you share with stakeholders? Client reports, investor updates, team summaries..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -391,26 +619,76 @@ const Step7 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Continuous Optimization Plan
+                    Actionable Insights
                   </label>
                   <textarea
-                    value={performanceTracking.optimizationPlan}
-                    onChange={(e) => handleTrackingChange('optimizationPlan', e.target.value)}
-                    placeholder="Plan how you'll use data insights to continuously optimize your business..."
+                    value={reportingSchedule.actionableInsights}
+                    onChange={(e) => handleReportingChange('actionableInsights', e.target.value)}
+                    placeholder="How will reports drive action? Recommendations, alerts, optimization suggestions..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Reporting Schedule')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Reporting Schedule')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added Reporting Schedule Items */}
+                {addedTrackingItems.filter(i => i.type === 'Reporting Schedule').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editTrackingItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteTrackingItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {hasPerformanceTracking && (
+              {hasReportingSchedule && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Performance Tracking Complete!</span>
+                    <span className="font-medium">Reporting Schedule Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your systems optimization is now complete. Check out the milestone reflection!
+                    Perfect! Your metrics and monitoring system is now complete. Check out the milestone reflection!
                   </p>
                 </div>
               )}
@@ -424,7 +702,7 @@ const Step7 = () => {
               </div>
               
               <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to enhance your systems automation and optimization plans.
+                Get AI-powered suggestions to optimize your complete metrics and monitoring system.
               </p>
 
               <button
@@ -432,7 +710,7 @@ const Step7 = () => {
                 className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
               >
                 <Sparkles className="w-4 h-4" />
-                🤖 Generate AI Systems Optimization
+                🤖 Generate AI Metrics Strategy
               </button>
             </div>
           </div>
@@ -462,7 +740,7 @@ const Step7 = () => {
                 </h2>
                 
                 <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've optimized your business systems and implemented performance tracking.
+                  Congratulations! You've built a comprehensive metrics and monitoring system that will drive data-driven growth.
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-8 text-left">
@@ -471,19 +749,19 @@ const Step7 = () => {
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Automated key business systems and processes</span>
+                        <span className="text-gray-700">Established key performance indicators</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Optimized workflows for maximum efficiency</span>
+                        <span className="text-gray-700">Designed visual performance dashboards</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Implemented performance tracking and analytics</span>
+                        <span className="text-gray-700">Created automated reporting schedules</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created systems for continuous optimization</span>
+                        <span className="text-gray-700">Enabled data-driven decision making</span>
                       </li>
                     </ul>
                   </div>
@@ -492,20 +770,20 @@ const Step7 = () => {
                     <h3 className="text-xl font-semibold text-gray-900 mb-4">What This Means</h3>
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
-                        <Cog className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your business will run more efficiently with less manual work</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Cog className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Client experience will be more consistent and professional</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Cog className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <BarChart3 className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700">You'll have clear visibility into business performance</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <Cog className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your business will scale more effectively</span>
+                        <BarChart3 className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Decisions will be based on real data</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <BarChart3 className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Problems will be identified early</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <BarChart3 className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Growth opportunities will be maximized</span>
                       </li>
                     </ul>
                   </div>
@@ -514,7 +792,7 @@ const Step7 = () => {
                 <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
                   <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
                   <p className="text-gray-700">
-                    With optimized systems and performance tracking in place, your business now operates like a well-oiled machine. You'll spend less time on repetitive tasks and more time on strategic growth activities.
+                    What gets measured gets managed. Your metrics and monitoring system transforms your business from guesswork to precision, enabling you to optimize every aspect of your operations and accelerate growth with confidence.
                   </p>
                 </div>
               </div>
@@ -537,12 +815,12 @@ const Step7 = () => {
 
         {/* Component 2: Step Name */}
         <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-4">
-          Systems & Automation
+          Metrics & Monitoring
         </h1>
 
         {/* Component 3: Step Objective */}
         <p className="text-base lg:text-lg text-gray-600 mb-6">
-          Automate your business systems, optimize workflows, and implement performance tracking for maximum efficiency and growth.
+          Build comprehensive performance tracking systems to monitor your business growth, optimize operations, and make data-driven decisions.
         </p>
 
         {/* Step Completion Indicator */}
@@ -550,9 +828,9 @@ const Step7 = () => {
           <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
             <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
             <div>
-              <p className="font-semibold">🎉 Step 7 Complete! Your systems are optimized.</p>
+              <p className="font-semibold">🎉 Step 7 Complete! Your metrics and monitoring is set up.</p>
               <p className="text-sm text-green-700 mt-1">
-                You now have automated systems and performance tracking for efficient business operations.
+                You now have comprehensive systems to monitor and optimize your business.
               </p>
             </div>
           </div>
@@ -607,9 +885,9 @@ const Step7 = () => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
               const isCompleted = step.id < 4 ? (
-                step.id === 1 ? hasSystemsAutomation :
-                step.id === 2 ? hasWorkflowOptimization :
-                step.id === 3 ? hasPerformanceTracking : false
+                step.id === 1 ? hasKpiPlanning :
+                step.id === 2 ? hasDashboardLayout :
+                step.id === 3 ? hasReportingSchedule : false
               ) : isStepComplete;
 
               return (
@@ -664,11 +942,142 @@ const Step7 = () => {
           {renderSubStepContent()}
         </div>
 
+        {/* Manual Entry Modal */}
+        {manualModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
+                <button
+                  onClick={() => setManualModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                  <select
+                    value={manualForm.type}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                  >
+                    <option value="">Select type...</option>
+                    <option value="KPIs Planning">KPIs Planning</option>
+                    <option value="Dashboard Layout">Dashboard Layout</option>
+                    <option value="Reporting Schedule">Reporting Schedule</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <input
+                    type="text"
+                    value={manualForm.title}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g., Revenue Growth Metrics"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={manualForm.description}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Brief description..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
+                  <textarea
+                    value={manualForm.details}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
+                    placeholder="Additional details (optional)..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 p-6 border-t">
+                <button
+                  onClick={() => setManualModalOpen(false)}
+                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleManualSubmit}
+                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
+                >
+                  Add Entry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Suggestions Modal */}
+        {aiSuggestionsModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
+                <button
+                  onClick={() => setAiSuggestionsModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
+                </p>
+                
+                <div className="space-y-4">
+                  {aiSuggestions.map((suggestion) => (
+                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
+                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
+                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
+                        </div>
+                        <button
+                          onClick={() => addAiSuggestion(suggestion)}
+                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {aiSuggestions.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      All suggestions have been added! Close this modal to continue.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* AI Modal */}
         <AIModal
           isOpen={aiModalOpen}
           onClose={() => setAiModalOpen(false)}
-          title="AI Systems Optimization"
+          title="AI Metrics & Monitoring"
           content={aiResult}
           isLoading={aiLoading}
           onUseContent={handleUseAIContent}

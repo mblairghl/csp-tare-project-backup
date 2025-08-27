@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, DollarSign, Target, TrendingUp, Plus, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle2, DollarSign, Target, TrendingUp, Plus, Sparkles, X, Edit, Trash2, Package, Layers, BarChart3 } from 'lucide-react';
 import Confetti from 'react-confetti';
 import StepFooter from './StepFooter';
 import AIModal from './AIModal';
@@ -24,30 +24,46 @@ const Step6 = () => {
   // Step completion tracking
   const [isStepComplete, setIsStepComplete] = useState(false);
 
-  // Revenue streams data
-  const [revenueStreams, setRevenueStreams] = useState({
-    primaryStreams: '',
-    secondaryStreams: '',
-    passiveIncome: '',
-    scalabilityPlan: ''
+  // Modal states
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
+  const [currentModalType, setCurrentModalType] = useState('');
+
+  // Revenue structure data
+  const [serviceStructure, setServiceStructure] = useState({
+    coreServices: '',
+    servicePackages: '',
+    deliveryMethod: '',
+    serviceTimeline: ''
   });
 
-  // Pricing strategy data
-  const [pricingStrategy, setPricingStrategy] = useState({
-    pricingModel: '',
-    valueProposition: '',
-    competitiveAnalysis: '',
-    pricingTiers: ''
+  const [contentDelivery, setContentDelivery] = useState({
+    deliveryFormat: '',
+    contentSchedule: '',
+    clientInteraction: '',
+    supportLevel: ''
   });
 
-  // Revenue optimization data
-  const [revenueOptimization, setRevenueOptimization] = useState({
-    conversionOptimization: '',
-    upsellStrategies: '',
-    retentionStrategies: '',
-    growthMetrics: ''
+  const [deliveryOptimization, setDeliveryOptimization] = useState({
+    processOptimization: '',
+    qualityAssurance: '',
+    clientFeedback: '',
+    continuousImprovement: ''
   });
 
+  // Added revenue items list
+  const [addedRevenueItems, setAddedRevenueItems] = useState([]);
+
+  // Manual form data
+  const [manualForm, setManualForm] = useState({
+    type: '',
+    title: '',
+    description: '',
+    details: ''
+  });
+
+  // AI suggestions
+  const [aiSuggestions, setAiSuggestions] = useState([]);
   const [aiResult, setAiResult] = useState(null);
 
   useEffect(() => {
@@ -64,29 +80,33 @@ const Step6 = () => {
 
   // Load saved data
   useEffect(() => {
-    const savedStreams = storageOptimizer.safeGet('step6_revenue_streams');
-    const savedPricing = storageOptimizer.safeGet('step6_pricing_strategy');
-    const savedOptimization = storageOptimizer.safeGet('step6_revenue_optimization');
+    const savedService = storageOptimizer.safeGet('step6_service_structure');
+    const savedContent = storageOptimizer.safeGet('step6_content_delivery');
+    const savedOptimization = storageOptimizer.safeGet('step6_delivery_optimization');
+    const savedItems = storageOptimizer.safeGet('step6_added_revenue_items');
     
-    if (savedStreams && typeof savedStreams === 'object') {
-      setRevenueStreams(savedStreams);
+    if (savedService && typeof savedService === 'object') {
+      setServiceStructure(savedService);
     }
-    if (savedPricing && typeof savedPricing === 'object') {
-      setPricingStrategy(savedPricing);
+    if (savedContent && typeof savedContent === 'object') {
+      setContentDelivery(savedContent);
     }
     if (savedOptimization && typeof savedOptimization === 'object') {
-      setRevenueOptimization(savedOptimization);
+      setDeliveryOptimization(savedOptimization);
+    }
+    if (savedItems && Array.isArray(savedItems)) {
+      setAddedRevenueItems(savedItems);
     }
   }, []);
 
   // Check completion status
   useEffect(() => {
-    const streamsComplete = Object.values(revenueStreams).every(value => value && value.trim().length > 0);
-    const pricingComplete = Object.values(pricingStrategy).every(value => value && value.trim().length > 0);
-    const optimizationComplete = Object.values(revenueOptimization).every(value => value && value.trim().length > 0);
+    const serviceComplete = Object.values(serviceStructure).every(value => value && value.trim().length > 0);
+    const contentComplete = Object.values(contentDelivery).every(value => value && value.trim().length > 0);
+    const optimizationComplete = Object.values(deliveryOptimization).every(value => value && value.trim().length > 0);
     
     const wasComplete = isStepComplete;
-    const nowComplete = streamsComplete && pricingComplete && optimizationComplete;
+    const nowComplete = serviceComplete && contentComplete && optimizationComplete;
     
     setIsStepComplete(nowComplete);
     
@@ -95,29 +115,137 @@ const Step6 = () => {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
     }
-  }, [revenueStreams, pricingStrategy, revenueOptimization, isStepComplete]);
+  }, [serviceStructure, contentDelivery, deliveryOptimization, isStepComplete]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
   };
 
   // Handle form changes
-  const handleStreamsChange = (field, value) => {
-    const updated = { ...revenueStreams, [field]: value };
-    setRevenueStreams(updated);
-    storageOptimizer.safeSet('step6_revenue_streams', updated);
+  const handleServiceChange = (field, value) => {
+    const updated = { ...serviceStructure, [field]: value };
+    setServiceStructure(updated);
+    storageOptimizer.safeSet('step6_service_structure', updated);
   };
 
-  const handlePricingChange = (field, value) => {
-    const updated = { ...pricingStrategy, [field]: value };
-    setPricingStrategy(updated);
-    storageOptimizer.safeSet('step6_pricing_strategy', updated);
+  const handleContentChange = (field, value) => {
+    const updated = { ...contentDelivery, [field]: value };
+    setContentDelivery(updated);
+    storageOptimizer.safeSet('step6_content_delivery', updated);
   };
 
   const handleOptimizationChange = (field, value) => {
-    const updated = { ...revenueOptimization, [field]: value };
-    setRevenueOptimization(updated);
-    storageOptimizer.safeSet('step6_revenue_optimization', updated);
+    const updated = { ...deliveryOptimization, [field]: value };
+    setDeliveryOptimization(updated);
+    storageOptimizer.safeSet('step6_delivery_optimization', updated);
+  };
+
+  // Manual entry functions
+  const openManualModal = (type) => {
+    setCurrentModalType(type);
+    setManualForm({
+      type: type,
+      title: '',
+      description: '',
+      details: ''
+    });
+    setManualModalOpen(true);
+  };
+
+  const handleManualSubmit = () => {
+    if (manualForm.title && manualForm.description) {
+      const newItem = {
+        id: Date.now(),
+        type: manualForm.type,
+        title: manualForm.title,
+        description: manualForm.description,
+        details: manualForm.details,
+        source: 'manual'
+      };
+      
+      const updated = [...addedRevenueItems, newItem];
+      setAddedRevenueItems(updated);
+      storageOptimizer.safeSet('step6_added_revenue_items', updated);
+      setManualModalOpen(false);
+    }
+  };
+
+  // AI suggestions functions
+  const openAiSuggestionsModal = async (type) => {
+    setCurrentModalType(type);
+    setAiSuggestionsModalOpen(true);
+    
+    // Generate AI suggestions based on type
+    const suggestions = generateAiSuggestions(type);
+    setAiSuggestions(suggestions);
+  };
+
+  const generateAiSuggestions = (type) => {
+    const suggestionsByType = {
+      'Service Structure': [
+        { id: 1, title: 'Signature Program Framework', description: 'Comprehensive program with modules and milestones', details: '8-12 week program with weekly modules, assignments, and group calls' },
+        { id: 2, title: 'VIP Day Intensive', description: 'High-value single-day transformation experience', details: 'Full-day strategic session with implementation roadmap' },
+        { id: 3, title: 'Mastermind Program', description: 'Group coaching with peer learning and accountability', details: '6-month program with monthly group calls and peer partnerships' },
+        { id: 4, title: 'Done-With-You Service', description: 'Collaborative implementation with hands-on support', details: 'Work alongside clients to implement strategies together' },
+        { id: 5, title: 'Certification Program', description: 'Train others to deliver your methodology', details: 'Comprehensive training to certify others in your approach' }
+      ],
+      'Content Delivery': [
+        { id: 1, title: 'Video Training Modules', description: 'Professional video content with workbooks', details: 'Weekly video lessons with downloadable resources and action steps' },
+        { id: 2, title: 'Live Group Coaching', description: 'Interactive group sessions with Q&A', details: 'Bi-weekly live calls with hot seat coaching and community support' },
+        { id: 3, title: 'Private Client Portal', description: 'Exclusive member area with resources', details: 'Branded portal with content, community, and progress tracking' },
+        { id: 4, title: 'One-on-One Sessions', description: 'Personalized coaching and strategy sessions', details: 'Monthly private calls for individualized guidance and support' },
+        { id: 5, title: 'Implementation Workshops', description: 'Hands-on workshops for skill building', details: 'Interactive sessions focused on specific skills and implementation' }
+      ],
+      'Delivery Optimization': [
+        { id: 1, title: 'Automated Onboarding', description: 'Streamlined client welcome and setup process', details: 'Email sequences, welcome packets, and system access automation' },
+        { id: 2, title: 'Progress Tracking System', description: 'Monitor client advancement and engagement', details: 'Dashboard to track completion rates, engagement, and outcomes' },
+        { id: 3, title: 'Quality Assurance Process', description: 'Consistent delivery standards and feedback loops', details: 'Regular check-ins, feedback collection, and service improvements' },
+        { id: 4, title: 'Client Success Metrics', description: 'Measure and optimize client outcomes', details: 'KPIs, success stories, and continuous improvement processes' },
+        { id: 5, title: 'Scalable Delivery Model', description: 'Systems to serve more clients efficiently', details: 'Templates, automation, and team processes for growth' }
+      ]
+    };
+    
+    return suggestionsByType[type] || [];
+  };
+
+  const addAiSuggestion = (suggestion) => {
+    const newItem = {
+      id: Date.now(),
+      type: currentModalType,
+      title: suggestion.title,
+      description: suggestion.description,
+      details: suggestion.details,
+      source: 'ai'
+    };
+    
+    const updated = [...addedRevenueItems, newItem];
+    setAddedRevenueItems(updated);
+    storageOptimizer.safeSet('step6_added_revenue_items', updated);
+    
+    // Remove suggestion from list
+    setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+  };
+
+  // Edit/Delete functions
+  const editRevenueItem = (id) => {
+    const item = addedRevenueItems.find(i => i.id === id);
+    if (item) {
+      setManualForm({
+        type: item.type,
+        title: item.title,
+        description: item.description,
+        details: item.details
+      });
+      setCurrentModalType(item.type);
+      deleteRevenueItem(id); // Remove original
+      setManualModalOpen(true);
+    }
+  };
+
+  const deleteRevenueItem = (id) => {
+    const updated = addedRevenueItems.filter(i => i.id !== id);
+    setAddedRevenueItems(updated);
+    storageOptimizer.safeSet('step6_added_revenue_items', updated);
   };
 
   // AI content generation
@@ -126,10 +254,10 @@ const Step6 = () => {
     setAiLoading(true);
     
     try {
-      const result = await aiService.generateRevenueStrategy();
+      const result = await aiService.generateRevenueStructure();
       setAiResult(result);
     } catch (error) {
-      console.error('Error generating revenue strategy:', error);
+      console.error('Error generating revenue structure:', error);
     } finally {
       setAiLoading(false);
     }
@@ -138,47 +266,47 @@ const Step6 = () => {
   const handleUseAIContent = (content) => {
     // Apply AI suggestions to current sub-step
     if (activeSubStep === 1) {
-      setRevenueStreams(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step6_revenue_streams', { ...revenueStreams, ...content });
+      setServiceStructure(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step6_service_structure', { ...serviceStructure, ...content });
     } else if (activeSubStep === 2) {
-      setPricingStrategy(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step6_pricing_strategy', { ...pricingStrategy, ...content });
+      setContentDelivery(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step6_content_delivery', { ...contentDelivery, ...content });
     } else if (activeSubStep === 3) {
-      setRevenueOptimization(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step6_revenue_optimization', { ...revenueOptimization, ...content });
+      setDeliveryOptimization(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step6_delivery_optimization', { ...deliveryOptimization, ...content });
     }
     setAiModalOpen(false);
   };
 
   const howThisWorksContent = {
-    description: "Develop multiple revenue streams, optimize your pricing strategy, and create systems for sustainable revenue growth.",
+    description: "Design and optimize your service delivery structure to maximize client value, satisfaction, and your revenue potential.",
     steps: [
-      { title: 'Revenue Streams', description: 'Identify and develop multiple income sources to diversify and stabilize your revenue.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
-      { title: 'Pricing Strategy', description: 'Optimize your pricing model and value proposition for maximum profitability.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
-      { title: 'Revenue Optimization', description: 'Implement strategies to increase conversion rates and customer lifetime value.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
+      { title: 'Service Structure', description: 'Define your core services and delivery framework.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
+      { title: 'Content Delivery', description: 'Plan how you\'ll deliver value to your clients.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
+      { title: 'Delivery Optimization', description: 'Optimize processes for efficiency and quality.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
     ]
   };
 
   // Check section completion for tab progression
-  const hasRevenueStreams = Object.values(revenueStreams).every(value => value && value.trim().length > 0);
-  const hasPricingStrategy = Object.values(pricingStrategy).every(value => value && value.trim().length > 0);
-  const hasRevenueOptimization = Object.values(revenueOptimization).every(value => value && value.trim().length > 0);
+  const hasServiceStructure = Object.values(serviceStructure).every(value => value && value.trim().length > 0);
+  const hasContentDelivery = Object.values(contentDelivery).every(value => value && value.trim().length > 0);
+  const hasDeliveryOptimization = Object.values(deliveryOptimization).every(value => value && value.trim().length > 0);
 
   // Tab progression logic
   const isSubStepUnlocked = (stepNumber) => {
     switch (stepNumber) {
       case 1: return true; // Always unlocked
-      case 2: return hasRevenueStreams; // Unlocked when streams complete
-      case 3: return hasRevenueStreams && hasPricingStrategy; // Unlocked when first two complete
-      case 4: return hasRevenueStreams && hasPricingStrategy && hasRevenueOptimization; // Milestone - all complete
+      case 2: return hasServiceStructure; // Unlocked when service structure complete
+      case 3: return hasServiceStructure && hasContentDelivery; // Unlocked when first two complete
+      case 4: return hasServiceStructure && hasContentDelivery && hasDeliveryOptimization; // Milestone - all complete
       default: return false;
     }
   };
 
   const subSteps = [
-    { id: 1, title: 'Revenue Streams', icon: DollarSign },
-    { id: 2, title: 'Pricing Strategy', icon: Target },
-    { id: 3, title: 'Revenue Optimization', icon: TrendingUp },
+    { id: 1, title: 'Service Structure', icon: Package },
+    { id: 2, title: 'Content Delivery', icon: Layers },
+    { id: 3, title: 'Delivery Optimization', icon: BarChart3 },
     { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
   ];
 
@@ -188,20 +316,20 @@ const Step6 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Revenue Streams</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Service Structure</h3>
               <p className="text-gray-600 mb-6">
-                Identify and develop multiple income sources to diversify and stabilize your revenue base.
+                Define your core services, packages, and delivery framework to create clear value propositions for your clients.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Primary Revenue Streams
+                    Core Services
                   </label>
                   <textarea
-                    value={revenueStreams.primaryStreams}
-                    onChange={(e) => handleStreamsChange('primaryStreams', e.target.value)}
-                    placeholder="Define your main revenue sources: consulting, courses, coaching, products, etc."
+                    value={serviceStructure.coreServices}
+                    onChange={(e) => handleServiceChange('coreServices', e.target.value)}
+                    placeholder="Define your main service offerings: coaching programs, consulting, done-for-you services..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -209,12 +337,12 @@ const Step6 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Secondary Revenue Streams
+                    Service Packages
                   </label>
                   <textarea
-                    value={revenueStreams.secondaryStreams}
-                    onChange={(e) => handleStreamsChange('secondaryStreams', e.target.value)}
-                    placeholder="List additional income sources: affiliate marketing, speaking, partnerships, etc."
+                    value={serviceStructure.servicePackages}
+                    onChange={(e) => handleServiceChange('servicePackages', e.target.value)}
+                    placeholder="How will you package your services? Tiers, bundles, different levels of support..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -222,12 +350,12 @@ const Step6 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Passive Income Opportunities
+                    Delivery Method
                   </label>
                   <textarea
-                    value={revenueStreams.passiveIncome}
-                    onChange={(e) => handleStreamsChange('passiveIncome', e.target.value)}
-                    placeholder="Identify passive income streams: digital products, memberships, licensing, etc."
+                    value={serviceStructure.deliveryMethod}
+                    onChange={(e) => handleServiceChange('deliveryMethod', e.target.value)}
+                    placeholder="How will you deliver your services? Online, in-person, hybrid, group, individual..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -235,26 +363,76 @@ const Step6 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Scalability Plan
+                    Service Timeline
                   </label>
                   <textarea
-                    value={revenueStreams.scalabilityPlan}
-                    onChange={(e) => handleStreamsChange('scalabilityPlan', e.target.value)}
-                    placeholder="How will you scale each revenue stream? What systems and processes are needed?"
+                    value={serviceStructure.serviceTimeline}
+                    onChange={(e) => handleServiceChange('serviceTimeline', e.target.value)}
+                    placeholder="What's the timeline for each service? Duration, milestones, completion criteria..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Service Structure')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Service Structure')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added Service Structure Items */}
+                {addedRevenueItems.filter(i => i.type === 'Service Structure').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editRevenueItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteRevenueItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {hasRevenueStreams && (
+              {hasServiceStructure && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Revenue Streams Complete!</span>
+                    <span className="font-medium">Service Structure Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Great! You can now move to pricing strategy development.
+                    Great! You can now move to content delivery planning.
                   </p>
                 </div>
               )}
@@ -266,20 +444,20 @@ const Step6 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Pricing Strategy</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Delivery</h3>
               <p className="text-gray-600 mb-6">
-                Optimize your pricing model and value proposition for maximum profitability and market positioning.
+                Plan how you'll deliver value to your clients through various content formats and interaction methods.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pricing Model
+                    Delivery Format
                   </label>
                   <textarea
-                    value={pricingStrategy.pricingModel}
-                    onChange={(e) => handlePricingChange('pricingModel', e.target.value)}
-                    placeholder="Define your pricing approach: value-based, hourly, project-based, subscription, etc."
+                    value={contentDelivery.deliveryFormat}
+                    onChange={(e) => handleContentChange('deliveryFormat', e.target.value)}
+                    placeholder="How will you deliver content? Videos, live calls, workbooks, templates, workshops..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -287,12 +465,12 @@ const Step6 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Value Proposition
+                    Content Schedule
                   </label>
                   <textarea
-                    value={pricingStrategy.valueProposition}
-                    onChange={(e) => handlePricingChange('valueProposition', e.target.value)}
-                    placeholder="What unique value do you provide that justifies your pricing?"
+                    value={contentDelivery.contentSchedule}
+                    onChange={(e) => handleContentChange('contentSchedule', e.target.value)}
+                    placeholder="What's your content delivery schedule? Weekly modules, daily lessons, monthly themes..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -300,12 +478,12 @@ const Step6 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Competitive Analysis
+                    Client Interaction
                   </label>
                   <textarea
-                    value={pricingStrategy.competitiveAnalysis}
-                    onChange={(e) => handlePricingChange('competitiveAnalysis', e.target.value)}
-                    placeholder="How does your pricing compare to competitors? What's your positioning strategy?"
+                    value={contentDelivery.clientInteraction}
+                    onChange={(e) => handleContentChange('clientInteraction', e.target.value)}
+                    placeholder="How will you interact with clients? Group calls, 1:1 sessions, community, office hours..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -313,26 +491,76 @@ const Step6 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pricing Tiers & Packages
+                    Support Level
                   </label>
                   <textarea
-                    value={pricingStrategy.pricingTiers}
-                    onChange={(e) => handlePricingChange('pricingTiers', e.target.value)}
-                    placeholder="Define your pricing tiers, packages, and upsell opportunities..."
+                    value={contentDelivery.supportLevel}
+                    onChange={(e) => handleContentChange('supportLevel', e.target.value)}
+                    placeholder="What level of support will you provide? Email support, community access, direct messaging..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Content Delivery')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Content Delivery')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added Content Delivery Items */}
+                {addedRevenueItems.filter(i => i.type === 'Content Delivery').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editRevenueItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteRevenueItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {hasPricingStrategy && (
+              {hasContentDelivery && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Pricing Strategy Complete!</span>
+                    <span className="font-medium">Content Delivery Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to revenue optimization.
+                    Excellent! You can now move to delivery optimization.
                   </p>
                 </div>
               )}
@@ -344,20 +572,20 @@ const Step6 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Revenue Optimization</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Delivery Optimization</h3>
               <p className="text-gray-600 mb-6">
-                Implement strategies to increase conversion rates, customer lifetime value, and overall revenue performance.
+                Optimize your service delivery processes for maximum efficiency, quality, and client satisfaction.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Conversion Optimization
+                    Process Optimization
                   </label>
                   <textarea
-                    value={revenueOptimization.conversionOptimization}
-                    onChange={(e) => handleOptimizationChange('conversionOptimization', e.target.value)}
-                    placeholder="How will you optimize your sales funnel and conversion rates?"
+                    value={deliveryOptimization.processOptimization}
+                    onChange={(e) => handleOptimizationChange('processOptimization', e.target.value)}
+                    placeholder="How will you streamline your delivery processes? Automation, templates, systems..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -365,12 +593,12 @@ const Step6 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upsell & Cross-sell Strategies
+                    Quality Assurance
                   </label>
                   <textarea
-                    value={revenueOptimization.upsellStrategies}
-                    onChange={(e) => handleOptimizationChange('upsellStrategies', e.target.value)}
-                    placeholder="What additional products or services can you offer to existing clients?"
+                    value={deliveryOptimization.qualityAssurance}
+                    onChange={(e) => handleOptimizationChange('qualityAssurance', e.target.value)}
+                    placeholder="How will you ensure consistent quality? Standards, checklists, review processes..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -378,12 +606,12 @@ const Step6 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Customer Retention Strategies
+                    Client Feedback System
                   </label>
                   <textarea
-                    value={revenueOptimization.retentionStrategies}
-                    onChange={(e) => handleOptimizationChange('retentionStrategies', e.target.value)}
-                    placeholder="How will you retain customers and increase their lifetime value?"
+                    value={deliveryOptimization.clientFeedback}
+                    onChange={(e) => handleOptimizationChange('clientFeedback', e.target.value)}
+                    placeholder="How will you collect and use client feedback? Surveys, check-ins, testimonials..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -391,26 +619,76 @@ const Step6 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Growth Metrics & KPIs
+                    Continuous Improvement
                   </label>
                   <textarea
-                    value={revenueOptimization.growthMetrics}
-                    onChange={(e) => handleOptimizationChange('growthMetrics', e.target.value)}
-                    placeholder="What metrics will you track to measure and optimize revenue growth?"
+                    value={deliveryOptimization.continuousImprovement}
+                    onChange={(e) => handleOptimizationChange('continuousImprovement', e.target.value)}
+                    placeholder="How will you continuously improve your services? Regular reviews, updates, innovation..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Delivery Optimization')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Delivery Optimization')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added Delivery Optimization Items */}
+                {addedRevenueItems.filter(i => i.type === 'Delivery Optimization').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editRevenueItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteRevenueItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {hasRevenueOptimization && (
+              {hasDeliveryOptimization && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Revenue Optimization Complete!</span>
+                    <span className="font-medium">Delivery Optimization Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your revenue strategy is now complete. Check out the milestone reflection!
+                    Perfect! Your service delivery structure is now optimized. Check out the milestone reflection!
                   </p>
                 </div>
               )}
@@ -424,7 +702,7 @@ const Step6 = () => {
               </div>
               
               <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to enhance your revenue strategy and optimization plans.
+                Get AI-powered suggestions to optimize your complete service delivery structure.
               </p>
 
               <button
@@ -462,7 +740,7 @@ const Step6 = () => {
                 </h2>
                 
                 <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've developed a comprehensive revenue strategy and optimization plan.
+                  Congratulations! You've designed an optimized service delivery structure that maximizes value for both you and your clients.
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-8 text-left">
@@ -471,19 +749,19 @@ const Step6 = () => {
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Identified multiple revenue streams for diversification</span>
+                        <span className="text-gray-700">Structured your core service offerings</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Developed an optimized pricing strategy</span>
+                        <span className="text-gray-700">Planned comprehensive content delivery</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created revenue optimization and growth plans</span>
+                        <span className="text-gray-700">Optimized delivery processes for efficiency</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Established metrics for tracking revenue performance</span>
+                        <span className="text-gray-700">Created scalable revenue structure</span>
                       </li>
                     </ul>
                   </div>
@@ -493,19 +771,19 @@ const Step6 = () => {
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
                         <DollarSign className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your revenue will be more stable and predictable</span>
+                        <span className="text-gray-700">Your services will deliver consistent value</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <DollarSign className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll maximize profitability through strategic pricing</span>
+                        <span className="text-gray-700">Client satisfaction will increase significantly</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <DollarSign className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Customer lifetime value will increase systematically</span>
+                        <span className="text-gray-700">Your delivery will be efficient and scalable</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <DollarSign className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your business will scale more effectively</span>
+                        <span className="text-gray-700">Revenue potential will be maximized</span>
                       </li>
                     </ul>
                   </div>
@@ -514,7 +792,7 @@ const Step6 = () => {
                 <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
                   <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
                   <p className="text-gray-700">
-                    With a diversified revenue strategy and optimization plan, you now have a robust foundation for sustainable business growth. Your revenue will be less dependent on any single source and more resilient to market changes.
+                    Great service delivery isn't just about what you deliver—it's about how you deliver it. Your optimized structure ensures every client receives exceptional value while allowing you to scale efficiently and profitably.
                   </p>
                 </div>
               </div>
@@ -537,12 +815,12 @@ const Step6 = () => {
 
         {/* Component 2: Step Name */}
         <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-4">
-          Revenue Diversification
+          Service Delivery Structure
         </h1>
 
         {/* Component 3: Step Objective */}
         <p className="text-base lg:text-lg text-gray-600 mb-6">
-          Develop multiple revenue streams, optimize your pricing strategy, and create systems for sustainable revenue growth.
+          Design and optimize your service delivery structure to maximize client value, satisfaction, and your revenue potential.
         </p>
 
         {/* Step Completion Indicator */}
@@ -550,9 +828,9 @@ const Step6 = () => {
           <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
             <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
             <div>
-              <p className="font-semibold">🎉 Step 6 Complete! Your revenue strategy is defined.</p>
+              <p className="font-semibold">🎉 Step 6 Complete! Your service delivery is optimized.</p>
               <p className="text-sm text-green-700 mt-1">
-                You now have a comprehensive plan for diversified and optimized revenue generation.
+                You now have a structured approach to deliver maximum value to clients.
               </p>
             </div>
           </div>
@@ -607,9 +885,9 @@ const Step6 = () => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
               const isCompleted = step.id < 4 ? (
-                step.id === 1 ? hasRevenueStreams :
-                step.id === 2 ? hasPricingStrategy :
-                step.id === 3 ? hasRevenueOptimization : false
+                step.id === 1 ? hasServiceStructure :
+                step.id === 2 ? hasContentDelivery :
+                step.id === 3 ? hasDeliveryOptimization : false
               ) : isStepComplete;
 
               return (
@@ -664,11 +942,142 @@ const Step6 = () => {
           {renderSubStepContent()}
         </div>
 
+        {/* Manual Entry Modal */}
+        {manualModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
+                <button
+                  onClick={() => setManualModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                  <select
+                    value={manualForm.type}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                  >
+                    <option value="">Select type...</option>
+                    <option value="Service Structure">Service Structure</option>
+                    <option value="Content Delivery">Content Delivery</option>
+                    <option value="Delivery Optimization">Delivery Optimization</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <input
+                    type="text"
+                    value={manualForm.title}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g., Signature Program Framework"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={manualForm.description}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Brief description..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
+                  <textarea
+                    value={manualForm.details}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
+                    placeholder="Additional details (optional)..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 p-6 border-t">
+                <button
+                  onClick={() => setManualModalOpen(false)}
+                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleManualSubmit}
+                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
+                >
+                  Add Entry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Suggestions Modal */}
+        {aiSuggestionsModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
+                <button
+                  onClick={() => setAiSuggestionsModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
+                </p>
+                
+                <div className="space-y-4">
+                  {aiSuggestions.map((suggestion) => (
+                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
+                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
+                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
+                        </div>
+                        <button
+                          onClick={() => addAiSuggestion(suggestion)}
+                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {aiSuggestions.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      All suggestions have been added! Close this modal to continue.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* AI Modal */}
         <AIModal
           isOpen={aiModalOpen}
           onClose={() => setAiModalOpen(false)}
-          title="AI Revenue Strategy"
+          title="AI Revenue Structure"
           content={aiResult}
           isLoading={aiLoading}
           onUseContent={handleUseAIContent}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, BookOpen, Users, Calendar, Plus, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle2, BookOpen, Users, Calendar, Plus, Sparkles, X, Edit, Trash2, Search, Zap } from 'lucide-react';
 import Confetti from 'react-confetti';
 import StepFooter from './StepFooter';
 import AIModal from './AIModal';
@@ -24,30 +24,46 @@ const Step5 = () => {
   // Step completion tracking
   const [isStepComplete, setIsStepComplete] = useState(false);
 
-  // Content strategy data
-  const [contentStrategy, setContentStrategy] = useState({
-    contentPillars: '',
-    contentTypes: '',
-    distributionPlan: '',
-    contentCalendar: ''
+  // Modal states
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
+  const [currentModalType, setCurrentModalType] = useState('');
+
+  // Sales pipeline data
+  const [discoveryProcess, setDiscoveryProcess] = useState({
+    qualificationCriteria: '',
+    discoveryQuestions: '',
+    needsAssessment: '',
+    painPointIdentification: ''
   });
 
-  // Thought leadership data
-  const [thoughtLeadership, setThoughtLeadership] = useState({
-    expertiseAreas: '',
-    uniquePerspectives: '',
-    thoughtLeadershipGoals: '',
-    influenceStrategy: ''
+  const [automationSetup, setAutomationSetup] = useState({
+    leadScoring: '',
+    emailSequences: '',
+    followUpTasks: '',
+    crmIntegration: ''
   });
 
-  // Content calendar data
-  const [contentCalendar, setContentCalendar] = useState({
-    weeklySchedule: '',
-    monthlyThemes: '',
-    quarterlyGoals: '',
-    contentBatching: ''
+  const [integrationPlan, setIntegrationPlan] = useState({
+    toolsIntegration: '',
+    dataFlow: '',
+    reportingSetup: '',
+    teamAccess: ''
   });
 
+  // Added pipeline items list
+  const [addedPipelineItems, setAddedPipelineItems] = useState([]);
+
+  // Manual form data
+  const [manualForm, setManualForm] = useState({
+    type: '',
+    title: '',
+    description: '',
+    details: ''
+  });
+
+  // AI suggestions
+  const [aiSuggestions, setAiSuggestions] = useState([]);
   const [aiResult, setAiResult] = useState(null);
 
   useEffect(() => {
@@ -64,29 +80,33 @@ const Step5 = () => {
 
   // Load saved data
   useEffect(() => {
-    const savedStrategy = storageOptimizer.safeGet('step5_content_strategy');
-    const savedThoughtLeadership = storageOptimizer.safeGet('step5_thought_leadership');
-    const savedCalendar = storageOptimizer.safeGet('step5_content_calendar');
+    const savedDiscovery = storageOptimizer.safeGet('step5_discovery_process');
+    const savedAutomation = storageOptimizer.safeGet('step5_automation_setup');
+    const savedIntegration = storageOptimizer.safeGet('step5_integration_plan');
+    const savedItems = storageOptimizer.safeGet('step5_added_pipeline_items');
     
-    if (savedStrategy && typeof savedStrategy === 'object') {
-      setContentStrategy(savedStrategy);
+    if (savedDiscovery && typeof savedDiscovery === 'object') {
+      setDiscoveryProcess(savedDiscovery);
     }
-    if (savedThoughtLeadership && typeof savedThoughtLeadership === 'object') {
-      setThoughtLeadership(savedThoughtLeadership);
+    if (savedAutomation && typeof savedAutomation === 'object') {
+      setAutomationSetup(savedAutomation);
     }
-    if (savedCalendar && typeof savedCalendar === 'object') {
-      setContentCalendar(savedCalendar);
+    if (savedIntegration && typeof savedIntegration === 'object') {
+      setIntegrationPlan(savedIntegration);
+    }
+    if (savedItems && Array.isArray(savedItems)) {
+      setAddedPipelineItems(savedItems);
     }
   }, []);
 
   // Check completion status
   useEffect(() => {
-    const strategyComplete = Object.values(contentStrategy).every(value => value && value.trim().length > 0);
-    const thoughtLeadershipComplete = Object.values(thoughtLeadership).every(value => value && value.trim().length > 0);
-    const calendarComplete = Object.values(contentCalendar).every(value => value && value.trim().length > 0);
+    const discoveryComplete = Object.values(discoveryProcess).every(value => value && value.trim().length > 0);
+    const automationComplete = Object.values(automationSetup).every(value => value && value.trim().length > 0);
+    const integrationComplete = Object.values(integrationPlan).every(value => value && value.trim().length > 0);
     
     const wasComplete = isStepComplete;
-    const nowComplete = strategyComplete && thoughtLeadershipComplete && calendarComplete;
+    const nowComplete = discoveryComplete && automationComplete && integrationComplete;
     
     setIsStepComplete(nowComplete);
     
@@ -95,29 +115,137 @@ const Step5 = () => {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
     }
-  }, [contentStrategy, thoughtLeadership, contentCalendar, isStepComplete]);
+  }, [discoveryProcess, automationSetup, integrationPlan, isStepComplete]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
   };
 
   // Handle form changes
-  const handleStrategyChange = (field, value) => {
-    const updated = { ...contentStrategy, [field]: value };
-    setContentStrategy(updated);
-    storageOptimizer.safeSet('step5_content_strategy', updated);
+  const handleDiscoveryChange = (field, value) => {
+    const updated = { ...discoveryProcess, [field]: value };
+    setDiscoveryProcess(updated);
+    storageOptimizer.safeSet('step5_discovery_process', updated);
   };
 
-  const handleThoughtLeadershipChange = (field, value) => {
-    const updated = { ...thoughtLeadership, [field]: value };
-    setThoughtLeadership(updated);
-    storageOptimizer.safeSet('step5_thought_leadership', updated);
+  const handleAutomationChange = (field, value) => {
+    const updated = { ...automationSetup, [field]: value };
+    setAutomationSetup(updated);
+    storageOptimizer.safeSet('step5_automation_setup', updated);
   };
 
-  const handleCalendarChange = (field, value) => {
-    const updated = { ...contentCalendar, [field]: value };
-    setContentCalendar(updated);
-    storageOptimizer.safeSet('step5_content_calendar', updated);
+  const handleIntegrationChange = (field, value) => {
+    const updated = { ...integrationPlan, [field]: value };
+    setIntegrationPlan(updated);
+    storageOptimizer.safeSet('step5_integration_plan', updated);
+  };
+
+  // Manual entry functions
+  const openManualModal = (type) => {
+    setCurrentModalType(type);
+    setManualForm({
+      type: type,
+      title: '',
+      description: '',
+      details: ''
+    });
+    setManualModalOpen(true);
+  };
+
+  const handleManualSubmit = () => {
+    if (manualForm.title && manualForm.description) {
+      const newItem = {
+        id: Date.now(),
+        type: manualForm.type,
+        title: manualForm.title,
+        description: manualForm.description,
+        details: manualForm.details,
+        source: 'manual'
+      };
+      
+      const updated = [...addedPipelineItems, newItem];
+      setAddedPipelineItems(updated);
+      storageOptimizer.safeSet('step5_added_pipeline_items', updated);
+      setManualModalOpen(false);
+    }
+  };
+
+  // AI suggestions functions
+  const openAiSuggestionsModal = async (type) => {
+    setCurrentModalType(type);
+    setAiSuggestionsModalOpen(true);
+    
+    // Generate AI suggestions based on type
+    const suggestions = generateAiSuggestions(type);
+    setAiSuggestions(suggestions);
+  };
+
+  const generateAiSuggestions = (type) => {
+    const suggestionsByType = {
+      'Discovery Process': [
+        { id: 1, title: 'BANT Qualification Framework', description: 'Budget, Authority, Need, Timeline qualification', details: 'Systematic approach to qualify prospects using BANT criteria' },
+        { id: 2, title: 'Pain Point Discovery Questions', description: 'Strategic questions to uncover client challenges', details: 'Open-ended questions that reveal deep pain points and motivations' },
+        { id: 3, title: 'Solution Fit Assessment', description: 'Evaluate if your solution matches their needs', details: 'Framework to determine if there\'s a good fit before proposing' },
+        { id: 4, title: 'Decision-Making Process Mapping', description: 'Understand how they make purchasing decisions', details: 'Identify stakeholders, timeline, and decision criteria' },
+        { id: 5, title: 'Current State Analysis', description: 'Assess their current situation and challenges', details: 'Comprehensive review of their existing processes and pain points' }
+      ],
+      'Automation Setup': [
+        { id: 1, title: 'Lead Scoring Algorithm', description: 'Automated lead qualification and prioritization', details: 'Score leads based on engagement, demographics, and behavior patterns' },
+        { id: 2, title: 'Email Drip Campaigns', description: 'Automated nurture sequences for different stages', details: 'Targeted email sequences for prospects, qualified leads, and customers' },
+        { id: 3, title: 'Task Automation Rules', description: 'Automatic task creation and assignment', details: 'Create follow-up tasks based on prospect actions and timeline' },
+        { id: 4, title: 'Pipeline Stage Automation', description: 'Automatic movement through sales stages', details: 'Rules for advancing prospects based on completed actions' },
+        { id: 5, title: 'Notification Systems', description: 'Alerts for important prospect activities', details: 'Real-time notifications for hot leads and urgent follow-ups' }
+      ],
+      'Integration Plan': [
+        { id: 1, title: 'CRM Integration', description: 'Connect with your existing CRM system', details: 'Seamless data flow between marketing and sales platforms' },
+        { id: 2, title: 'Email Marketing Integration', description: 'Sync with email marketing platforms', details: 'Connect with Mailchimp, ConvertKit, or other email tools' },
+        { id: 3, title: 'Calendar Integration', description: 'Automated scheduling and booking', details: 'Connect with Calendly, Acuity, or other scheduling tools' },
+        { id: 4, title: 'Analytics Integration', description: 'Comprehensive tracking and reporting', details: 'Connect with Google Analytics, Facebook Pixel, and other tracking' },
+        { id: 5, title: 'Payment Processing Integration', description: 'Seamless payment collection', details: 'Integrate with Stripe, PayPal, or other payment processors' }
+      ]
+    };
+    
+    return suggestionsByType[type] || [];
+  };
+
+  const addAiSuggestion = (suggestion) => {
+    const newItem = {
+      id: Date.now(),
+      type: currentModalType,
+      title: suggestion.title,
+      description: suggestion.description,
+      details: suggestion.details,
+      source: 'ai'
+    };
+    
+    const updated = [...addedPipelineItems, newItem];
+    setAddedPipelineItems(updated);
+    storageOptimizer.safeSet('step5_added_pipeline_items', updated);
+    
+    // Remove suggestion from list
+    setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+  };
+
+  // Edit/Delete functions
+  const editPipelineItem = (id) => {
+    const item = addedPipelineItems.find(i => i.id === id);
+    if (item) {
+      setManualForm({
+        type: item.type,
+        title: item.title,
+        description: item.description,
+        details: item.details
+      });
+      setCurrentModalType(item.type);
+      deletePipelineItem(id); // Remove original
+      setManualModalOpen(true);
+    }
+  };
+
+  const deletePipelineItem = (id) => {
+    const updated = addedPipelineItems.filter(i => i.id !== id);
+    setAddedPipelineItems(updated);
+    storageOptimizer.safeSet('step5_added_pipeline_items', updated);
   };
 
   // AI content generation
@@ -126,10 +254,10 @@ const Step5 = () => {
     setAiLoading(true);
     
     try {
-      const result = await aiService.generateContentPlan();
+      const result = await aiService.generateSalesPipeline();
       setAiResult(result);
     } catch (error) {
-      console.error('Error generating content plan:', error);
+      console.error('Error generating sales pipeline:', error);
     } finally {
       setAiLoading(false);
     }
@@ -138,47 +266,47 @@ const Step5 = () => {
   const handleUseAIContent = (content) => {
     // Apply AI suggestions to current sub-step
     if (activeSubStep === 1) {
-      setContentStrategy(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step5_content_strategy', { ...contentStrategy, ...content });
+      setDiscoveryProcess(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step5_discovery_process', { ...discoveryProcess, ...content });
     } else if (activeSubStep === 2) {
-      setThoughtLeadership(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step5_thought_leadership', { ...thoughtLeadership, ...content });
+      setAutomationSetup(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step5_automation_setup', { ...automationSetup, ...content });
     } else if (activeSubStep === 3) {
-      setContentCalendar(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step5_content_calendar', { ...contentCalendar, ...content });
+      setIntegrationPlan(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step5_integration_plan', { ...integrationPlan, ...content });
     }
     setAiModalOpen(false);
   };
 
   const howThisWorksContent = {
-    description: "Develop a comprehensive content strategy that establishes your thought leadership and builds authority in your industry.",
+    description: "Build an automated sales pipeline that qualifies prospects, nurtures relationships, and converts leads into clients efficiently.",
     steps: [
-      { title: 'Content Strategy', description: 'Define your content pillars, types, and distribution strategy for maximum impact.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
-      { title: 'Thought Leadership', description: 'Establish your unique perspective and expertise areas to become a recognized authority.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
-      { title: 'Content Calendar', description: 'Create a systematic approach to content creation and publishing for consistency.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
+      { title: 'Discovery Process', description: 'Create a systematic approach to qualify and understand prospects.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
+      { title: 'Automation Setup', description: 'Implement automated systems for lead nurturing and follow-up.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
+      { title: 'Integration Plan', description: 'Connect all tools and systems for seamless operation.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
     ]
   };
 
   // Check section completion for tab progression
-  const hasContentStrategy = Object.values(contentStrategy).every(value => value && value.trim().length > 0);
-  const hasThoughtLeadership = Object.values(thoughtLeadership).every(value => value && value.trim().length > 0);
-  const hasContentCalendar = Object.values(contentCalendar).every(value => value && value.trim().length > 0);
+  const hasDiscoveryProcess = Object.values(discoveryProcess).every(value => value && value.trim().length > 0);
+  const hasAutomationSetup = Object.values(automationSetup).every(value => value && value.trim().length > 0);
+  const hasIntegrationPlan = Object.values(integrationPlan).every(value => value && value.trim().length > 0);
 
   // Tab progression logic
   const isSubStepUnlocked = (stepNumber) => {
     switch (stepNumber) {
       case 1: return true; // Always unlocked
-      case 2: return hasContentStrategy; // Unlocked when strategy complete
-      case 3: return hasContentStrategy && hasThoughtLeadership; // Unlocked when first two complete
-      case 4: return hasContentStrategy && hasThoughtLeadership && hasContentCalendar; // Milestone - all complete
+      case 2: return hasDiscoveryProcess; // Unlocked when discovery complete
+      case 3: return hasDiscoveryProcess && hasAutomationSetup; // Unlocked when first two complete
+      case 4: return hasDiscoveryProcess && hasAutomationSetup && hasIntegrationPlan; // Milestone - all complete
       default: return false;
     }
   };
 
   const subSteps = [
-    { id: 1, title: 'Content Strategy', icon: BookOpen },
-    { id: 2, title: 'Thought Leadership', icon: Users },
-    { id: 3, title: 'Content Calendar', icon: Calendar },
+    { id: 1, title: 'Discovery Process', icon: Search },
+    { id: 2, title: 'Automation Setup', icon: Zap },
+    { id: 3, title: 'Integration Plan', icon: Users },
     { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
   ];
 
@@ -188,20 +316,20 @@ const Step5 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Strategy</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Discovery Process</h3>
               <p className="text-gray-600 mb-6">
-                Define your content pillars, types, and distribution strategy to build authority and engage your audience.
+                Create a systematic approach to qualify prospects, understand their needs, and determine if there's a good fit.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Pillars
+                    Qualification Criteria
                   </label>
                   <textarea
-                    value={contentStrategy.contentPillars}
-                    onChange={(e) => handleStrategyChange('contentPillars', e.target.value)}
-                    placeholder="Define 3-5 core content themes that align with your expertise and audience needs..."
+                    value={discoveryProcess.qualificationCriteria}
+                    onChange={(e) => handleDiscoveryChange('qualificationCriteria', e.target.value)}
+                    placeholder="Define your ideal client criteria: budget range, company size, decision-making authority..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -209,12 +337,12 @@ const Step5 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Types & Formats
+                    Discovery Questions
                   </label>
                   <textarea
-                    value={contentStrategy.contentTypes}
-                    onChange={(e) => handleStrategyChange('contentTypes', e.target.value)}
-                    placeholder="List the content formats you'll use: blog posts, videos, podcasts, social media posts, etc."
+                    value={discoveryProcess.discoveryQuestions}
+                    onChange={(e) => handleDiscoveryChange('discoveryQuestions', e.target.value)}
+                    placeholder="List key questions to understand their situation, challenges, and goals..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -222,12 +350,12 @@ const Step5 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Distribution Plan
+                    Needs Assessment Process
                   </label>
                   <textarea
-                    value={contentStrategy.distributionPlan}
-                    onChange={(e) => handleStrategyChange('distributionPlan', e.target.value)}
-                    placeholder="Outline how you'll distribute content across channels: LinkedIn, YouTube, email, website, etc."
+                    value={discoveryProcess.needsAssessment}
+                    onChange={(e) => handleDiscoveryChange('needsAssessment', e.target.value)}
+                    placeholder="How will you assess if your solution fits their needs?"
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -235,26 +363,76 @@ const Step5 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Calendar Framework
+                    Pain Point Identification
                   </label>
                   <textarea
-                    value={contentStrategy.contentCalendar}
-                    onChange={(e) => handleStrategyChange('contentCalendar', e.target.value)}
-                    placeholder="Define your publishing schedule and content planning approach..."
+                    value={discoveryProcess.painPointIdentification}
+                    onChange={(e) => handleDiscoveryChange('painPointIdentification', e.target.value)}
+                    placeholder="How will you uncover and validate their key pain points?"
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Discovery Process')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Discovery Process')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added Discovery Process Items */}
+                {addedPipelineItems.filter(i => i.type === 'Discovery Process').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editPipelineItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deletePipelineItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {hasContentStrategy && (
+              {hasDiscoveryProcess && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Content Strategy Complete!</span>
+                    <span className="font-medium">Discovery Process Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Great! You can now move to thought leadership development.
+                    Great! You can now move to automation setup.
                   </p>
                 </div>
               )}
@@ -266,20 +444,20 @@ const Step5 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Thought Leadership</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Automation Setup</h3>
               <p className="text-gray-600 mb-6">
-                Establish your unique perspective and expertise areas to become a recognized authority in your field.
+                Implement automated systems for lead scoring, nurturing, and follow-up to maximize efficiency and conversion.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Expertise Areas
+                    Lead Scoring System
                   </label>
                   <textarea
-                    value={thoughtLeadership.expertiseAreas}
-                    onChange={(e) => handleThoughtLeadershipChange('expertiseAreas', e.target.value)}
-                    placeholder="Define your core areas of expertise and what makes you uniquely qualified..."
+                    value={automationSetup.leadScoring}
+                    onChange={(e) => handleAutomationChange('leadScoring', e.target.value)}
+                    placeholder="Define how leads will be scored: engagement level, demographics, behavior, company fit..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -287,12 +465,12 @@ const Step5 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Unique Perspectives
+                    Email Sequences
                   </label>
                   <textarea
-                    value={thoughtLeadership.uniquePerspectives}
-                    onChange={(e) => handleThoughtLeadershipChange('uniquePerspectives', e.target.value)}
-                    placeholder="What unique viewpoints or approaches do you bring to your industry?"
+                    value={automationSetup.emailSequences}
+                    onChange={(e) => handleAutomationChange('emailSequences', e.target.value)}
+                    placeholder="Describe your automated email sequences for different prospect stages..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -300,12 +478,12 @@ const Step5 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Thought Leadership Goals
+                    Follow-up Tasks
                   </label>
                   <textarea
-                    value={thoughtLeadership.thoughtLeadershipGoals}
-                    onChange={(e) => handleThoughtLeadershipChange('thoughtLeadershipGoals', e.target.value)}
-                    placeholder="What do you want to be known for? What conversations do you want to lead?"
+                    value={automationSetup.followUpTasks}
+                    onChange={(e) => handleAutomationChange('followUpTasks', e.target.value)}
+                    placeholder="What automated tasks will be created for follow-up and nurturing?"
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -313,26 +491,76 @@ const Step5 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Influence Strategy
+                    CRM Integration
                   </label>
                   <textarea
-                    value={thoughtLeadership.influenceStrategy}
-                    onChange={(e) => handleThoughtLeadershipChange('influenceStrategy', e.target.value)}
-                    placeholder="How will you build influence and establish yourself as a thought leader?"
+                    value={automationSetup.crmIntegration}
+                    onChange={(e) => handleAutomationChange('crmIntegration', e.target.value)}
+                    placeholder="How will automation integrate with your CRM system?"
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Automation Setup')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Automation Setup')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added Automation Setup Items */}
+                {addedPipelineItems.filter(i => i.type === 'Automation Setup').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editPipelineItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deletePipelineItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {hasThoughtLeadership && (
+              {hasAutomationSetup && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Thought Leadership Complete!</span>
+                    <span className="font-medium">Automation Setup Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to content calendar planning.
+                    Excellent! You can now move to integration planning.
                   </p>
                 </div>
               )}
@@ -344,20 +572,20 @@ const Step5 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Calendar</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Integration Plan</h3>
               <p className="text-gray-600 mb-6">
-                Create a systematic approach to content creation and publishing for consistency and maximum impact.
+                Connect all your tools and systems for seamless data flow and unified sales pipeline management.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Weekly Schedule
+                    Tools Integration
                   </label>
                   <textarea
-                    value={contentCalendar.weeklySchedule}
-                    onChange={(e) => handleCalendarChange('weeklySchedule', e.target.value)}
-                    placeholder="Define your weekly content creation and publishing schedule..."
+                    value={integrationPlan.toolsIntegration}
+                    onChange={(e) => handleIntegrationChange('toolsIntegration', e.target.value)}
+                    placeholder="List the tools you'll integrate: CRM, email marketing, calendar, payment processing..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -365,12 +593,12 @@ const Step5 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Monthly Themes
+                    Data Flow Design
                   </label>
                   <textarea
-                    value={contentCalendar.monthlyThemes}
-                    onChange={(e) => handleCalendarChange('monthlyThemes', e.target.value)}
-                    placeholder="Plan monthly content themes and focus areas..."
+                    value={integrationPlan.dataFlow}
+                    onChange={(e) => handleIntegrationChange('dataFlow', e.target.value)}
+                    placeholder="How will data flow between systems? Lead capture → CRM → Email → Analytics..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -378,12 +606,12 @@ const Step5 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quarterly Goals
+                    Reporting Setup
                   </label>
                   <textarea
-                    value={contentCalendar.quarterlyGoals}
-                    onChange={(e) => handleCalendarChange('quarterlyGoals', e.target.value)}
-                    placeholder="Set quarterly content goals and major initiatives..."
+                    value={integrationPlan.reportingSetup}
+                    onChange={(e) => handleIntegrationChange('reportingSetup', e.target.value)}
+                    placeholder="What reports and dashboards will you create to track pipeline performance?"
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -391,26 +619,76 @@ const Step5 = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Batching Strategy
+                    Team Access & Permissions
                   </label>
                   <textarea
-                    value={contentCalendar.contentBatching}
-                    onChange={(e) => handleCalendarChange('contentBatching', e.target.value)}
-                    placeholder="How will you batch content creation for efficiency?"
+                    value={integrationPlan.teamAccess}
+                    onChange={(e) => handleIntegrationChange('teamAccess', e.target.value)}
+                    placeholder="Who will have access to what systems? Define roles and permissions..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Integration Plan')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Integration Plan')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added Integration Plan Items */}
+                {addedPipelineItems.filter(i => i.type === 'Integration Plan').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editPipelineItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deletePipelineItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {hasContentCalendar && (
+              {hasIntegrationPlan && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Content Calendar Complete!</span>
+                    <span className="font-medium">Integration Plan Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your content strategy is now complete. Check out the milestone reflection!
+                    Perfect! Your sales pipeline automation is now complete. Check out the milestone reflection!
                   </p>
                 </div>
               )}
@@ -424,7 +702,7 @@ const Step5 = () => {
               </div>
               
               <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to enhance your content strategy and calendar planning.
+                Get AI-powered suggestions to optimize your complete sales pipeline automation.
               </p>
 
               <button
@@ -432,7 +710,7 @@ const Step5 = () => {
                 className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
               >
                 <Sparkles className="w-4 h-4" />
-                🤖 Generate AI Content Plan
+                🤖 Generate AI Pipeline Strategy
               </button>
             </div>
           </div>
@@ -462,7 +740,7 @@ const Step5 = () => {
                 </h2>
                 
                 <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've developed a comprehensive content strategy and thought leadership plan.
+                  Congratulations! You've built an automated sales pipeline that will efficiently convert prospects into clients.
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-8 text-left">
@@ -471,19 +749,19 @@ const Step5 = () => {
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Defined your content strategy and pillars</span>
+                        <span className="text-gray-700">Created systematic discovery process</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Established your thought leadership positioning</span>
+                        <span className="text-gray-700">Set up automated lead scoring and nurturing</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created a systematic content calendar approach</span>
+                        <span className="text-gray-700">Planned comprehensive tool integration</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Planned your content batching and efficiency strategy</span>
+                        <span className="text-gray-700">Built scalable sales pipeline system</span>
                       </li>
                     </ul>
                   </div>
@@ -492,20 +770,20 @@ const Step5 = () => {
                     <h3 className="text-xl font-semibold text-gray-900 mb-4">What This Means</h3>
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
-                        <BookOpen className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your content will be strategic and purposeful</span>
+                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Your sales process will be more efficient</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <BookOpen className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll establish yourself as a thought leader</span>
+                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">You'll qualify prospects more effectively</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <BookOpen className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Content creation will be consistent and efficient</span>
+                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Follow-up will happen automatically</span>
                       </li>
                       <li className="flex items-start gap-3">
-                        <BookOpen className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your authority will grow systematically</span>
+                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Conversion rates will improve significantly</span>
                       </li>
                     </ul>
                   </div>
@@ -514,7 +792,7 @@ const Step5 = () => {
                 <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
                   <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
                   <p className="text-gray-700">
-                    With a clear content strategy and thought leadership plan, you now have a roadmap for building authority and influence in your industry. Your content will work systematically to establish you as the go-to expert in your field.
+                    Automation doesn't replace relationships—it enhances them. Your pipeline now ensures no prospect falls through the cracks while maintaining the personal touch that builds trust and drives conversions.
                   </p>
                 </div>
               </div>
@@ -537,12 +815,12 @@ const Step5 = () => {
 
         {/* Component 2: Step Name */}
         <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-4">
-          Content Strategy & Thought Leadership
+          Sales Pipeline Automation
         </h1>
 
         {/* Component 3: Step Objective */}
         <p className="text-base lg:text-lg text-gray-600 mb-6">
-          Develop a comprehensive content strategy that establishes your thought leadership and builds authority in your industry.
+          Build an automated sales pipeline that qualifies prospects, nurtures relationships, and converts leads into clients efficiently.
         </p>
 
         {/* Step Completion Indicator */}
@@ -550,9 +828,9 @@ const Step5 = () => {
           <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
             <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
             <div>
-              <p className="font-semibold">🎉 Step 5 Complete! Your content strategy is defined.</p>
+              <p className="font-semibold">🎉 Step 5 Complete! Your sales pipeline is automated.</p>
               <p className="text-sm text-green-700 mt-1">
-                You now have a comprehensive plan for building thought leadership through strategic content.
+                You now have an efficient system to convert prospects into clients.
               </p>
             </div>
           </div>
@@ -607,9 +885,9 @@ const Step5 = () => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
               const isCompleted = step.id < 4 ? (
-                step.id === 1 ? hasContentStrategy :
-                step.id === 2 ? hasThoughtLeadership :
-                step.id === 3 ? hasContentCalendar : false
+                step.id === 1 ? hasDiscoveryProcess :
+                step.id === 2 ? hasAutomationSetup :
+                step.id === 3 ? hasIntegrationPlan : false
               ) : isStepComplete;
 
               return (
@@ -664,11 +942,142 @@ const Step5 = () => {
           {renderSubStepContent()}
         </div>
 
+        {/* Manual Entry Modal */}
+        {manualModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
+                <button
+                  onClick={() => setManualModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                  <select
+                    value={manualForm.type}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                  >
+                    <option value="">Select type...</option>
+                    <option value="Discovery Process">Discovery Process</option>
+                    <option value="Automation Setup">Automation Setup</option>
+                    <option value="Integration Plan">Integration Plan</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <input
+                    type="text"
+                    value={manualForm.title}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g., BANT Qualification Framework"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={manualForm.description}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Brief description..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
+                  <textarea
+                    value={manualForm.details}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
+                    placeholder="Additional details (optional)..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 p-6 border-t">
+                <button
+                  onClick={() => setManualModalOpen(false)}
+                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleManualSubmit}
+                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
+                >
+                  Add Entry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Suggestions Modal */}
+        {aiSuggestionsModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
+                <button
+                  onClick={() => setAiSuggestionsModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
+                </p>
+                
+                <div className="space-y-4">
+                  {aiSuggestions.map((suggestion) => (
+                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
+                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
+                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
+                        </div>
+                        <button
+                          onClick={() => addAiSuggestion(suggestion)}
+                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {aiSuggestions.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      All suggestions have been added! Close this modal to continue.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* AI Modal */}
         <AIModal
           isOpen={aiModalOpen}
           onClose={() => setAiModalOpen(false)}
-          title="AI Content Plan"
+          title="AI Sales Pipeline"
           content={aiResult}
           isLoading={aiLoading}
           onUseContent={handleUseAIContent}

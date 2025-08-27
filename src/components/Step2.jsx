@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, FileText, BarChart2, Lightbulb, Plus, Sparkles, Search, Target } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle2, FileText, BarChart2, Lightbulb, Plus, Sparkles, Search, Target, X, Edit, Trash2 } from 'lucide-react';
 import Confetti from 'react-confetti';
 import StepFooter from './StepFooter';
 import AIModal from './AIModal';
@@ -23,6 +23,11 @@ const Step2 = () => {
 
   // Step completion tracking
   const [isStepComplete, setIsStepComplete] = useState(false);
+
+  // Modal states
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
+  const [currentModalType, setCurrentModalType] = useState('');
 
   // Content audit data
   const [contentAudit, setContentAudit] = useState({
@@ -48,6 +53,19 @@ const Step2 = () => {
     actionPlan: ''
   });
 
+  // Added content items list
+  const [addedContentItems, setAddedContentItems] = useState([]);
+
+  // Manual form data
+  const [manualForm, setManualForm] = useState({
+    type: '',
+    title: '',
+    description: '',
+    details: ''
+  });
+
+  // AI suggestions
+  const [aiSuggestions, setAiSuggestions] = useState([]);
   const [aiResult, setAiResult] = useState(null);
 
   useEffect(() => {
@@ -66,7 +84,8 @@ const Step2 = () => {
   useEffect(() => {
     const savedAudit = storageOptimizer.safeGet('step2_content_audit');
     const savedStrategy = storageOptimizer.safeGet('step2_content_strategy');
-    const savedGapAnalysis = storageOptimizer.safeGet('step2_gap_analysis');
+    const savedGaps = storageOptimizer.safeGet('step2_gap_analysis');
+    const savedItems = storageOptimizer.safeGet('step2_added_content_items');
     
     if (savedAudit && typeof savedAudit === 'object') {
       setContentAudit(savedAudit);
@@ -74,8 +93,11 @@ const Step2 = () => {
     if (savedStrategy && typeof savedStrategy === 'object') {
       setContentStrategy(savedStrategy);
     }
-    if (savedGapAnalysis && typeof savedGapAnalysis === 'object') {
-      setGapAnalysis(savedGapAnalysis);
+    if (savedGaps && typeof savedGaps === 'object') {
+      setGapAnalysis(savedGaps);
+    }
+    if (savedItems && Array.isArray(savedItems)) {
+      setAddedContentItems(savedItems);
     }
   }, []);
 
@@ -83,10 +105,10 @@ const Step2 = () => {
   useEffect(() => {
     const auditComplete = Object.values(contentAudit).every(value => value && value.trim().length > 0);
     const strategyComplete = Object.values(contentStrategy).every(value => value && value.trim().length > 0);
-    const gapComplete = Object.values(gapAnalysis).every(value => value && value.trim().length > 0);
+    const gapsComplete = Object.values(gapAnalysis).every(value => value && value.trim().length > 0);
     
     const wasComplete = isStepComplete;
-    const nowComplete = auditComplete && strategyComplete && gapComplete;
+    const nowComplete = auditComplete && strategyComplete && gapsComplete;
     
     setIsStepComplete(nowComplete);
     
@@ -114,10 +136,118 @@ const Step2 = () => {
     storageOptimizer.safeSet('step2_content_strategy', updated);
   };
 
-  const handleGapAnalysisChange = (field, value) => {
+  const handleGapChange = (field, value) => {
     const updated = { ...gapAnalysis, [field]: value };
     setGapAnalysis(updated);
     storageOptimizer.safeSet('step2_gap_analysis', updated);
+  };
+
+  // Manual entry functions
+  const openManualModal = (type) => {
+    setCurrentModalType(type);
+    setManualForm({
+      type: type,
+      title: '',
+      description: '',
+      details: ''
+    });
+    setManualModalOpen(true);
+  };
+
+  const handleManualSubmit = () => {
+    if (manualForm.title && manualForm.description) {
+      const newItem = {
+        id: Date.now(),
+        type: manualForm.type,
+        title: manualForm.title,
+        description: manualForm.description,
+        details: manualForm.details,
+        source: 'manual'
+      };
+      
+      const updated = [...addedContentItems, newItem];
+      setAddedContentItems(updated);
+      storageOptimizer.safeSet('step2_added_content_items', updated);
+      setManualModalOpen(false);
+    }
+  };
+
+  // AI suggestions functions
+  const openAiSuggestionsModal = async (type) => {
+    setCurrentModalType(type);
+    setAiSuggestionsModalOpen(true);
+    
+    // Generate AI suggestions based on type
+    const suggestions = generateAiSuggestions(type);
+    setAiSuggestions(suggestions);
+  };
+
+  const generateAiSuggestions = (type) => {
+    const suggestionsByType = {
+      'Content Audit': [
+        { id: 1, title: 'Blog Post Analysis', description: 'Audit existing blog content for gaps and opportunities', details: 'Review 50+ blog posts for topic coverage, engagement, and SEO performance' },
+        { id: 2, title: 'Social Media Content Review', description: 'Analyze social media content across all platforms', details: 'Evaluate posting frequency, engagement rates, and content themes' },
+        { id: 3, title: 'Video Content Assessment', description: 'Review video content library and performance', details: 'Analyze YouTube, webinars, and course content for effectiveness' },
+        { id: 4, title: 'Email Marketing Audit', description: 'Evaluate email sequences and newsletter content', details: 'Review open rates, click-through rates, and content relevance' },
+        { id: 5, title: 'Lead Magnet Evaluation', description: 'Assess current lead magnets and their performance', details: 'Analyze download rates, conversion rates, and content quality' }
+      ],
+      'Gap Analysis': [
+        { id: 1, title: 'Competitor Content Gaps', description: 'Identify content your competitors are missing', details: 'Find untapped topics and angles in your industry' },
+        { id: 2, title: 'Audience Question Analysis', description: 'Discover unanswered questions from your audience', details: 'Analyze FAQ, comments, and support tickets for content ideas' },
+        { id: 3, title: 'Funnel Stage Gaps', description: 'Identify missing content for each funnel stage', details: 'Ensure content exists for awareness, consideration, and decision stages' },
+        { id: 4, title: 'Format Diversification', description: 'Find missing content formats in your strategy', details: 'Identify opportunities for podcasts, infographics, case studies' },
+        { id: 5, title: 'Seasonal Content Opportunities', description: 'Discover time-sensitive content opportunities', details: 'Plan content around industry events, holidays, and trends' }
+      ],
+      'Content Strategy': [
+        { id: 1, title: 'Authority Content Pillars', description: 'Core topics that establish your expertise', details: 'Define 3-5 main themes that showcase your unique knowledge' },
+        { id: 2, title: 'Educational Content Series', description: 'Structured learning content for your audience', details: 'Create step-by-step guides and tutorial series' },
+        { id: 3, title: 'Thought Leadership Content', description: 'Industry insights and forward-thinking content', details: 'Share predictions, trends, and innovative perspectives' },
+        { id: 4, title: 'Case Study Documentation', description: 'Success stories and client transformations', details: 'Document and share client results and methodologies' },
+        { id: 5, title: 'Behind-the-Scenes Content', description: 'Personal brand and company culture content', details: 'Share your journey, processes, and team insights' }
+      ]
+    };
+    
+    return suggestionsByType[type] || [];
+  };
+
+  const addAiSuggestion = (suggestion) => {
+    const newItem = {
+      id: Date.now(),
+      type: currentModalType,
+      title: suggestion.title,
+      description: suggestion.description,
+      details: suggestion.details,
+      source: 'ai'
+    };
+    
+    const updated = [...addedContentItems, newItem];
+    setAddedContentItems(updated);
+    storageOptimizer.safeSet('step2_added_content_items', updated);
+    
+    // Remove suggestion from list
+    setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+  };
+
+  // Edit/Delete functions
+  const editContentItem = (id) => {
+    const item = addedContentItems.find(i => i.id === id);
+    if (item) {
+      setManualForm({
+        type: item.type,
+        title: item.title,
+        description: item.description,
+        details: item.details
+      });
+      setCurrentModalType(item.type);
+      deleteContentItem(id); // Remove original
+      setManualModalOpen(true);
+    }
+  };
+
+  const deleteContentItem = (id) => {
+    const updated = addedContentItems.filter(i => i.id !== id);
+    setAddedContentItems(updated);
+    storageOptimizer.safeSet('step2_added_content_items', updated);
   };
 
   // AI content generation
@@ -141,44 +271,44 @@ const Step2 = () => {
       setContentAudit(prev => ({ ...prev, ...content }));
       storageOptimizer.safeSet('step2_content_audit', { ...contentAudit, ...content });
     } else if (activeSubStep === 2) {
-      setContentStrategy(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step2_content_strategy', { ...contentStrategy, ...content });
-    } else if (activeSubStep === 3) {
       setGapAnalysis(prev => ({ ...prev, ...content }));
       storageOptimizer.safeSet('step2_gap_analysis', { ...gapAnalysis, ...content });
+    } else if (activeSubStep === 3) {
+      setContentStrategy(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step2_content_strategy', { ...contentStrategy, ...content });
     }
     setAiModalOpen(false);
   };
 
   const howThisWorksContent = {
-    description: "Audit your existing content, develop a strategic distribution plan, and identify gaps to maximize your authority-building efforts.",
+    description: "Audit your existing content, identify gaps, and create a strategic content plan that positions you as the authority in your field.",
     steps: [
-      { title: 'Content Audit', description: 'Analyze your existing content assets and identify what\'s working and what needs improvement.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
-      { title: 'Strategic Distribution', description: 'Plan how to distribute and repurpose your content across multiple channels for maximum reach.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
-      { title: 'Gap Analysis', description: 'Identify missing content opportunities and create an action plan to fill those gaps.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
+      { title: 'Content Audit', description: 'Analyze your existing content to understand what you have and how it performs.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
+      { title: 'Gap Analysis', description: 'Identify missing content opportunities and areas for improvement.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
+      { title: 'Content Strategy', description: 'Create a strategic plan for future content that builds authority.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
     ]
   };
 
   // Check section completion for tab progression
   const hasContentAudit = Object.values(contentAudit).every(value => value && value.trim().length > 0);
-  const hasContentStrategy = Object.values(contentStrategy).every(value => value && value.trim().length > 0);
   const hasGapAnalysis = Object.values(gapAnalysis).every(value => value && value.trim().length > 0);
+  const hasContentStrategy = Object.values(contentStrategy).every(value => value && value.trim().length > 0);
 
   // Tab progression logic
   const isSubStepUnlocked = (stepNumber) => {
     switch (stepNumber) {
       case 1: return true; // Always unlocked
       case 2: return hasContentAudit; // Unlocked when audit complete
-      case 3: return hasContentAudit && hasContentStrategy; // Unlocked when first two complete
-      case 4: return hasContentAudit && hasContentStrategy && hasGapAnalysis; // Milestone - all complete
+      case 3: return hasContentAudit && hasGapAnalysis; // Unlocked when first two complete
+      case 4: return hasContentAudit && hasGapAnalysis && hasContentStrategy; // Milestone - all complete
       default: return false;
     }
   };
 
   const subSteps = [
-    { id: 1, title: 'Content Audit', icon: Search },
-    { id: 2, title: 'Strategic Distribution', icon: BarChart2 },
-    { id: 3, title: 'Gap Analysis', icon: Target },
+    { id: 1, title: 'Content Audit', icon: FileText },
+    { id: 2, title: 'Gap Analysis', icon: Search },
+    { id: 3, title: 'Content Strategy', icon: Target },
     { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
   ];
 
@@ -190,7 +320,7 @@ const Step2 = () => {
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Audit</h3>
               <p className="text-gray-600 mb-6">
-                Analyze your existing content assets to understand what's working and identify areas for improvement.
+                Analyze your existing content to understand what you have, how it performs, and where opportunities exist.
               </p>
 
               <div className="space-y-6">
@@ -201,7 +331,7 @@ const Step2 = () => {
                   <textarea
                     value={contentAudit.existingContent}
                     onChange={(e) => handleAuditChange('existingContent', e.target.value)}
-                    placeholder="List your current content assets: blog posts, videos, podcasts, social media content, lead magnets, etc."
+                    placeholder="List your current content: blog posts, videos, podcasts, social media, email sequences..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -214,37 +344,61 @@ const Step2 = () => {
                   <textarea
                     value={contentAudit.strengths}
                     onChange={(e) => handleAuditChange('strengths', e.target.value)}
-                    placeholder="What content performs best? What topics resonate with your audience? What formats work well?"
+                    placeholder="What content performs well? High engagement, shares, conversions..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Gaps & Weaknesses
-                  </label>
-                  <textarea
-                    value={contentAudit.contentGaps}
-                    onChange={(e) => handleAuditChange('contentGaps', e.target.value)}
-                    placeholder="What topics are missing? What formats could you explore? Where are the quality issues?"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Content Audit')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Content Audit')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Improvement Opportunities
-                  </label>
-                  <textarea
-                    value={contentAudit.opportunities}
-                    onChange={(e) => handleAuditChange('opportunities', e.target.value)}
-                    placeholder="How can you improve existing content? What repurposing opportunities exist? What new formats should you try?"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
+                {/* Added Content Audit Items */}
+                {addedContentItems.filter(i => i.type === 'Content Audit').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editContentItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteContentItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {hasContentAudit && (
@@ -254,7 +408,7 @@ const Step2 = () => {
                     <span className="font-medium">Content Audit Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Great! You can now move to strategic distribution planning.
+                    Great! You can now move to gap analysis.
                   </p>
                 </div>
               )}
@@ -266,98 +420,20 @@ const Step2 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Strategic Distribution</h3>
-              <p className="text-gray-600 mb-6">
-                Plan how to distribute and repurpose your content across multiple channels for maximum reach and impact.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Pillars & Themes
-                  </label>
-                  <textarea
-                    value={contentStrategy.contentPillars}
-                    onChange={(e) => handleStrategyChange('contentPillars', e.target.value)}
-                    placeholder="Define 3-5 core content themes that align with your expertise and audience needs..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Distribution Channels
-                  </label>
-                  <textarea
-                    value={contentStrategy.distributionChannels}
-                    onChange={(e) => handleStrategyChange('distributionChannels', e.target.value)}
-                    placeholder="List your primary and secondary distribution channels: LinkedIn, YouTube, podcast, email newsletter, blog, etc."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Calendar Strategy
-                  </label>
-                  <textarea
-                    value={contentStrategy.contentCalendar}
-                    onChange={(e) => handleStrategyChange('contentCalendar', e.target.value)}
-                    placeholder="Outline your content publishing schedule and frequency for each channel..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Repurposing Plan
-                  </label>
-                  <textarea
-                    value={contentStrategy.repurposingPlan}
-                    onChange={(e) => handleStrategyChange('repurposingPlan', e.target.value)}
-                    placeholder="How will you repurpose content across formats? (e.g., blog post → social posts → video → podcast episode)"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-              </div>
-
-              {hasContentStrategy && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Strategic Distribution Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to gap analysis.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Gap Analysis</h3>
               <p className="text-gray-600 mb-6">
-                Identify missing content opportunities and create an action plan to fill those gaps.
+                Identify missing content opportunities, competitor gaps, and areas where you can establish stronger authority.
               </p>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Missing Content Types
+                    Missing Content Areas
                   </label>
                   <textarea
                     value={gapAnalysis.missingContent}
-                    onChange={(e) => handleGapAnalysisChange('missingContent', e.target.value)}
-                    placeholder="What content types are you missing? Case studies, tutorials, thought leadership pieces, etc."
+                    onChange={(e) => handleGapChange('missingContent', e.target.value)}
+                    placeholder="What topics, formats, or content types are you missing? What questions aren't you answering?"
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
@@ -369,38 +445,62 @@ const Step2 = () => {
                   </label>
                   <textarea
                     value={gapAnalysis.competitorAnalysis}
-                    onChange={(e) => handleGapAnalysisChange('competitorAnalysis', e.target.value)}
-                    placeholder="What content are your competitors creating that you're not? What opportunities do you see?"
+                    onChange={(e) => handleGapChange('competitorAnalysis', e.target.value)}
+                    placeholder="What content are competitors creating? Where are they weak? What opportunities do you see?"
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
                     rows={4}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Audience Needs Assessment
-                  </label>
-                  <textarea
-                    value={gapAnalysis.audienceNeeds}
-                    onChange={(e) => handleGapAnalysisChange('audienceNeeds', e.target.value)}
-                    placeholder="What questions is your audience asking that you haven't addressed? What problems need solutions?"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Gap Analysis')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Gap Analysis')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Action Plan
-                  </label>
-                  <textarea
-                    value={gapAnalysis.actionPlan}
-                    onChange={(e) => handleGapAnalysisChange('actionPlan', e.target.value)}
-                    placeholder="What specific content will you create to fill these gaps? Prioritize by impact and effort."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
+                {/* Added Gap Analysis Items */}
+                {addedContentItems.filter(i => i.type === 'Gap Analysis').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editContentItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteContentItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {hasGapAnalysis && (
@@ -408,6 +508,108 @@ const Step2 = () => {
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
                     <span className="font-medium">Gap Analysis Complete!</span>
+                  </div>
+                  <p className="text-green-700 text-sm mt-1">
+                    Excellent! You can now move to content strategy.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Strategy</h3>
+              <p className="text-gray-600 mb-6">
+                Create a strategic content plan that builds authority, engages your audience, and drives business results.
+              </p>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content Pillars & Themes
+                  </label>
+                  <textarea
+                    value={contentStrategy.contentPillars}
+                    onChange={(e) => handleStrategyChange('contentPillars', e.target.value)}
+                    placeholder="Define 3-5 core content themes that establish your authority and expertise..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Distribution Strategy
+                  </label>
+                  <textarea
+                    value={contentStrategy.distributionChannels}
+                    onChange={(e) => handleStrategyChange('distributionChannels', e.target.value)}
+                    placeholder="Where will you publish and promote your content? Blog, social media, email, podcasts..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                {/* Manual/AI Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => openManualModal('Content Strategy')}
+                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Manual Entry
+                  </button>
+                  <button
+                    onClick={() => openAiSuggestionsModal('Content Strategy')}
+                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    🤖 Get AI Ideas
+                  </button>
+                </div>
+
+                {/* Added Content Strategy Items */}
+                {addedContentItems.filter(i => i.type === 'Content Strategy').map((item) => (
+                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                        <p className="text-gray-600 mt-1">{item.description}</p>
+                        {item.details && (
+                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
+                        )}
+                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => editContentItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteContentItem(item.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {hasContentStrategy && (
+                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">Content Strategy Complete!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
                     Perfect! Your content strategy is now complete. Check out the milestone reflection!
@@ -424,7 +626,7 @@ const Step2 = () => {
               </div>
               
               <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to enhance your content strategy and identify new opportunities.
+                Get AI-powered suggestions to enhance your content strategy based on your audit and gap analysis.
               </p>
 
               <button
@@ -462,7 +664,7 @@ const Step2 = () => {
                 </h2>
                 
                 <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've completed your comprehensive content audit and strategy.
+                  Congratulations! You've completed a comprehensive content audit and created a strategic content plan.
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-8 text-left">
@@ -471,11 +673,7 @@ const Step2 = () => {
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Audited your existing content assets and identified strengths</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Developed a strategic distribution plan across channels</span>
+                        <span className="text-gray-700">Audited your existing content assets</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
@@ -483,7 +681,11 @@ const Step2 = () => {
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created an action plan to fill content gaps</span>
+                        <span className="text-gray-700">Analyzed competitor content strategies</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Created strategic content pillars</span>
                       </li>
                     </ul>
                   </div>
@@ -493,19 +695,19 @@ const Step2 = () => {
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
                         <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your content efforts will be more strategic and focused</span>
+                        <span className="text-gray-700">Your content will be more strategic and focused</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll maximize reach through smart repurposing</span>
+                        <span className="text-gray-700">You'll fill important gaps in your content</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll address all audience needs comprehensively</span>
+                        <span className="text-gray-700">Your authority will be established through content</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your authority-building will be systematic and effective</span>
+                        <span className="text-gray-700">You'll have a clear content roadmap</span>
                       </li>
                     </ul>
                   </div>
@@ -514,7 +716,7 @@ const Step2 = () => {
                 <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
                   <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
                   <p className="text-gray-700">
-                    With a comprehensive content strategy in place, you now have a roadmap for creating and distributing content that builds authority, engages your audience, and drives business results. Your content efforts will be strategic rather than random.
+                    Strategic content is the foundation of authority. With your audit complete and strategy in place, every piece of content you create will now serve a purpose in building your reputation as the go-to expert in your field.
                   </p>
                 </div>
               </div>
@@ -537,12 +739,12 @@ const Step2 = () => {
 
         {/* Component 2: Step Name */}
         <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-4">
-          Content Audit & Strategy
+          Content Strategy & Planning
         </h1>
 
         {/* Component 3: Step Objective */}
         <p className="text-base lg:text-lg text-gray-600 mb-6">
-          Audit your existing content, develop a strategic distribution plan, and identify gaps to maximize your authority-building efforts.
+          Audit your existing content, identify gaps, and create a strategic content plan that positions you as the authority in your field.
         </p>
 
         {/* Step Completion Indicator */}
@@ -550,9 +752,9 @@ const Step2 = () => {
           <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
             <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
             <div>
-              <p className="font-semibold">🎉 Step 2 Complete! Your content strategy is defined.</p>
+              <p className="font-semibold">🎉 Step 2 Complete! Your content strategy is ready.</p>
               <p className="text-sm text-green-700 mt-1">
-                You now have a comprehensive plan for creating and distributing authority-building content.
+                You now have a comprehensive content plan that will establish your authority.
               </p>
             </div>
           </div>
@@ -608,8 +810,8 @@ const Step2 = () => {
               const isActive = activeSubStep === step.id;
               const isCompleted = step.id < 4 ? (
                 step.id === 1 ? hasContentAudit :
-                step.id === 2 ? hasContentStrategy :
-                step.id === 3 ? hasGapAnalysis : false
+                step.id === 2 ? hasGapAnalysis :
+                step.id === 3 ? hasContentStrategy : false
               ) : isStepComplete;
 
               return (
@@ -663,6 +865,137 @@ const Step2 = () => {
         <div className="mb-8">
           {renderSubStepContent()}
         </div>
+
+        {/* Manual Entry Modal */}
+        {manualModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
+                <button
+                  onClick={() => setManualModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                  <select
+                    value={manualForm.type}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                  >
+                    <option value="">Select type...</option>
+                    <option value="Content Audit">Content Audit</option>
+                    <option value="Gap Analysis">Gap Analysis</option>
+                    <option value="Content Strategy">Content Strategy</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <input
+                    type="text"
+                    value={manualForm.title}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g., Blog Post Analysis"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={manualForm.description}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Brief description..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
+                  <textarea
+                    value={manualForm.details}
+                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
+                    placeholder="Additional details (optional)..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 p-6 border-t">
+                <button
+                  onClick={() => setManualModalOpen(false)}
+                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleManualSubmit}
+                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
+                >
+                  Add Entry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Suggestions Modal */}
+        {aiSuggestionsModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
+                <button
+                  onClick={() => setAiSuggestionsModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
+                </p>
+                
+                <div className="space-y-4">
+                  {aiSuggestions.map((suggestion) => (
+                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
+                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
+                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
+                        </div>
+                        <button
+                          onClick={() => addAiSuggestion(suggestion)}
+                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {aiSuggestions.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      All suggestions have been added! Close this modal to continue.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* AI Modal */}
         <AIModal
