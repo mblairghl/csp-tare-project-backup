@@ -119,9 +119,12 @@ const Step6 = () => {
 
   // Auto-progression logic for sub-steps
   useEffect(() => {
-    const hasServiceStructure = Object.values(serviceStructure).every(value => value && value.trim().length > 0);
-    const hasContentDelivery = Object.values(contentDelivery).every(value => value && value.trim().length > 0);
-    const hasDeliveryOptimization = Object.values(deliveryOptimization).every(value => value && value.trim().length > 0);
+    const hasServiceStructure = Object.values(serviceStructure).every(value => value && value.trim().length > 0) ||
+                               addedRevenueItems.some(item => item.type === 'Service Structure');
+    const hasContentDelivery = Object.values(contentDelivery).every(value => value && value.trim().length > 0) ||
+                              addedRevenueItems.some(item => item.type === 'Content Delivery');
+    const hasDeliveryOptimization = Object.values(deliveryOptimization).every(value => value && value.trim().length > 0) ||
+                                   addedRevenueItems.some(item => item.type === 'Delivery Optimization');
     
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasServiceStructure) {
@@ -131,7 +134,7 @@ const Step6 = () => {
     } else if (activeSubStep === 3 && hasDeliveryOptimization) {
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [serviceStructure, contentDelivery, deliveryOptimization, activeSubStep]);
+  }, [serviceStructure, contentDelivery, deliveryOptimization, addedRevenueItems, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

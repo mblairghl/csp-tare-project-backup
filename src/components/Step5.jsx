@@ -119,9 +119,12 @@ const Step5 = () => {
 
   // Auto-progression logic for sub-steps
   useEffect(() => {
-    const hasDiscoveryProcess = Object.values(discoveryProcess).every(value => value && value.trim().length > 0);
-    const hasAutomationSetup = Object.values(automationSetup).every(value => value && value.trim().length > 0);
-    const hasIntegrationPlan = Object.values(integrationPlan).every(value => value && value.trim().length > 0);
+    const hasDiscoveryProcess = Object.values(discoveryProcess).every(value => value && value.trim().length > 0) ||
+                               addedPipelineItems.some(item => item.type === 'Discovery Process');
+    const hasAutomationSetup = Object.values(automationSetup).every(value => value && value.trim().length > 0) ||
+                              addedPipelineItems.some(item => item.type === 'Automation Setup');
+    const hasIntegrationPlan = Object.values(integrationPlan).every(value => value && value.trim().length > 0) ||
+                              addedPipelineItems.some(item => item.type === 'Integration Plan');
     
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasDiscoveryProcess) {
@@ -131,7 +134,7 @@ const Step5 = () => {
     } else if (activeSubStep === 3 && hasIntegrationPlan) {
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [discoveryProcess, automationSetup, integrationPlan, activeSubStep]);
+  }, [discoveryProcess, automationSetup, integrationPlan, addedPipelineItems, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

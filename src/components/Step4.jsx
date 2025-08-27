@@ -119,9 +119,12 @@ const Step4 = () => {
 
   // Auto-progression logic for sub-steps
   useEffect(() => {
-    const hasLeadMagnet = Object.values(leadMagnet).every(value => value && value.trim().length > 0);
-    const hasNurtureSequence = Object.values(nurtureSequence).every(value => value && value.trim().length > 0);
-    const hasFunnelPages = Object.values(funnelPages).every(value => value && value.trim().length > 0);
+    const hasLeadMagnet = Object.values(leadMagnet).every(value => value && value.trim().length > 0) ||
+                         addedFunnelItems.some(item => item.type === 'Lead Magnet Strategy');
+    const hasNurtureSequence = Object.values(nurtureSequence).every(value => value && value.trim().length > 0) ||
+                              addedFunnelItems.some(item => item.type === 'Nurture Sequence');
+    const hasFunnelPages = Object.values(funnelPages).every(value => value && value.trim().length > 0) ||
+                          addedFunnelItems.some(item => item.type === 'Funnel Pages');
     
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasLeadMagnet) {
@@ -131,7 +134,7 @@ const Step4 = () => {
     } else if (activeSubStep === 3 && hasFunnelPages) {
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [leadMagnet, nurtureSequence, funnelPages, activeSubStep]);
+  }, [leadMagnet, nurtureSequence, funnelPages, addedFunnelItems, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

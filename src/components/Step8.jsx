@@ -119,9 +119,12 @@ const Step8 = () => {
 
   // Auto-progression logic for sub-steps
   useEffect(() => {
-    const hasAbTestingStrategy = Object.values(abTestingStrategy).every(value => value && value.trim().length > 0);
-    const hasConversionTracking = Object.values(conversionTracking).every(value => value && value.trim().length > 0);
-    const hasOptimizationPlan = Object.values(optimizationPlan).every(value => value && value.trim().length > 0);
+    const hasAbTestingStrategy = Object.values(abTestingStrategy).every(value => value && value.trim().length > 0) ||
+                                addedOptimizationItems.some(item => item.type === 'A/B Testing Strategy');
+    const hasConversionTracking = Object.values(conversionTracking).every(value => value && value.trim().length > 0) ||
+                                 addedOptimizationItems.some(item => item.type === 'Conversion Tracking Setup');
+    const hasOptimizationPlan = Object.values(optimizationPlan).every(value => value && value.trim().length > 0) ||
+                               addedOptimizationItems.some(item => item.type === 'Optimization Action Plan');
     
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasAbTestingStrategy) {
@@ -131,7 +134,7 @@ const Step8 = () => {
     } else if (activeSubStep === 3 && hasOptimizationPlan) {
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [abTestingStrategy, conversionTracking, optimizationPlan, activeSubStep]);
+  }, [abTestingStrategy, conversionTracking, optimizationPlan, addedOptimizationItems, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

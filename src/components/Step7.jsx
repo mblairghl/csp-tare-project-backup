@@ -119,9 +119,12 @@ const Step7 = () => {
 
   // Auto-progression logic for sub-steps
   useEffect(() => {
-    const hasKpiPlanning = Object.values(kpiPlanning).every(value => value && value.trim().length > 0);
-    const hasDashboardLayout = Object.values(dashboardLayout).every(value => value && value.trim().length > 0);
-    const hasReportingSchedule = Object.values(reportingSchedule).every(value => value && value.trim().length > 0);
+    const hasKpiPlanning = Object.values(kpiPlanning).every(value => value && value.trim().length > 0) ||
+                          addedTrackingItems.some(item => item.type === 'KPIs Planning');
+    const hasDashboardLayout = Object.values(dashboardLayout).every(value => value && value.trim().length > 0) ||
+                              addedTrackingItems.some(item => item.type === 'Dashboard Layout');
+    const hasReportingSchedule = Object.values(reportingSchedule).every(value => value && value.trim().length > 0) ||
+                                addedTrackingItems.some(item => item.type === 'Reporting Schedule');
     
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasKpiPlanning) {
@@ -131,7 +134,7 @@ const Step7 = () => {
     } else if (activeSubStep === 3 && hasReportingSchedule) {
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [kpiPlanning, dashboardLayout, reportingSchedule, activeSubStep]);
+  }, [kpiPlanning, dashboardLayout, reportingSchedule, addedTrackingItems, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

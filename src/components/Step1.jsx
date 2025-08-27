@@ -98,9 +98,12 @@ const Step1 = () => {
 
   // Auto-progression logic for sub-steps
   useEffect(() => {
-    const hasDemographics = idealClient.demographics && idealClient.demographics.trim().length > 0;
-    const hasPsychographics = idealClient.psychographics && idealClient.psychographics.trim().length > 0;
-    const hasPainPoints = idealClient.painPoints && idealClient.painPoints.trim().length > 0;
+    const hasDemographics = (idealClient.demographics && idealClient.demographics.trim().length > 0) || 
+                           addedPersonas.some(p => p.type === 'Demographics');
+    const hasPsychographics = (idealClient.psychographics && idealClient.psychographics.trim().length > 0) || 
+                             addedPersonas.some(p => p.type === 'Psychographics');
+    const hasPainPoints = (idealClient.painPoints && idealClient.painPoints.trim().length > 0) || 
+                         addedPersonas.some(p => p.type === 'Pain Points');
     
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasDemographics) {
@@ -110,7 +113,7 @@ const Step1 = () => {
     } else if (activeSubStep === 3 && hasPainPoints) {
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [idealClient, activeSubStep]);
+  }, [idealClient, addedPersonas, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

@@ -107,9 +107,12 @@ const Step3 = () => {
 
   // Auto-progression logic for sub-steps
   useEffect(() => {
-    const hasCurrentSources = currentSources.length > 0;
-    const hasExpansionOpportunities = expansionOpportunities.length > 0;
-    const hasSetupComplete = Object.values(cspSetup).every(value => value && value.trim().length > 0);
+    const hasCurrentSources = currentSources.length > 0 || 
+                             addedLeadItems.some(item => item.type === 'Current Sources');
+    const hasExpansionOpportunities = expansionOpportunities.length > 0 || 
+                                     addedLeadItems.some(item => item.type === 'Expansion Opportunities');
+    const hasSetupComplete = Object.values(cspSetup).every(value => value && value.trim().length > 0) ||
+                            addedLeadItems.some(item => item.type === 'CSP Setup');
     
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasCurrentSources) {
@@ -119,7 +122,7 @@ const Step3 = () => {
     } else if (activeSubStep === 3 && hasSetupComplete) {
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [currentSources, expansionOpportunities, cspSetup, activeSubStep]);
+  }, [currentSources, expansionOpportunities, cspSetup, addedLeadItems, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

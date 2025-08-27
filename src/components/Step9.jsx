@@ -121,9 +121,12 @@ const Step9 = () => {
 
   // Auto-progression logic for sub-steps
   useEffect(() => {
-    const hasAuthorityEstablishment = Object.values(authorityEstablishment).every(value => value && value.trim().length > 0);
-    const hasLegacyBuilding = Object.values(legacyBuilding).every(value => value && value.trim().length > 0);
-    const hasContinuousGrowth = Object.values(continuousGrowth).every(value => value && value.trim().length > 0);
+    const hasAuthorityEstablishment = Object.values(authorityEstablishment).every(value => value && value.trim().length > 0) ||
+                                     addedAuthorityItems.some(item => item.type === 'Authority Establishment');
+    const hasLegacyBuilding = Object.values(legacyBuilding).every(value => value && value.trim().length > 0) ||
+                             addedAuthorityItems.some(item => item.type === 'Legacy Building');
+    const hasContinuousGrowth = Object.values(continuousGrowth).every(value => value && value.trim().length > 0) ||
+                               addedAuthorityItems.some(item => item.type === 'Continuous Growth');
     
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasAuthorityEstablishment) {
@@ -133,7 +136,7 @@ const Step9 = () => {
     } else if (activeSubStep === 3 && hasContinuousGrowth) {
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [authorityEstablishment, legacyBuilding, continuousGrowth, activeSubStep]);
+  }, [authorityEstablishment, legacyBuilding, continuousGrowth, addedAuthorityItems, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
