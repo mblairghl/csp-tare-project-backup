@@ -99,7 +99,7 @@ const Step8 = () => {
     }
   }, []);
 
-  // Check completion status
+  // Check completion status and auto-progression
   useEffect(() => {
     const abTestingComplete = Object.values(abTestingStrategy).every(value => value && value.trim().length > 0);
     const trackingComplete = Object.values(conversionTracking).every(value => value && value.trim().length > 0);
@@ -116,6 +116,22 @@ const Step8 = () => {
       setTimeout(() => setShowConfetti(false), 3000);
     }
   }, [abTestingStrategy, conversionTracking, optimizationPlan, isStepComplete]);
+
+  // Auto-progression logic for sub-steps
+  useEffect(() => {
+    const hasAbTestingStrategy = Object.values(abTestingStrategy).every(value => value && value.trim().length > 0);
+    const hasConversionTracking = Object.values(conversionTracking).every(value => value && value.trim().length > 0);
+    const hasOptimizationPlan = Object.values(optimizationPlan).every(value => value && value.trim().length > 0);
+    
+    // Auto-progress to next sub-step when current one is complete
+    if (activeSubStep === 1 && hasAbTestingStrategy) {
+      setTimeout(() => setActiveSubStep(2), 500);
+    } else if (activeSubStep === 2 && hasConversionTracking) {
+      setTimeout(() => setActiveSubStep(3), 500);
+    } else if (activeSubStep === 3 && hasOptimizationPlan) {
+      setTimeout(() => setActiveSubStep(4), 500);
+    }
+  }, [abTestingStrategy, conversionTracking, optimizationPlan, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

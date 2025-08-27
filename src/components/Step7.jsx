@@ -99,7 +99,7 @@ const Step7 = () => {
     }
   }, []);
 
-  // Check completion status
+  // Check completion status and auto-progression
   useEffect(() => {
     const kpiComplete = Object.values(kpiPlanning).every(value => value && value.trim().length > 0);
     const dashboardComplete = Object.values(dashboardLayout).every(value => value && value.trim().length > 0);
@@ -116,6 +116,22 @@ const Step7 = () => {
       setTimeout(() => setShowConfetti(false), 3000);
     }
   }, [kpiPlanning, dashboardLayout, reportingSchedule, isStepComplete]);
+
+  // Auto-progression logic for sub-steps
+  useEffect(() => {
+    const hasKpiPlanning = Object.values(kpiPlanning).every(value => value && value.trim().length > 0);
+    const hasDashboardLayout = Object.values(dashboardLayout).every(value => value && value.trim().length > 0);
+    const hasReportingSchedule = Object.values(reportingSchedule).every(value => value && value.trim().length > 0);
+    
+    // Auto-progress to next sub-step when current one is complete
+    if (activeSubStep === 1 && hasKpiPlanning) {
+      setTimeout(() => setActiveSubStep(2), 500);
+    } else if (activeSubStep === 2 && hasDashboardLayout) {
+      setTimeout(() => setActiveSubStep(3), 500);
+    } else if (activeSubStep === 3 && hasReportingSchedule) {
+      setTimeout(() => setActiveSubStep(4), 500);
+    }
+  }, [kpiPlanning, dashboardLayout, reportingSchedule, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

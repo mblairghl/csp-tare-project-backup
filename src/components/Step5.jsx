@@ -99,7 +99,7 @@ const Step5 = () => {
     }
   }, []);
 
-  // Check completion status
+  // Check completion status and auto-progression
   useEffect(() => {
     const discoveryComplete = Object.values(discoveryProcess).every(value => value && value.trim().length > 0);
     const automationComplete = Object.values(automationSetup).every(value => value && value.trim().length > 0);
@@ -116,6 +116,22 @@ const Step5 = () => {
       setTimeout(() => setShowConfetti(false), 3000);
     }
   }, [discoveryProcess, automationSetup, integrationPlan, isStepComplete]);
+
+  // Auto-progression logic for sub-steps
+  useEffect(() => {
+    const hasDiscoveryProcess = Object.values(discoveryProcess).every(value => value && value.trim().length > 0);
+    const hasAutomationSetup = Object.values(automationSetup).every(value => value && value.trim().length > 0);
+    const hasIntegrationPlan = Object.values(integrationPlan).every(value => value && value.trim().length > 0);
+    
+    // Auto-progress to next sub-step when current one is complete
+    if (activeSubStep === 1 && hasDiscoveryProcess) {
+      setTimeout(() => setActiveSubStep(2), 500);
+    } else if (activeSubStep === 2 && hasAutomationSetup) {
+      setTimeout(() => setActiveSubStep(3), 500);
+    } else if (activeSubStep === 3 && hasIntegrationPlan) {
+      setTimeout(() => setActiveSubStep(4), 500);
+    }
+  }, [discoveryProcess, automationSetup, integrationPlan, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

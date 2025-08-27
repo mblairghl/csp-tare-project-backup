@@ -101,7 +101,7 @@ const Step2 = () => {
     }
   }, []);
 
-  // Check completion status
+  // Check completion status and auto-progression
   useEffect(() => {
     const auditComplete = Object.values(contentAudit).every(value => value && value.trim().length > 0);
     const strategyComplete = Object.values(contentStrategy).every(value => value && value.trim().length > 0);
@@ -118,6 +118,22 @@ const Step2 = () => {
       setTimeout(() => setShowConfetti(false), 3000);
     }
   }, [contentAudit, contentStrategy, gapAnalysis, isStepComplete]);
+
+  // Auto-progression logic for sub-steps
+  useEffect(() => {
+    const hasContentAudit = Object.values(contentAudit).every(value => value && value.trim().length > 0);
+    const hasGapAnalysis = Object.values(gapAnalysis).every(value => value && value.trim().length > 0);
+    const hasContentStrategy = Object.values(contentStrategy).every(value => value && value.trim().length > 0);
+    
+    // Auto-progress to next sub-step when current one is complete
+    if (activeSubStep === 1 && hasContentAudit) {
+      setTimeout(() => setActiveSubStep(2), 500);
+    } else if (activeSubStep === 2 && hasGapAnalysis) {
+      setTimeout(() => setActiveSubStep(3), 500);
+    } else if (activeSubStep === 3 && hasContentStrategy) {
+      setTimeout(() => setActiveSubStep(4), 500);
+    }
+  }, [contentAudit, gapAnalysis, contentStrategy, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

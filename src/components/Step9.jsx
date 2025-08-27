@@ -100,7 +100,7 @@ const Step9 = () => {
     }
   }, []);
 
-  // Check completion status
+  // Check completion status and auto-progression
   useEffect(() => {
     const authorityComplete = Object.values(authorityEstablishment).every(value => value && value.trim().length > 0);
     const legacyComplete = Object.values(legacyBuilding).every(value => value && value.trim().length > 0);
@@ -118,6 +118,22 @@ const Step9 = () => {
       setTimeout(() => setShowConfetti(false), 5000); // Longer confetti for final step
     }
   }, [authorityEstablishment, legacyBuilding, continuousGrowth, isStepComplete]);
+
+  // Auto-progression logic for sub-steps
+  useEffect(() => {
+    const hasAuthorityEstablishment = Object.values(authorityEstablishment).every(value => value && value.trim().length > 0);
+    const hasLegacyBuilding = Object.values(legacyBuilding).every(value => value && value.trim().length > 0);
+    const hasContinuousGrowth = Object.values(continuousGrowth).every(value => value && value.trim().length > 0);
+    
+    // Auto-progress to next sub-step when current one is complete
+    if (activeSubStep === 1 && hasAuthorityEstablishment) {
+      setTimeout(() => setActiveSubStep(2), 500);
+    } else if (activeSubStep === 2 && hasLegacyBuilding) {
+      setTimeout(() => setActiveSubStep(3), 500);
+    } else if (activeSubStep === 3 && hasContinuousGrowth) {
+      setTimeout(() => setActiveSubStep(4), 500);
+    }
+  }, [authorityEstablishment, legacyBuilding, continuousGrowth, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

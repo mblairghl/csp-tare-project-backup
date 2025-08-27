@@ -79,7 +79,7 @@ const Step1 = () => {
     }
   }, []);
 
-  // Check completion status
+  // Check completion status and auto-progression
   useEffect(() => {
     const clientComplete = Object.values(idealClient).every(value => value && value.trim().length > 0);
     const hasPersonas = addedPersonas.length > 0;
@@ -95,6 +95,22 @@ const Step1 = () => {
       setTimeout(() => setShowConfetti(false), 3000);
     }
   }, [idealClient, addedPersonas, isStepComplete]);
+
+  // Auto-progression logic for sub-steps
+  useEffect(() => {
+    const hasDemographics = idealClient.demographics && idealClient.demographics.trim().length > 0;
+    const hasPsychographics = idealClient.psychographics && idealClient.psychographics.trim().length > 0;
+    const hasPainPoints = idealClient.painPoints && idealClient.painPoints.trim().length > 0;
+    
+    // Auto-progress to next sub-step when current one is complete
+    if (activeSubStep === 1 && hasDemographics) {
+      setTimeout(() => setActiveSubStep(2), 500);
+    } else if (activeSubStep === 2 && hasPsychographics) {
+      setTimeout(() => setActiveSubStep(3), 500);
+    } else if (activeSubStep === 3 && hasPainPoints) {
+      setTimeout(() => setActiveSubStep(4), 500);
+    }
+  }, [idealClient, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

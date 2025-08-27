@@ -99,7 +99,7 @@ const Step6 = () => {
     }
   }, []);
 
-  // Check completion status
+  // Check completion status and auto-progression
   useEffect(() => {
     const serviceComplete = Object.values(serviceStructure).every(value => value && value.trim().length > 0);
     const contentComplete = Object.values(contentDelivery).every(value => value && value.trim().length > 0);
@@ -116,6 +116,22 @@ const Step6 = () => {
       setTimeout(() => setShowConfetti(false), 3000);
     }
   }, [serviceStructure, contentDelivery, deliveryOptimization, isStepComplete]);
+
+  // Auto-progression logic for sub-steps
+  useEffect(() => {
+    const hasServiceStructure = Object.values(serviceStructure).every(value => value && value.trim().length > 0);
+    const hasContentDelivery = Object.values(contentDelivery).every(value => value && value.trim().length > 0);
+    const hasDeliveryOptimization = Object.values(deliveryOptimization).every(value => value && value.trim().length > 0);
+    
+    // Auto-progress to next sub-step when current one is complete
+    if (activeSubStep === 1 && hasServiceStructure) {
+      setTimeout(() => setActiveSubStep(2), 500);
+    } else if (activeSubStep === 2 && hasContentDelivery) {
+      setTimeout(() => setActiveSubStep(3), 500);
+    } else if (activeSubStep === 3 && hasDeliveryOptimization) {
+      setTimeout(() => setActiveSubStep(4), 500);
+    }
+  }, [serviceStructure, contentDelivery, deliveryOptimization, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

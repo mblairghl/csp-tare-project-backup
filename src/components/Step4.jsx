@@ -99,7 +99,7 @@ const Step4 = () => {
     }
   }, []);
 
-  // Check completion status
+  // Check completion status and auto-progression
   useEffect(() => {
     const magnetComplete = Object.values(leadMagnet).every(value => value && value.trim().length > 0);
     const nurtureComplete = Object.values(nurtureSequence).every(value => value && value.trim().length > 0);
@@ -116,6 +116,22 @@ const Step4 = () => {
       setTimeout(() => setShowConfetti(false), 3000);
     }
   }, [leadMagnet, nurtureSequence, funnelPages, isStepComplete]);
+
+  // Auto-progression logic for sub-steps
+  useEffect(() => {
+    const hasLeadMagnet = Object.values(leadMagnet).every(value => value && value.trim().length > 0);
+    const hasNurtureSequence = Object.values(nurtureSequence).every(value => value && value.trim().length > 0);
+    const hasFunnelPages = Object.values(funnelPages).every(value => value && value.trim().length > 0);
+    
+    // Auto-progress to next sub-step when current one is complete
+    if (activeSubStep === 1 && hasLeadMagnet) {
+      setTimeout(() => setActiveSubStep(2), 500);
+    } else if (activeSubStep === 2 && hasNurtureSequence) {
+      setTimeout(() => setActiveSubStep(3), 500);
+    } else if (activeSubStep === 3 && hasFunnelPages) {
+      setTimeout(() => setActiveSubStep(4), 500);
+    }
+  }, [leadMagnet, nurtureSequence, funnelPages, activeSubStep]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);

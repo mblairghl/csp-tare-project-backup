@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const StepFooter = ({ currentStep, showNextStep = true }) => {
+const StepFooter = ({ currentStep, isStepComplete = false }) => {
   const prevStep = currentStep - 1;
   const nextStep = currentStep + 1;
   
@@ -47,13 +47,24 @@ const StepFooter = ({ currentStep, showNextStep = true }) => {
           <span className="text-sm lg:text-base">{getPrevStepText()}</span>
         </Link>
         
-        {showNextStep && (
+        {/* Only show next step button when current step is complete */}
+        {isStepComplete && (
           <Link 
             to={getNextStepLink()}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 lg:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 text-center"
+            className="text-white px-4 lg:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 text-center"
+            style={{ backgroundColor: '#0e9246' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#0c7a3a'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#0e9246'}
           >
             <span className="text-sm lg:text-base">{getNextStepText()}</span>
           </Link>
+        )}
+        
+        {/* Show completion message when step is not complete */}
+        {!isStepComplete && (
+          <div className="px-4 lg:px-6 py-3 rounded-lg border-2 border-gray-300 bg-gray-50 text-gray-500 text-center">
+            <span className="text-sm lg:text-base">Complete all sub-steps to continue</span>
+          </div>
         )}
       </div>
       
