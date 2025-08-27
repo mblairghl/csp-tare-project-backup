@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, FileText, BarChart2, Lightbulb, Plus, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle2, FileText, BarChart2, Lightbulb, Plus, Sparkles, Search, Target } from 'lucide-react';
 import Confetti from 'react-confetti';
 import StepFooter from './StepFooter';
 import AIModal from './AIModal';
 import APIKeyModal from './APIKeyModal';
-import ContentBox from './ContentBox';
-import ContentAssetModal from './ContentAssetModal';
 import aiService from '../services/aiService';
 import storageOptimizer from '../utils/storageOptimizer';
 
 const Step2 = () => {
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [aiModalType, setAiModalType] = useState('placement');
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-  const [contentAssetModalOpen, setContentAssetModalOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({
@@ -22,19 +18,37 @@ const Step2 = () => {
     height: window.innerHeight
   });
 
+  // Tab management
+  const [activeSubStep, setActiveSubStep] = useState(1);
+
   // Step completion tracking
   const [isStepComplete, setIsStepComplete] = useState(false);
 
-  // Content data
-  const [contentAssets, setContentAssets] = useState([]);
-  const [funnelStages, setFunnelStages] = useState({
-    'Discover the Possibility': [],
-    'Evaluate the Options': [],
-    'Overcome the Obstacles': [],
-    'Take Action': []
+  // Content audit data
+  const [contentAudit, setContentAudit] = useState({
+    existingContent: '',
+    contentGaps: '',
+    strengths: '',
+    opportunities: ''
   });
+
+  // Content strategy data
+  const [contentStrategy, setContentStrategy] = useState({
+    contentPillars: '',
+    distributionChannels: '',
+    contentCalendar: '',
+    repurposingPlan: ''
+  });
+
+  // Gap analysis data
+  const [gapAnalysis, setGapAnalysis] = useState({
+    missingContent: '',
+    competitorAnalysis: '',
+    audienceNeeds: '',
+    actionPlan: ''
+  });
+
   const [aiResult, setAiResult] = useState(null);
-  const [selectedSuggestions, setSelectedSuggestions] = useState([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -50,25 +64,29 @@ const Step2 = () => {
 
   // Load saved data
   useEffect(() => {
-    const savedAssets = storageOptimizer.safeGet('step2_content_assets');
-    const savedStages = storageOptimizer.safeGet('step2_funnel_stages');
+    const savedAudit = storageOptimizer.safeGet('step2_content_audit');
+    const savedStrategy = storageOptimizer.safeGet('step2_content_strategy');
+    const savedGapAnalysis = storageOptimizer.safeGet('step2_gap_analysis');
     
-    if (savedAssets && Array.isArray(savedAssets)) {
-      setContentAssets(savedAssets);
+    if (savedAudit && typeof savedAudit === 'object') {
+      setContentAudit(savedAudit);
     }
-    
-    if (savedStages && typeof savedStages === 'object') {
-      setFunnelStages(savedStages);
+    if (savedStrategy && typeof savedStrategy === 'object') {
+      setContentStrategy(savedStrategy);
+    }
+    if (savedGapAnalysis && typeof savedGapAnalysis === 'object') {
+      setGapAnalysis(savedGapAnalysis);
     }
   }, []);
 
   // Check completion status
   useEffect(() => {
-    const hasContent = contentAssets.length >= 5;
-    const hasDistribution = Object.values(funnelStages).some(stage => stage.length > 0);
+    const auditComplete = Object.values(contentAudit).every(value => value && value.trim().length > 0);
+    const strategyComplete = Object.values(contentStrategy).every(value => value && value.trim().length > 0);
+    const gapComplete = Object.values(gapAnalysis).every(value => value && value.trim().length > 0);
     
     const wasComplete = isStepComplete;
-    const nowComplete = hasContent && hasDistribution;
+    const nowComplete = auditComplete && strategyComplete && gapComplete;
     
     setIsStepComplete(nowComplete);
     
@@ -77,103 +95,441 @@ const Step2 = () => {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
     }
-  }, [contentAssets, funnelStages, isStepComplete]);
+  }, [contentAudit, contentStrategy, gapAnalysis, isStepComplete]);
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
   };
 
-  // Content asset management
-  const handleAddContentAsset = (asset) => {
-    const newAsset = {
-      ...asset,
-      id: Date.now() + Math.random(),
-      dateAdded: new Date().toISOString()
-    };
-    
-    const updated = [...contentAssets, newAsset];
-    setContentAssets(updated);
-    storageOptimizer.safeSet('step2_content_assets', updated);
+  // Handle form changes
+  const handleAuditChange = (field, value) => {
+    const updated = { ...contentAudit, [field]: value };
+    setContentAudit(updated);
+    storageOptimizer.safeSet('step2_content_audit', updated);
   };
 
-  const handleDeleteContentAsset = (assetId) => {
-    const updated = contentAssets.filter(asset => asset.id !== assetId);
-    setContentAssets(updated);
-    storageOptimizer.safeSet('step2_content_assets', updated);
+  const handleStrategyChange = (field, value) => {
+    const updated = { ...contentStrategy, [field]: value };
+    setContentStrategy(updated);
+    storageOptimizer.safeSet('step2_content_strategy', updated);
   };
 
-  // AI content placement
-  const handleAIContentPlacement = async () => {
-    setAiModalType('placement');
+  const handleGapAnalysisChange = (field, value) => {
+    const updated = { ...gapAnalysis, [field]: value };
+    setGapAnalysis(updated);
+    storageOptimizer.safeSet('step2_gap_analysis', updated);
+  };
+
+  // AI content generation
+  const handleAIContentGeneration = async () => {
     setAiModalOpen(true);
     setAiLoading(true);
     
     try {
-      const result = await aiService.generateContentPlacement(contentAssets);
+      const result = await aiService.generateContentStrategy();
       setAiResult(result);
     } catch (error) {
-      console.error('Error generating content placement:', error);
+      console.error('Error generating content strategy:', error);
     } finally {
       setAiLoading(false);
     }
   };
 
-  // AI gap analysis
-  const handleAIGapAnalysis = async () => {
-    setAiModalType('gap');
-    setAiModalOpen(true);
-    setAiLoading(true);
-    
-    try {
-      const result = await aiService.generateGapAnalysis(funnelStages);
-      setAiResult(result);
-    } catch (error) {
-      console.error('Error generating gap analysis:', error);
-    } finally {
-      setAiLoading(false);
+  const handleUseAIContent = (content) => {
+    // Apply AI suggestions to current sub-step
+    if (activeSubStep === 1) {
+      setContentAudit(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step2_content_audit', { ...contentAudit, ...content });
+    } else if (activeSubStep === 2) {
+      setContentStrategy(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step2_content_strategy', { ...contentStrategy, ...content });
+    } else if (activeSubStep === 3) {
+      setGapAnalysis(prev => ({ ...prev, ...content }));
+      storageOptimizer.safeSet('step2_gap_analysis', { ...gapAnalysis, ...content });
     }
-  };
-
-  const handleAddSuggestion = (suggestion) => {
-    // Add to content assets
-    handleAddContentAsset({
-      title: suggestion.title,
-      type: suggestion.type,
-      description: suggestion.description,
-      stage: suggestion.stage
-    });
-    
-    // Track as selected
-    setSelectedSuggestions(prev => [...prev, suggestion.id]);
+    setAiModalOpen(false);
   };
 
   const howThisWorksContent = {
-    description: "Audit your existing content and strategically distribute it across your customer journey to maximize impact and identify gaps.",
+    description: "Audit your existing content, develop a strategic distribution plan, and identify gaps to maximize your authority-building efforts.",
     steps: [
-      { title: 'Content Audit', description: 'Catalog all your existing content assets including blogs, videos, podcasts, and social media posts.', color: 'bg-blue-600', textColor: '#2563eb' },
-      { title: 'Strategic Distribution', description: 'Map your content to the four stages of your customer journey for maximum impact.', color: 'bg-green-600', textColor: '#16a34a' },
-      { title: 'Gap Analysis', description: 'Identify content gaps and get AI-powered suggestions for new content to complete your strategy.', color: 'bg-purple-600', textColor: '#9333ea' }
+      { title: 'Content Audit', description: 'Analyze your existing content assets and identify what\'s working and what needs improvement.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
+      { title: 'Strategic Distribution', description: 'Plan how to distribute and repurpose your content across multiple channels for maximum reach.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
+      { title: 'Gap Analysis', description: 'Identify missing content opportunities and create an action plan to fill those gaps.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
     ]
   };
 
-  // Check section completion
-  const hasContent = contentAssets.length > 0;
-  const hasMinimumContent = contentAssets.length >= 5;
-  const hasDistribution = Object.values(funnelStages).some(stage => stage.length > 0);
+  // Check section completion for tab progression
+  const hasContentAudit = Object.values(contentAudit).every(value => value && value.trim().length > 0);
+  const hasContentStrategy = Object.values(contentStrategy).every(value => value && value.trim().length > 0);
+  const hasGapAnalysis = Object.values(gapAnalysis).every(value => value && value.trim().length > 0);
+
+  // Tab progression logic
+  const isSubStepUnlocked = (stepNumber) => {
+    switch (stepNumber) {
+      case 1: return true; // Always unlocked
+      case 2: return hasContentAudit; // Unlocked when audit complete
+      case 3: return hasContentAudit && hasContentStrategy; // Unlocked when first two complete
+      case 4: return hasContentAudit && hasContentStrategy && hasGapAnalysis; // Milestone - all complete
+      default: return false;
+    }
+  };
+
+  const subSteps = [
+    { id: 1, title: 'Content Audit', icon: Search },
+    { id: 2, title: 'Strategic Distribution', icon: BarChart2 },
+    { id: 3, title: 'Gap Analysis', icon: Target },
+    { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
+  ];
+
+  const renderSubStepContent = () => {
+    switch (activeSubStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Audit</h3>
+              <p className="text-gray-600 mb-6">
+                Analyze your existing content assets to understand what's working and identify areas for improvement.
+              </p>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Existing Content Inventory
+                  </label>
+                  <textarea
+                    value={contentAudit.existingContent}
+                    onChange={(e) => handleAuditChange('existingContent', e.target.value)}
+                    placeholder="List your current content assets: blog posts, videos, podcasts, social media content, lead magnets, etc."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content Strengths
+                  </label>
+                  <textarea
+                    value={contentAudit.strengths}
+                    onChange={(e) => handleAuditChange('strengths', e.target.value)}
+                    placeholder="What content performs best? What topics resonate with your audience? What formats work well?"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content Gaps & Weaknesses
+                  </label>
+                  <textarea
+                    value={contentAudit.contentGaps}
+                    onChange={(e) => handleAuditChange('contentGaps', e.target.value)}
+                    placeholder="What topics are missing? What formats could you explore? Where are the quality issues?"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Improvement Opportunities
+                  </label>
+                  <textarea
+                    value={contentAudit.opportunities}
+                    onChange={(e) => handleAuditChange('opportunities', e.target.value)}
+                    placeholder="How can you improve existing content? What repurposing opportunities exist? What new formats should you try?"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+              </div>
+
+              {hasContentAudit && (
+                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">Content Audit Complete!</span>
+                  </div>
+                  <p className="text-green-700 text-sm mt-1">
+                    Great! You can now move to strategic distribution planning.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Strategic Distribution</h3>
+              <p className="text-gray-600 mb-6">
+                Plan how to distribute and repurpose your content across multiple channels for maximum reach and impact.
+              </p>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content Pillars & Themes
+                  </label>
+                  <textarea
+                    value={contentStrategy.contentPillars}
+                    onChange={(e) => handleStrategyChange('contentPillars', e.target.value)}
+                    placeholder="Define 3-5 core content themes that align with your expertise and audience needs..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Distribution Channels
+                  </label>
+                  <textarea
+                    value={contentStrategy.distributionChannels}
+                    onChange={(e) => handleStrategyChange('distributionChannels', e.target.value)}
+                    placeholder="List your primary and secondary distribution channels: LinkedIn, YouTube, podcast, email newsletter, blog, etc."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content Calendar Strategy
+                  </label>
+                  <textarea
+                    value={contentStrategy.contentCalendar}
+                    onChange={(e) => handleStrategyChange('contentCalendar', e.target.value)}
+                    placeholder="Outline your content publishing schedule and frequency for each channel..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Repurposing Plan
+                  </label>
+                  <textarea
+                    value={contentStrategy.repurposingPlan}
+                    onChange={(e) => handleStrategyChange('repurposingPlan', e.target.value)}
+                    placeholder="How will you repurpose content across formats? (e.g., blog post → social posts → video → podcast episode)"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+              </div>
+
+              {hasContentStrategy && (
+                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">Strategic Distribution Complete!</span>
+                  </div>
+                  <p className="text-green-700 text-sm mt-1">
+                    Excellent! You can now move to gap analysis.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Gap Analysis</h3>
+              <p className="text-gray-600 mb-6">
+                Identify missing content opportunities and create an action plan to fill those gaps.
+              </p>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Missing Content Types
+                  </label>
+                  <textarea
+                    value={gapAnalysis.missingContent}
+                    onChange={(e) => handleGapAnalysisChange('missingContent', e.target.value)}
+                    placeholder="What content types are you missing? Case studies, tutorials, thought leadership pieces, etc."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Competitor Analysis
+                  </label>
+                  <textarea
+                    value={gapAnalysis.competitorAnalysis}
+                    onChange={(e) => handleGapAnalysisChange('competitorAnalysis', e.target.value)}
+                    placeholder="What content are your competitors creating that you're not? What opportunities do you see?"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Audience Needs Assessment
+                  </label>
+                  <textarea
+                    value={gapAnalysis.audienceNeeds}
+                    onChange={(e) => handleGapAnalysisChange('audienceNeeds', e.target.value)}
+                    placeholder="What questions is your audience asking that you haven't addressed? What problems need solutions?"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Action Plan
+                  </label>
+                  <textarea
+                    value={gapAnalysis.actionPlan}
+                    onChange={(e) => handleGapAnalysisChange('actionPlan', e.target.value)}
+                    placeholder="What specific content will you create to fill these gaps? Prioritize by impact and effort."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
+                </div>
+              </div>
+
+              {hasGapAnalysis && (
+                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">Gap Analysis Complete!</span>
+                  </div>
+                  <p className="text-green-700 text-sm mt-1">
+                    Perfect! Your content strategy is now complete. Check out the milestone reflection!
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* AI Enhancement Section */}
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+              <div className="flex items-center gap-3 mb-4">
+                <Sparkles className="w-6 h-6 text-[#d7df21]" />
+                <h3 className="text-xl font-semibold text-gray-900">AI Enhancement</h3>
+              </div>
+              
+              <p className="text-gray-600 mb-6">
+                Get AI-powered suggestions to enhance your content strategy and identify new opportunities.
+              </p>
+
+              <button
+                onClick={handleAIContentGeneration}
+                className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
+              >
+                <Sparkles className="w-4 h-4" />
+                🤖 Generate AI Content Strategy
+              </button>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            {showConfetti && (
+              <Confetti
+                width={windowDimensions.width}
+                height={windowDimensions.height}
+                recycle={false}
+                numberOfPieces={200}
+                gravity={0.3}
+              />
+            )}
+            
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="w-8 h-8 text-white" />
+                </div>
+                
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  🎉 Milestone Achieved!
+                </h2>
+                
+                <p className="text-lg text-gray-600 mb-8">
+                  Congratulations! You've completed your comprehensive content audit and strategy.
+                </p>
+
+                <div className="grid md:grid-cols-2 gap-8 text-left">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
+                    <ul className="space-y-3">
+                      <li className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Audited your existing content assets and identified strengths</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Developed a strategic distribution plan across channels</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Identified content gaps and opportunities</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Created an action plan to fill content gaps</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What This Means</h3>
+                    <ul className="space-y-3">
+                      <li className="flex items-start gap-3">
+                        <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Your content efforts will be more strategic and focused</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">You'll maximize reach through smart repurposing</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">You'll address all audience needs comprehensively</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Your authority-building will be systematic and effective</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
+                  <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
+                  <p className="text-gray-700">
+                    With a comprehensive content strategy in place, you now have a roadmap for creating and distributing content that builds authority, engages your audience, and drives business results. Your content efforts will be strategic rather than random.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto p-6">
-        {showConfetti && (
-          <Confetti
-            width={windowDimensions.width}
-            height={windowDimensions.height}
-            recycle={false}
-            numberOfPieces={200}
-            gravity={0.3}
-          />
-        )}
-
         {/* Component 1: Step Progress Indicator */}
         <div className="text-sm text-gray-500 mb-2">
           STEP 2 OF 9
@@ -186,46 +542,46 @@ const Step2 = () => {
 
         {/* Component 3: Step Objective */}
         <p className="text-base lg:text-lg text-gray-600 mb-6">
-          Audit your existing content and strategically distribute it across your customer journey to maximize impact and identify gaps.
+          Audit your existing content, develop a strategic distribution plan, and identify gaps to maximize your authority-building efforts.
         </p>
 
         {/* Step Completion Indicator */}
         {isStepComplete && (
-          <div className="flex items-center gap-2 text-green-600 font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
+          <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
             <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
             <div>
-              <p className="font-semibold">🎉 Step 2 Complete! Your content strategy is mapped and optimized.</p>
+              <p className="font-semibold">🎉 Step 2 Complete! Your content strategy is defined.</p>
               <p className="text-sm text-green-700 mt-1">
-                You have {contentAssets.length} content assets strategically distributed across your customer journey.
+                You now have a comprehensive plan for creating and distributing authority-building content.
               </p>
             </div>
           </div>
         )}
 
         {/* Component 4: How This Works Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div className={`rounded-lg shadow-sm border border-gray-200 mb-6 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
             className="w-full px-6 py-4 flex items-center justify-between text-left"
           >
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#0e9246] rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-bold">?</span>
               </div>
               <span className="text-lg font-semibold text-gray-900">How This Works</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-green-600 font-medium">Expand</span>
+              <span className="text-sm text-[#0e9246] font-medium">Expand</span>
               {isHowThisWorksOpen ? (
-                <ChevronUp className="w-5 h-5 text-green-600" />
+                <ChevronUp className="w-5 h-5 text-[#0e9246]" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-green-600" />
+                <ChevronDown className="w-5 h-5 text-[#0e9246]" />
               )}
             </div>
           </button>
           
           {isHowThisWorksOpen && (
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-6 bg-white border-t border-[#0e9246]">
               <p className="text-gray-600 mb-6">{howThisWorksContent.description}</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {howThisWorksContent.steps.map((step, index) => (
@@ -244,247 +600,78 @@ const Step2 = () => {
           )}
         </div>
 
-        {/* All Sections in Vertical Layout */}
-        <div className="space-y-8">
-          
-          {/* Section 1: Content Audit */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              {hasContent ? (
-                <CheckCircle2 className="w-6 h-6 text-green-500" />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">1</span>
-                </div>
-              )}
-              <h3 className="text-xl font-semibold text-gray-900">Content Audit</h3>
-            </div>
-            
-            <p className="text-gray-600 mb-6">
-              Catalog all your existing content assets to understand what you have to work with.
-            </p>
+        {/* Sub-step Navigation */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+          <div className="flex flex-wrap">
+            {subSteps.map((step, index) => {
+              const isUnlocked = isSubStepUnlocked(step.id);
+              const isActive = activeSubStep === step.id;
+              const isCompleted = step.id < 4 ? (
+                step.id === 1 ? hasContentAudit :
+                step.id === 2 ? hasContentStrategy :
+                step.id === 3 ? hasGapAnalysis : false
+              ) : isStepComplete;
 
-            <div className="space-y-6">
-              <div className="flex gap-4">
+              return (
                 <button
-                  onClick={() => setContentAssetModalOpen(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+                  key={step.id}
+                  onClick={() => isUnlocked && setActiveSubStep(step.id)}
+                  disabled={!isUnlocked}
+                  className={`flex-1 min-w-0 px-4 py-4 text-center border-b-2 transition-colors duration-200 ${
+                    isActive
+                      ? 'border-[#fbae42] bg-orange-50'
+                      : isUnlocked
+                      ? 'border-transparent hover:border-gray-300 hover:bg-gray-50'
+                      : 'border-transparent bg-gray-50'
+                  } ${
+                    !isUnlocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                  }`}
                 >
-                  <Plus className="w-4 h-4" />
-                  Add Content Asset
-                </button>
-              </div>
-
-              {/* Current Content Assets */}
-              {contentAssets.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-4">Your Content Library ({contentAssets.length})</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {contentAssets.map((asset) => (
-                      <ContentBox
-                        key={asset.id}
-                        title={asset.title}
-                        type={asset.type}
-                        description={asset.description}
-                        onDelete={() => handleDeleteContentAsset(asset.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {contentAssets.length === 0 && (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">No Content Assets Added</h4>
-                  <p className="text-gray-600 mb-6">Start by adding your existing content like blog posts, videos, podcasts, and social media content.</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Section 2: Strategic Distribution */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              {hasDistribution ? (
-                <CheckCircle2 className="w-6 h-6 text-green-500" />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">2</span>
-                </div>
-              )}
-              <h3 className="text-xl font-semibold text-gray-900">Strategic Distribution</h3>
-            </div>
-            
-            <p className="text-gray-600 mb-6">
-              Map your content to the four stages of your customer journey for maximum impact.
-            </p>
-
-            {hasMinimumContent ? (
-              <div className="space-y-6">
-                <button
-                  onClick={handleAIContentPlacement}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  AI Content Placement
-                </button>
-
-                {/* Funnel Stages Display */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {Object.entries(funnelStages).map(([stage, assets]) => (
-                    <div key={stage} className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 mb-2">{stage}</h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        {assets.length} content asset{assets.length !== 1 ? 's' : ''}
-                      </p>
-                      {assets.length > 0 ? (
-                        <div className="space-y-2">
-                          {assets.map((asset, index) => (
-                            <div key={index} className="text-xs bg-gray-50 p-2 rounded">
-                              {asset.title}
-                            </div>
-                          ))}
-                        </div>
+                  <div className="flex flex-col items-center space-y-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      isCompleted
+                        ? 'bg-[#0e9246] text-white'
+                        : isActive
+                        ? 'bg-[#fbae42] text-white'
+                        : isUnlocked
+                        ? 'bg-gray-200 text-gray-600'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-4 h-4" />
                       ) : (
-                        <div className="text-xs text-gray-400 italic">
-                          No content assigned
-                        </div>
+                        <span className="text-sm font-bold">{step.id}</span>
                       )}
                     </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <BarChart2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">Add More Content First</h4>
-                <p className="text-gray-600 mb-6">You need at least 5 content assets to enable strategic distribution. You currently have {contentAssets.length}.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Section 3: Gap Analysis */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              {isStepComplete ? (
-                <CheckCircle2 className="w-6 h-6 text-green-500" />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">3</span>
-                </div>
-              )}
-              <h3 className="text-xl font-semibold text-gray-900">Gap Analysis</h3>
-            </div>
-            
-            <p className="text-gray-600 mb-6">
-              Identify content gaps and get AI-powered suggestions for new content to complete your strategy.
-            </p>
-
-            {hasDistribution ? (
-              <div className="space-y-6">
-                <button
-                  onClick={handleAIGapAnalysis}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2"
-                >
-                  <Lightbulb className="w-4 h-4" />
-                  AI Gap Analysis
-                </button>
-
-                {isStepComplete && (
-                  <div className="space-y-4">
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                      <h4 className="font-semibold text-purple-800 mb-2">Content Strategy Complete</h4>
-                      <ul className="text-purple-700 space-y-2">
-                        <li className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-purple-600" />
-                          Content audit completed with {contentAssets.length} assets
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-purple-600" />
-                          Strategic distribution across customer journey
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-purple-600" />
-                          Gap analysis identifies optimization opportunities
-                        </li>
-                      </ul>
-                    </div>
-                    
-                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                      <h4 className="font-semibold text-yellow-800 mb-2">Next Steps</h4>
-                      <p className="text-yellow-700 text-sm">
-                        Use your content strategy in Step 3 to identify the best lead sources and distribution channels for your content.
-                      </p>
-                    </div>
+                    <span className={`text-sm font-medium ${
+                      isActive
+                        ? 'text-[#fbae42]'
+                        : isUnlocked
+                        ? 'text-gray-700'
+                        : 'text-gray-400'
+                    }`}>
+                      {step.title}
+                    </span>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Lightbulb className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">Complete Content Distribution First</h4>
-                <p className="text-gray-600 mb-6">Map your content to customer journey stages to unlock gap analysis.</p>
-              </div>
-            )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <StepFooter 
-          currentStep={2} 
-          totalSteps={9} 
-          showNextStep={isStepComplete}
-        />
+        {/* Sub-step Content */}
+        <div className="mb-8">
+          {renderSubStepContent()}
+        </div>
 
         {/* AI Modal */}
         <AIModal
           isOpen={aiModalOpen}
           onClose={() => setAiModalOpen(false)}
-          title={aiModalType === 'placement' ? 'AI Content Placement' : 'AI Gap Analysis'}
-          loading={aiLoading}
-          selectedCount={selectedSuggestions.length}
-        >
-          {aiResult && (
-            <div>
-              <p className="text-gray-600 mb-6">
-                {aiModalType === 'placement' 
-                  ? 'AI has analyzed your content and suggests the following distribution strategy:'
-                  : 'AI has identified gaps in your content strategy and suggests these additions:'
-                }
-              </p>
-              <div className="space-y-4">
-                {aiResult.suggestions?.map((suggestion, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-2">{suggestion.title}</h4>
-                        <p className="text-sm text-gray-600 mb-2">{suggestion.description}</p>
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                          {suggestion.stage}
-                        </span>
-                      </div>
-                      {aiModalType === 'gap' && (
-                        <button
-                          onClick={() => handleAddSuggestion(suggestion)}
-                          className="ml-4 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                          disabled={selectedSuggestions.includes(suggestion.id)}
-                        >
-                          {selectedSuggestions.includes(suggestion.id) ? 'Added' : 'Add'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </AIModal>
-
-        {/* Content Asset Modal */}
-        <ContentAssetModal
-          isOpen={contentAssetModalOpen}
-          onClose={() => setContentAssetModalOpen(false)}
-          onSave={handleAddContentAsset}
+          title="AI Content Strategy"
+          content={aiResult}
+          isLoading={aiLoading}
+          onUseContent={handleUseAIContent}
         />
 
         {/* API Key Modal */}
@@ -492,6 +679,14 @@ const Step2 = () => {
           isOpen={apiKeyModalOpen}
           onClose={() => setApiKeyModalOpen(false)}
           onSave={handleSaveApiKey}
+        />
+
+        {/* Footer */}
+        <StepFooter 
+          currentStep={2}
+          isStepComplete={isStepComplete}
+          onPrevious={() => {}}
+          onNext={() => {}}
         />
       </div>
     </div>
