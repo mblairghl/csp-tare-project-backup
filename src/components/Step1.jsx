@@ -813,28 +813,6 @@ const Step1 = () => {
                         )}
                       </div>
                     ))}
-
-                    {/* Add More Personas Option */}
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <h4 className="font-semibold text-gray-700 mb-2">Want to add more personas?</h4>
-                      <p className="text-gray-600 text-sm mb-4">You can add additional personas to create a more comprehensive client profile.</p>
-                      <div className="flex gap-4 justify-center">
-                        <button
-                          onClick={() => openManualModal('Demographics')}
-                          className="px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add Manual Entry
-                        </button>
-                        <button
-                          onClick={() => openAiSuggestionsModal('Demographics')}
-                          className="px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                        >
-                          <Sparkles className="w-4 h-4" />
-                          🤖 Get AI Research
-                        </button>
-                      </div>
-                    </div>
                   </>
                 ) : (
                   <div className="text-center py-12">
@@ -1193,13 +1171,6 @@ const Step1 = () => {
               </div>
               
               <div className="p-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <h4 className="font-semibold text-blue-900 mb-2">🔬 Research Foundation</h4>
-                  <p className="text-blue-800 text-sm">
-                    These personas are generated using digital anthropology and AI data strategy, analyzing behavioral insights from X/Twitter, Reddit, Quora, Amazon reviews, and industry forums. Each persona includes platform preferences, buying triggers, and unmet needs based on recent data patterns.
-                  </p>
-                </div>
-                
                 <div className="space-y-6">
                   {aiSuggestions.map((suggestion) => (
                     <div key={suggestion.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
@@ -1275,15 +1246,6 @@ const Step1 = () => {
                     </div>
                   )}
                 </div>
-                
-                {aiSuggestions.length > 0 && (
-                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-semibold text-yellow-900 mb-2">💡 Customer Empathy Insight</h4>
-                    <p className="text-yellow-800 text-sm">
-                      <strong>Act as your ideal customer:</strong> What are the frustrations, dreams, or "I wish someone would just..." statements they'd have related to your business? Each persona above includes 5 unmet needs or desires you could build solutions for.
-                    </p>
-                  </div>
-                )}
                 
                 {/* Requirement Notice */}
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
