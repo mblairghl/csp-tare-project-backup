@@ -1003,6 +1003,8 @@ const Step9 = () => {
                     }`}>
                       {isCompleted || (isActive && step.id === 4) ? (
                         step.id === 4 ? <Trophy className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />
+                      ) : !isUnlocked ? (
+                        <span className="text-sm">🔒</span>
                       ) : (
                         <span className="text-sm font-bold">{step.id}</span>
                       )}

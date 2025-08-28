@@ -805,6 +805,8 @@ const Step1 = () => {
                     }`}>
                       {isCompleted ? (
                         <CheckCircle2 className="w-4 h-4" />
+                      ) : !isUnlocked ? (
+                        <span className="text-sm">🔒</span>
                       ) : (
                         <span className="text-sm font-bold">{step.id}</span>
                       )}

@@ -808,6 +808,15 @@ const Step3 = () => {
             {subSteps.map((step, index) => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
+              
+              // Define completion status for each sub-step
+              const hasCurrentSources = currentSources.length > 0 || 
+                                       addedLeadItems.some(item => item.type === 'Current Sources');
+              const hasExpansionOpportunities = expansionOpportunities.length > 0 || 
+                                               addedLeadItems.some(item => item.type === 'Expansion Opportunities');
+              const hasCSPSetup = Object.values(cspSetup).every(value => value && value.trim().length > 0) ||
+                                 addedLeadItems.some(item => item.type === 'CSP Setup');
+              
               const isCompleted = step.id < 4 ? (
                 step.id === 1 ? hasCurrentSources :
                 step.id === 2 ? hasExpansionOpportunities :
@@ -841,6 +850,8 @@ const Step3 = () => {
                     }`}>
                       {isCompleted ? (
                         <CheckCircle2 className="w-4 h-4" />
+                      ) : !isUnlocked ? (
+                        <span className="text-sm">🔒</span>
                       ) : (
                         <span className="text-sm font-bold">{step.id}</span>
                       )}
