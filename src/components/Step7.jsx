@@ -117,8 +117,8 @@ const Step7 = () => {
     }
   }, [kpiPlanning, dashboardLayout, reportingSchedule, isStepComplete]);
 
-  // Auto-progression logic for sub-steps
-  useEffect(() => {
+  // Auto-progression logic for sub-steps - ONLY on user actions
+  const triggerAutoProgression = () => {
     const hasKpiPlanning = Object.values(kpiPlanning).every(value => value && value.trim().length > 0) ||
                           addedTrackingItems.some(item => item.type === 'KPIs Planning');
     const hasDashboardLayout = Object.values(dashboardLayout).every(value => value && value.trim().length > 0) ||
@@ -126,15 +126,25 @@ const Step7 = () => {
     const hasReportingSchedule = Object.values(reportingSchedule).every(value => value && value.trim().length > 0) ||
                                 addedTrackingItems.some(item => item.type === 'Reporting Schedule');
     
+    console.log('Step 7 Auto-progression Trigger:', {
+      activeSubStep,
+      hasKpiPlanning,
+      hasDashboardLayout,
+      hasReportingSchedule
+    });
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasKpiPlanning) {
+      console.log('Auto-progressing from KPIs Planning to Dashboard Layout');
       setTimeout(() => setActiveSubStep(2), 500);
     } else if (activeSubStep === 2 && hasDashboardLayout) {
+      console.log('Auto-progressing from Dashboard Layout to Reporting Schedule');
       setTimeout(() => setActiveSubStep(3), 500);
     } else if (activeSubStep === 3 && hasReportingSchedule) {
+      console.log('Auto-progressing from Reporting Schedule to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [kpiPlanning, dashboardLayout, reportingSchedule, addedTrackingItems, activeSubStep]);
+  };
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
@@ -145,18 +155,27 @@ const Step7 = () => {
     const updated = { ...kpiPlanning, [field]: value };
     setKpiPlanning(updated);
     storageOptimizer.safeSet('step7_kpi_planning', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleDashboardChange = (field, value) => {
     const updated = { ...dashboardLayout, [field]: value };
     setDashboardLayout(updated);
     storageOptimizer.safeSet('step7_dashboard_layout', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleReportingChange = (field, value) => {
     const updated = { ...reportingSchedule, [field]: value };
     setReportingSchedule(updated);
     storageOptimizer.safeSet('step7_reporting_schedule', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Manual entry functions
@@ -186,6 +205,9 @@ const Step7 = () => {
       setAddedTrackingItems(updated);
       storageOptimizer.safeSet('step7_added_tracking_items', updated);
       setManualModalOpen(false);
+      
+      // Trigger auto-progression check after adding manual entry
+      setTimeout(() => triggerAutoProgression(), 100);
     }
   };
 
@@ -243,6 +265,9 @@ const Step7 = () => {
     
     // Remove suggestion from list
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    
+    // Trigger auto-progression check after adding AI suggestion
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Edit/Delete functions

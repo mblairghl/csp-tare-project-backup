@@ -119,8 +119,8 @@ const Step2 = () => {
     }
   }, [contentAudit, contentStrategy, gapAnalysis, isStepComplete]);
 
-  // Auto-progression logic for sub-steps
-  useEffect(() => {
+  // Auto-progression logic for sub-steps - ONLY on user actions
+  const triggerAutoProgression = () => {
     const hasContentAudit = Object.values(contentAudit).every(value => value && value.trim().length > 0) ||
                            addedContentItems.some(item => item.type === 'Content Audit');
     const hasGapAnalysis = Object.values(gapAnalysis).every(value => value && value.trim().length > 0) ||
@@ -128,15 +128,25 @@ const Step2 = () => {
     const hasContentStrategy = Object.values(contentStrategy).every(value => value && value.trim().length > 0) ||
                               addedContentItems.some(item => item.type === 'Content Strategy');
     
+    console.log('Step 2 Auto-progression Trigger:', {
+      activeSubStep,
+      hasContentAudit,
+      hasGapAnalysis,
+      hasContentStrategy
+    });
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasContentAudit) {
+      console.log('Auto-progressing from Content Audit to Gap Analysis');
       setTimeout(() => setActiveSubStep(2), 500);
     } else if (activeSubStep === 2 && hasGapAnalysis) {
+      console.log('Auto-progressing from Gap Analysis to Content Strategy');
       setTimeout(() => setActiveSubStep(3), 500);
     } else if (activeSubStep === 3 && hasContentStrategy) {
+      console.log('Auto-progressing from Content Strategy to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [contentAudit, gapAnalysis, contentStrategy, addedContentItems, activeSubStep]);
+  };
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
@@ -147,18 +157,27 @@ const Step2 = () => {
     const updated = { ...contentAudit, [field]: value };
     setContentAudit(updated);
     storageOptimizer.safeSet('step2_content_audit', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleStrategyChange = (field, value) => {
     const updated = { ...contentStrategy, [field]: value };
     setContentStrategy(updated);
     storageOptimizer.safeSet('step2_content_strategy', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleGapChange = (field, value) => {
     const updated = { ...gapAnalysis, [field]: value };
     setGapAnalysis(updated);
     storageOptimizer.safeSet('step2_gap_analysis', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Manual entry functions
@@ -188,6 +207,9 @@ const Step2 = () => {
       setAddedContentItems(updated);
       storageOptimizer.safeSet('step2_added_content_items', updated);
       setManualModalOpen(false);
+      
+      // Trigger auto-progression check after adding manual entry
+      setTimeout(() => triggerAutoProgression(), 100);
     }
   };
 
@@ -245,6 +267,9 @@ const Step2 = () => {
     
     // Remove suggestion from list
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    
+    // Trigger auto-progression check after adding AI suggestion
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Edit/Delete functions

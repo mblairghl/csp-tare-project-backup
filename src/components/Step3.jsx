@@ -105,8 +105,8 @@ const Step3 = () => {
     }
   }, [currentSources, expansionOpportunities, cspSetup, isStepComplete]);
 
-  // Auto-progression logic for sub-steps
-  useEffect(() => {
+  // Auto-progression logic for sub-steps - ONLY on user actions
+  const triggerAutoProgression = () => {
     const hasCurrentSources = currentSources.length > 0 || 
                              addedLeadItems.some(item => item.type === 'Current Sources');
     const hasExpansionOpportunities = expansionOpportunities.length > 0 || 
@@ -114,15 +114,25 @@ const Step3 = () => {
     const hasSetupComplete = Object.values(cspSetup).every(value => value && value.trim().length > 0) ||
                             addedLeadItems.some(item => item.type === 'CSP Setup');
     
+    console.log('Step 3 Auto-progression Trigger:', {
+      activeSubStep,
+      hasCurrentSources,
+      hasExpansionOpportunities,
+      hasSetupComplete
+    });
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasCurrentSources) {
+      console.log('Auto-progressing from Current Sources to Expansion Opportunities');
       setTimeout(() => setActiveSubStep(2), 500);
     } else if (activeSubStep === 2 && hasExpansionOpportunities) {
+      console.log('Auto-progressing from Expansion Opportunities to CSP Setup');
       setTimeout(() => setActiveSubStep(3), 500);
     } else if (activeSubStep === 3 && hasSetupComplete) {
+      console.log('Auto-progressing from CSP Setup to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [currentSources, expansionOpportunities, cspSetup, addedLeadItems, activeSubStep]);
+  };
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
@@ -133,6 +143,9 @@ const Step3 = () => {
     const updated = { ...cspSetup, [field]: value };
     setCspSetup(updated);
     storageOptimizer.safeSet('step3_csp_setup', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Manual entry functions
@@ -174,6 +187,9 @@ const Step3 = () => {
       }
       
       setManualModalOpen(false);
+      
+      // Trigger auto-progression check after adding manual entry
+      setTimeout(() => triggerAutoProgression(), 100);
     }
   };
 
@@ -242,6 +258,9 @@ const Step3 = () => {
     
     // Remove suggestion from list
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    
+    // Trigger auto-progression check after adding AI suggestion
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Edit/Delete functions

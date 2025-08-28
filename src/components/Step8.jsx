@@ -117,8 +117,8 @@ const Step8 = () => {
     }
   }, [abTestingStrategy, conversionTracking, optimizationPlan, isStepComplete]);
 
-  // Auto-progression logic for sub-steps
-  useEffect(() => {
+  // Auto-progression logic for sub-steps - ONLY on user actions
+  const triggerAutoProgression = () => {
     const hasAbTestingStrategy = Object.values(abTestingStrategy).every(value => value && value.trim().length > 0) ||
                                 addedOptimizationItems.some(item => item.type === 'A/B Testing Strategy');
     const hasConversionTracking = Object.values(conversionTracking).every(value => value && value.trim().length > 0) ||
@@ -126,15 +126,25 @@ const Step8 = () => {
     const hasOptimizationPlan = Object.values(optimizationPlan).every(value => value && value.trim().length > 0) ||
                                addedOptimizationItems.some(item => item.type === 'Optimization Action Plan');
     
+    console.log('Step 8 Auto-progression Trigger:', {
+      activeSubStep,
+      hasAbTestingStrategy,
+      hasConversionTracking,
+      hasOptimizationPlan
+    });
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasAbTestingStrategy) {
+      console.log('Auto-progressing from A/B Testing Strategy to Conversion Tracking Setup');
       setTimeout(() => setActiveSubStep(2), 500);
     } else if (activeSubStep === 2 && hasConversionTracking) {
+      console.log('Auto-progressing from Conversion Tracking Setup to Optimization Action Plan');
       setTimeout(() => setActiveSubStep(3), 500);
     } else if (activeSubStep === 3 && hasOptimizationPlan) {
+      console.log('Auto-progressing from Optimization Action Plan to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [abTestingStrategy, conversionTracking, optimizationPlan, addedOptimizationItems, activeSubStep]);
+  };
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
@@ -145,18 +155,27 @@ const Step8 = () => {
     const updated = { ...abTestingStrategy, [field]: value };
     setAbTestingStrategy(updated);
     storageOptimizer.safeSet('step8_ab_testing_strategy', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
-  const handleTrackingChange = (field, value) => {
+  const handleConversionChange = (field, value) => {
     const updated = { ...conversionTracking, [field]: value };
     setConversionTracking(updated);
     storageOptimizer.safeSet('step8_conversion_tracking', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleOptimizationChange = (field, value) => {
     const updated = { ...optimizationPlan, [field]: value };
     setOptimizationPlan(updated);
     storageOptimizer.safeSet('step8_optimization_plan', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Manual entry functions
@@ -186,6 +205,9 @@ const Step8 = () => {
       setAddedOptimizationItems(updated);
       storageOptimizer.safeSet('step8_added_optimization_items', updated);
       setManualModalOpen(false);
+      
+      // Trigger auto-progression check after adding manual entry
+      setTimeout(() => triggerAutoProgression(), 100);
     }
   };
 
@@ -243,6 +265,9 @@ const Step8 = () => {
     
     // Remove suggestion from list
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    
+    // Trigger auto-progression check after adding AI suggestion
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Edit/Delete functions

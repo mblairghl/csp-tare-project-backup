@@ -119,8 +119,8 @@ const Step9 = () => {
     }
   }, [authorityEstablishment, legacyBuilding, continuousGrowth, isStepComplete]);
 
-  // Auto-progression logic for sub-steps
-  useEffect(() => {
+  // Auto-progression logic for sub-steps - ONLY on user actions
+  const triggerAutoProgression = () => {
     const hasAuthorityEstablishment = Object.values(authorityEstablishment).every(value => value && value.trim().length > 0) ||
                                      addedAuthorityItems.some(item => item.type === 'Authority Establishment');
     const hasLegacyBuilding = Object.values(legacyBuilding).every(value => value && value.trim().length > 0) ||
@@ -128,15 +128,25 @@ const Step9 = () => {
     const hasContinuousGrowth = Object.values(continuousGrowth).every(value => value && value.trim().length > 0) ||
                                addedAuthorityItems.some(item => item.type === 'Continuous Growth');
     
+    console.log('Step 9 Auto-progression Trigger:', {
+      activeSubStep,
+      hasAuthorityEstablishment,
+      hasLegacyBuilding,
+      hasContinuousGrowth
+    });
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasAuthorityEstablishment) {
+      console.log('Auto-progressing from Authority Establishment to Legacy Building');
       setTimeout(() => setActiveSubStep(2), 500);
     } else if (activeSubStep === 2 && hasLegacyBuilding) {
+      console.log('Auto-progressing from Legacy Building to Continuous Growth');
       setTimeout(() => setActiveSubStep(3), 500);
     } else if (activeSubStep === 3 && hasContinuousGrowth) {
+      console.log('Auto-progressing from Continuous Growth to Final Celebration');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [authorityEstablishment, legacyBuilding, continuousGrowth, addedAuthorityItems, activeSubStep]);
+  };
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
@@ -147,18 +157,27 @@ const Step9 = () => {
     const updated = { ...authorityEstablishment, [field]: value };
     setAuthorityEstablishment(updated);
     storageOptimizer.safeSet('step9_authority_establishment', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleLegacyChange = (field, value) => {
     const updated = { ...legacyBuilding, [field]: value };
     setLegacyBuilding(updated);
     storageOptimizer.safeSet('step9_legacy_building', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleGrowthChange = (field, value) => {
     const updated = { ...continuousGrowth, [field]: value };
     setContinuousGrowth(updated);
     storageOptimizer.safeSet('step9_continuous_growth', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Manual entry functions
@@ -188,6 +207,9 @@ const Step9 = () => {
       setAddedAuthorityItems(updated);
       storageOptimizer.safeSet('step9_added_authority_items', updated);
       setManualModalOpen(false);
+      
+      // Trigger auto-progression check after adding manual entry
+      setTimeout(() => triggerAutoProgression(), 100);
     }
   };
 
@@ -245,6 +267,9 @@ const Step9 = () => {
     
     // Remove suggestion from list
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    
+    // Trigger auto-progression check after adding AI suggestion
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Edit/Delete functions

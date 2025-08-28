@@ -117,8 +117,8 @@ const Step6 = () => {
     }
   }, [serviceStructure, contentDelivery, deliveryOptimization, isStepComplete]);
 
-  // Auto-progression logic for sub-steps
-  useEffect(() => {
+  // Auto-progression logic for sub-steps - ONLY on user actions
+  const triggerAutoProgression = () => {
     const hasServiceStructure = Object.values(serviceStructure).every(value => value && value.trim().length > 0) ||
                                addedRevenueItems.some(item => item.type === 'Service Structure');
     const hasContentDelivery = Object.values(contentDelivery).every(value => value && value.trim().length > 0) ||
@@ -126,15 +126,25 @@ const Step6 = () => {
     const hasDeliveryOptimization = Object.values(deliveryOptimization).every(value => value && value.trim().length > 0) ||
                                    addedRevenueItems.some(item => item.type === 'Delivery Optimization');
     
+    console.log('Step 6 Auto-progression Trigger:', {
+      activeSubStep,
+      hasServiceStructure,
+      hasContentDelivery,
+      hasDeliveryOptimization
+    });
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasServiceStructure) {
+      console.log('Auto-progressing from Service Structure to Content Delivery');
       setTimeout(() => setActiveSubStep(2), 500);
     } else if (activeSubStep === 2 && hasContentDelivery) {
+      console.log('Auto-progressing from Content Delivery to Delivery Optimization');
       setTimeout(() => setActiveSubStep(3), 500);
     } else if (activeSubStep === 3 && hasDeliveryOptimization) {
+      console.log('Auto-progressing from Delivery Optimization to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [serviceStructure, contentDelivery, deliveryOptimization, addedRevenueItems, activeSubStep]);
+  };
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
@@ -145,18 +155,27 @@ const Step6 = () => {
     const updated = { ...serviceStructure, [field]: value };
     setServiceStructure(updated);
     storageOptimizer.safeSet('step6_service_structure', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleContentChange = (field, value) => {
     const updated = { ...contentDelivery, [field]: value };
     setContentDelivery(updated);
     storageOptimizer.safeSet('step6_content_delivery', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleOptimizationChange = (field, value) => {
     const updated = { ...deliveryOptimization, [field]: value };
     setDeliveryOptimization(updated);
     storageOptimizer.safeSet('step6_delivery_optimization', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Manual entry functions
@@ -186,6 +205,9 @@ const Step6 = () => {
       setAddedRevenueItems(updated);
       storageOptimizer.safeSet('step6_added_revenue_items', updated);
       setManualModalOpen(false);
+      
+      // Trigger auto-progression check after adding manual entry
+      setTimeout(() => triggerAutoProgression(), 100);
     }
   };
 
@@ -243,6 +265,9 @@ const Step6 = () => {
     
     // Remove suggestion from list
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    
+    // Trigger auto-progression check after adding AI suggestion
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Edit/Delete functions

@@ -117,8 +117,8 @@ const Step4 = () => {
     }
   }, [leadMagnet, nurtureSequence, funnelPages, isStepComplete]);
 
-  // Auto-progression logic for sub-steps
-  useEffect(() => {
+  // Auto-progression logic for sub-steps - ONLY on user actions
+  const triggerAutoProgression = () => {
     const hasLeadMagnet = Object.values(leadMagnet).every(value => value && value.trim().length > 0) ||
                          addedFunnelItems.some(item => item.type === 'Lead Magnet Strategy');
     const hasNurtureSequence = Object.values(nurtureSequence).every(value => value && value.trim().length > 0) ||
@@ -126,15 +126,25 @@ const Step4 = () => {
     const hasFunnelPages = Object.values(funnelPages).every(value => value && value.trim().length > 0) ||
                           addedFunnelItems.some(item => item.type === 'Funnel Pages');
     
+    console.log('Step 4 Auto-progression Trigger:', {
+      activeSubStep,
+      hasLeadMagnet,
+      hasNurtureSequence,
+      hasFunnelPages
+    });
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasLeadMagnet) {
+      console.log('Auto-progressing from Lead Magnet to Nurture Sequence');
       setTimeout(() => setActiveSubStep(2), 500);
     } else if (activeSubStep === 2 && hasNurtureSequence) {
+      console.log('Auto-progressing from Nurture Sequence to Funnel Pages');
       setTimeout(() => setActiveSubStep(3), 500);
     } else if (activeSubStep === 3 && hasFunnelPages) {
+      console.log('Auto-progressing from Funnel Pages to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [leadMagnet, nurtureSequence, funnelPages, addedFunnelItems, activeSubStep]);
+  };
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
@@ -145,18 +155,27 @@ const Step4 = () => {
     const updated = { ...leadMagnet, [field]: value };
     setLeadMagnet(updated);
     storageOptimizer.safeSet('step4_lead_magnet', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleNurtureChange = (field, value) => {
     const updated = { ...nurtureSequence, [field]: value };
     setNurtureSequence(updated);
     storageOptimizer.safeSet('step4_nurture_sequence', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handlePagesChange = (field, value) => {
     const updated = { ...funnelPages, [field]: value };
     setFunnelPages(updated);
     storageOptimizer.safeSet('step4_funnel_pages', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Manual entry functions
@@ -186,6 +205,9 @@ const Step4 = () => {
       setAddedFunnelItems(updated);
       storageOptimizer.safeSet('step4_added_funnel_items', updated);
       setManualModalOpen(false);
+      
+      // Trigger auto-progression check after adding manual entry
+      setTimeout(() => triggerAutoProgression(), 100);
     }
   };
 
@@ -243,6 +265,9 @@ const Step4 = () => {
     
     // Remove suggestion from list
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    
+    // Trigger auto-progression check after adding AI suggestion
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Edit/Delete functions

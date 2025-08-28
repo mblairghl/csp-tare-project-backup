@@ -117,8 +117,8 @@ const Step5 = () => {
     }
   }, [discoveryProcess, automationSetup, integrationPlan, isStepComplete]);
 
-  // Auto-progression logic for sub-steps
-  useEffect(() => {
+  // Auto-progression logic for sub-steps - ONLY on user actions
+  const triggerAutoProgression = () => {
     const hasDiscoveryProcess = Object.values(discoveryProcess).every(value => value && value.trim().length > 0) ||
                                addedPipelineItems.some(item => item.type === 'Discovery Process');
     const hasAutomationSetup = Object.values(automationSetup).every(value => value && value.trim().length > 0) ||
@@ -126,15 +126,25 @@ const Step5 = () => {
     const hasIntegrationPlan = Object.values(integrationPlan).every(value => value && value.trim().length > 0) ||
                               addedPipelineItems.some(item => item.type === 'Integration Plan');
     
+    console.log('Step 5 Auto-progression Trigger:', {
+      activeSubStep,
+      hasDiscoveryProcess,
+      hasAutomationSetup,
+      hasIntegrationPlan
+    });
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasDiscoveryProcess) {
+      console.log('Auto-progressing from Discovery Process to Automation Setup');
       setTimeout(() => setActiveSubStep(2), 500);
     } else if (activeSubStep === 2 && hasAutomationSetup) {
+      console.log('Auto-progressing from Automation Setup to Integration Plan');
       setTimeout(() => setActiveSubStep(3), 500);
     } else if (activeSubStep === 3 && hasIntegrationPlan) {
+      console.log('Auto-progressing from Integration Plan to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [discoveryProcess, automationSetup, integrationPlan, addedPipelineItems, activeSubStep]);
+  };
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
@@ -145,18 +155,27 @@ const Step5 = () => {
     const updated = { ...discoveryProcess, [field]: value };
     setDiscoveryProcess(updated);
     storageOptimizer.safeSet('step5_discovery_process', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleAutomationChange = (field, value) => {
     const updated = { ...automationSetup, [field]: value };
     setAutomationSetup(updated);
     storageOptimizer.safeSet('step5_automation_setup', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   const handleIntegrationChange = (field, value) => {
     const updated = { ...integrationPlan, [field]: value };
     setIntegrationPlan(updated);
     storageOptimizer.safeSet('step5_integration_plan', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Manual entry functions
@@ -186,6 +205,9 @@ const Step5 = () => {
       setAddedPipelineItems(updated);
       storageOptimizer.safeSet('step5_added_pipeline_items', updated);
       setManualModalOpen(false);
+      
+      // Trigger auto-progression check after adding manual entry
+      setTimeout(() => triggerAutoProgression(), 100);
     }
   };
 
@@ -243,6 +265,9 @@ const Step5 = () => {
     
     // Remove suggestion from list
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    
+    // Trigger auto-progression check after adding AI suggestion
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Edit/Delete functions
