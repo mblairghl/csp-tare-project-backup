@@ -401,7 +401,7 @@ const Step1 = () => {
                       </div>
                     </div>
                   </div>
-                ))}}
+                ))}
               </div>
 
               {hasDemographics && (
@@ -504,115 +504,6 @@ const Step1 = () => {
                   </p>
                 </div>
               )}
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Pain Points & Goals</h3>
-              <p className="text-gray-600 mb-6">
-                Identify their challenges, frustrations, and desired outcomes to create compelling solutions.
-              </p>
-
-              <div className="space-y-6">
-                {/* Manual/AI Buttons - Moved to TOP */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Pain Points')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Pain Points')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pain Points & Challenges
-                  </label>
-                  <textarea
-                    value={idealClient.painPoints}
-                    onChange={(e) => handleClientChange('painPoints', e.target.value)}
-                    placeholder="e.g., Inconsistent revenue, time-for-money trap, lack of authority in market, marketing overwhelm..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Added Pain Points */}
-                {addedPersonas.filter(p => p.type === 'Pain Points').map((persona) => (
-                  <div key={persona.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{persona.title}</h4>
-                        <p className="text-gray-600 mt-1">{persona.description}</p>
-                        {persona.details && (
-                          <p className="text-gray-500 text-sm mt-2">{persona.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {persona.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editPersona(persona.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deletePersona(persona.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasPainPoints && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Pain Points Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your ideal client profile is now complete. Check out the milestone reflection!
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* AI Enhancement Section */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-[#d7df21]" />
-                <h3 className="text-xl font-semibold text-gray-900">AI Enhancement</h3>
-              </div>
-              
-              <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to enhance your ideal client profile based on your inputs.
-              </p>
-
-              <button
-                onClick={handleAIContentGeneration}
-                className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-              >
-                <Sparkles className="w-4 h-4" />
-                🤖 Generate AI Client Profile
-              </button>
             </div>
           </div>
         );
