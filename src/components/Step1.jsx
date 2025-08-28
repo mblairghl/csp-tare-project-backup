@@ -55,7 +55,10 @@ const Step1 = () => {
 
   // AI suggestions
   const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [allAiSuggestions, setAllAiSuggestions] = useState([]);
+  const [currentBatch, setCurrentBatch] = useState(0);
   const [aiResult, setAiResult] = useState(null);
+  const [selectedPersonasCount, setSelectedPersonasCount] = useState(0);
 
   useEffect(() => {
     const handleResize = () => {
@@ -185,10 +188,32 @@ const Step1 = () => {
     setCurrentModalType(type);
     
     // Generate AI suggestions based on type
-    const suggestions = generateAiSuggestions(type);
-    console.log('Generated suggestions for type:', type, suggestions);
-    setAiSuggestions(suggestions);
+    const allSuggestions = generateAiSuggestions(type);
+    console.log('Generated suggestions for type:', type, allSuggestions);
+    setAllAiSuggestions(allSuggestions);
+    setCurrentBatch(0);
+    
+    // Show first 5 suggestions
+    const firstBatch = allSuggestions.slice(0, 5);
+    setAiSuggestions(firstBatch);
     setAiSuggestionsModalOpen(true);
+  };
+
+  const loadMoreSuggestions = () => {
+    const nextBatch = currentBatch + 1;
+    const startIndex = nextBatch * 5;
+    const endIndex = startIndex + 5;
+    const nextSuggestions = allAiSuggestions.slice(startIndex, endIndex);
+    
+    if (nextSuggestions.length > 0) {
+      setAiSuggestions(prev => [...prev, ...nextSuggestions]);
+      setCurrentBatch(nextBatch);
+    }
+  };
+
+  const hasMoreSuggestions = () => {
+    const nextStartIndex = (currentBatch + 1) * 5;
+    return nextStartIndex < allAiSuggestions.length;
   };
 
   const generateAiSuggestions = (type) => {
@@ -396,7 +421,16 @@ const Step1 = () => {
       type: currentModalType,
       title: suggestion.title,
       description: suggestion.description,
-      details: suggestion.details,
+      summary: suggestion.summary,
+      keyBehaviors: suggestion.keyBehaviors,
+      platformPreferences: suggestion.platformPreferences,
+      motivations: suggestion.motivations,
+      frustrations: suggestion.frustrations,
+      needs: suggestion.needs,
+      favoriteBrands: suggestion.favoriteBrands,
+      buyingTriggers: suggestion.buyingTriggers,
+      contentResonance: suggestion.contentResonance,
+      unmetNeeds: suggestion.unmetNeeds,
       source: 'ai'
     };
     
@@ -404,8 +438,12 @@ const Step1 = () => {
     setAddedPersonas(updated);
     storageOptimizer.safeSet('step1_added_personas', updated);
     
-    // Remove suggestion from list
+    // Update selected count
+    setSelectedPersonasCount(prev => prev + 1);
+    
+    // Remove suggestion from current display and all suggestions
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    setAllAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
     
     // Trigger auto-progression check after adding AI suggestion
     setTimeout(() => triggerAutoProgression(), 100);
@@ -567,16 +605,16 @@ const Step1 = () => {
 
                 {/* Added Demographics */}
                 {addedPersonas.filter(p => p.type === 'Demographics').map((persona) => (
-                  <div key={persona.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
+                  <div key={persona.id} className="bg-white rounded-lg p-6 border border-gray-200 shadow-md hover:shadow-lg transition-all duration-200">
+                    <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{persona.title}</h4>
-                        <p className="text-gray-600 mt-1">{persona.description}</p>
-                        {persona.details && (
-                          <p className="text-gray-500 text-sm mt-2">{persona.details}</p>
+                        <h4 className="text-lg font-bold text-gray-900">{persona.title}</h4>
+                        <p className="text-gray-600 mt-1 font-medium">{persona.description}</p>
+                        {persona.summary && (
+                          <p className="text-sm text-gray-500 mt-2 italic">{persona.summary}</p>
                         )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {persona.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
+                        <span className="inline-block mt-3 px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
+                          {persona.source === 'ai' ? '🤖 AI Research-Based' : '✏️ Manual Entry'}
                         </span>
                       </div>
                       <div className="flex gap-2 ml-4">
@@ -594,6 +632,78 @@ const Step1 = () => {
                         </button>
                       </div>
                     </div>
+                    
+                    {/* Full AI Details */}
+                    {persona.source === 'ai' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="space-y-3">
+                          {persona.keyBehaviors && (
+                            <div>
+                              <h5 className="font-semibold text-gray-800 text-sm mb-1">🎯 Key Behaviors</h5>
+                              <p className="text-gray-600 text-sm">{persona.keyBehaviors}</p>
+                            </div>
+                          )}
+                          
+                          {persona.platformPreferences && (
+                            <div>
+                              <h5 className="font-semibold text-gray-800 text-sm mb-1">📱 Platform Preferences</h5>
+                              <p className="text-gray-600 text-sm">{persona.platformPreferences}</p>
+                            </div>
+                          )}
+                          
+                          {persona.motivations && (
+                            <div>
+                              <h5 className="font-semibold text-gray-800 text-sm mb-1">💭 Motivations</h5>
+                              <p className="text-gray-600 text-sm">{persona.motivations}</p>
+                            </div>
+                          )}
+                          
+                          {persona.frustrations && (
+                            <div>
+                              <h5 className="font-semibold text-gray-800 text-sm mb-1">😤 Frustrations</h5>
+                              <p className="text-gray-600 text-sm italic">{persona.frustrations}</p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {persona.favoriteBrands && (
+                            <div>
+                              <h5 className="font-semibold text-gray-800 text-sm mb-1">🛍️ Favorite Brands</h5>
+                              <p className="text-gray-600 text-sm">{persona.favoriteBrands}</p>
+                            </div>
+                          )}
+                          
+                          {persona.buyingTriggers && (
+                            <div>
+                              <h5 className="font-semibold text-gray-800 text-sm mb-1">⚡ Buying Triggers</h5>
+                              <p className="text-gray-600 text-sm">{persona.buyingTriggers}</p>
+                            </div>
+                          )}
+                          
+                          {persona.contentResonance && (
+                            <div>
+                              <h5 className="font-semibold text-gray-800 text-sm mb-1">📈 Content Resonance</h5>
+                              <p className="text-gray-600 text-sm">{persona.contentResonance}</p>
+                            </div>
+                          )}
+                          
+                          {persona.unmetNeeds && (
+                            <div>
+                              <h5 className="font-semibold text-gray-800 text-sm mb-1">🔍 Unmet Needs</h5>
+                              <p className="text-gray-600 text-sm font-medium text-red-600">{persona.unmetNeeds}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Manual Entry Details */}
+                    {persona.source === 'manual' && persona.details && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <p className="text-gray-600 text-sm">{persona.details}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1116,6 +1226,35 @@ const Step1 = () => {
                     </p>
                   </div>
                 )}
+                
+                {/* Requirement Notice */}
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 mb-2">📋 Selection Requirement</h4>
+                  <p className="text-blue-800 text-sm">
+                    <strong>Minimum 1 persona required.</strong> You've selected {selectedPersonasCount} persona{selectedPersonasCount !== 1 ? 's' : ''}. You can choose more personas for a more comprehensive client profile.
+                  </p>
+                </div>
+                
+                {/* Modal Buttons */}
+                <div className="mt-6 flex gap-3 justify-between">
+                  <div>
+                    {hasMoreSuggestions() && (
+                      <button
+                        onClick={loadMoreSuggestions}
+                        className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
+                      >
+                        <Plus className="w-4 h-4" />
+                        More Ideas
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setAiSuggestionsModalOpen(false)}
+                    className="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 font-medium shadow-md hover:shadow-lg transition-all"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

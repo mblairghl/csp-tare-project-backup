@@ -3,23 +3,35 @@ import { Link } from 'react-router-dom';
 import Footer from '../Footer';
 
 const Step1Report = () => {
-  // Get saved personas from localStorage
-  const savedPersonas = JSON.parse(localStorage.getItem('savedPersonas') || '[]');
+  // Get saved personas from localStorage using the correct key
+  const savedPersonas = JSON.parse(localStorage.getItem('step1_added_personas') || '[]');
+  const savedClient = JSON.parse(localStorage.getItem('step1_ideal_client') || '{}');
   const hasPersonas = savedPersonas.length > 0;
+  const hasClientData = Object.keys(savedClient).some(key => savedClient[key] && savedClient[key].trim().length > 0);
+
+  // Calculate statistics
+  const aiPersonas = savedPersonas.filter(p => p.source === 'ai');
+  const manualPersonas = savedPersonas.filter(p => p.source === 'manual');
+  const totalUnmetNeeds = aiPersonas.reduce((acc, persona) => {
+    if (persona.unmetNeeds) {
+      return acc + persona.unmetNeeds.split(',').length;
+    }
+    return acc;
+  }, 0);
 
   return (
     <main className="flex-1 p-6 bg-gray-50">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header with Logo */}
         <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">🌱</span>
+              <div className="w-12 h-12 bg-[#0e9246] rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xl">👥</span>
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Step 1: Ideal Client Report</h1>
-                <p className="text-gray-600">Authority Revenue Toolkit - Cultivating Sales, LLC</p>
+                <h1 className="text-3xl font-bold text-gray-900">Step 1: Ideal Client Research Report</h1>
+                <p className="text-gray-600">Authority Revenue Toolkit - CSP Implementation Guide</p>
               </div>
             </div>
             <Link to="/" className="text-blue-600 hover:text-blue-800 font-medium">← Back to Dashboard</Link>
@@ -27,27 +39,67 @@ const Step1Report = () => {
           
           <div className="border-t pt-6">
             <p className="text-lg text-gray-700 leading-relaxed">
-              This comprehensive report contains all ideal client persona data and implementation guidelines for CSP (Customer Success Platform) setup. 
-              Use this document to build out persona-based targeting, segmentation, and personalized marketing campaigns.
+              This comprehensive report contains detailed ideal client persona research, behavioral insights, and implementation guidelines for CSP (Customer Success Platform) setup. 
+              Use this document to build persona-based targeting, segmentation, automated workflows, and personalized marketing campaigns in your HighLevel platform.
             </p>
           </div>
         </div>
 
-        {hasPersonas ? (
+        {hasPersonas || hasClientData ? (
           <>
             {/* Executive Summary */}
             <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">Executive Summary</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">📊 Executive Summary</h2>
               
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-green-50 rounded-lg p-6">
-                  <h3 className="font-semibold text-green-800 mb-2">Personas Created</h3>
-                  <p className="text-3xl font-bold text-green-600">{savedPersonas.length}</p>
-                  <p className="text-sm text-green-700">Detailed client personas defined</p>
+              <div className="grid md:grid-cols-4 gap-6 mb-6">
+                <div className="bg-[#0e9246] bg-opacity-10 rounded-lg p-6 border border-[#0e9246] border-opacity-20">
+                  <h3 className="font-semibold text-[#0e9246] mb-2">Total Personas</h3>
+                  <p className="text-3xl font-bold text-[#0e9246]">{savedPersonas.length}</p>
+                  <p className="text-sm text-gray-600">Detailed client profiles</p>
                 </div>
                 
-                <div className="bg-blue-50 rounded-lg p-6">
-                  <h3 className="font-semibold text-blue-800 mb-2">Implementation Ready</h3>
+                <div className="bg-[#fbae42] bg-opacity-10 rounded-lg p-6 border border-[#fbae42] border-opacity-20">
+                  <h3 className="font-semibold text-[#fbae42] mb-2">AI Research-Based</h3>
+                  <p className="text-3xl font-bold text-[#fbae42]">{aiPersonas.length}</p>
+                  <p className="text-sm text-gray-600">Data-driven personas</p>
+                </div>
+                
+                <div className="bg-[#467a8f] bg-opacity-10 rounded-lg p-6 border border-[#467a8f] border-opacity-20">
+                  <h3 className="font-semibold text-[#467a8f] mb-2">Manual Entries</h3>
+                  <p className="text-3xl font-bold text-[#467a8f]">{manualPersonas.length}</p>
+                  <p className="text-sm text-gray-600">Custom personas</p>
+                </div>
+                
+                <div className="bg-[#d7df21] bg-opacity-10 rounded-lg p-6 border border-[#d7df21] border-opacity-20">
+                  <h3 className="font-semibold text-gray-800 mb-2">Opportunity Areas</h3>
+                  <p className="text-3xl font-bold text-gray-800">{totalUnmetNeeds}</p>
+                  <p className="text-sm text-gray-600">Unmet needs identified</p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-6">
+                <h3 className="font-semibold text-blue-800 mb-3">🎯 Key Insights for CSP Implementation</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-medium text-blue-700 mb-2">Platform Targeting:</h4>
+                    <ul className="text-sm text-blue-600 space-y-1">
+                      <li>• LinkedIn-focused personas: {aiPersonas.filter(p => p.platformPreferences?.includes('LinkedIn')).length}</li>
+                      <li>• Social media active: {aiPersonas.filter(p => p.platformPreferences?.includes('Twitter') || p.platformPreferences?.includes('X/')).length}</li>
+                      <li>• Industry forum users: {aiPersonas.filter(p => p.platformPreferences?.includes('forum')).length}</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-blue-700 mb-2">Automation Opportunities:</h4>
+                    <ul className="text-sm text-blue-600 space-y-1">
+                      <li>• Lead qualification workflows</li>
+                      <li>• Platform-specific content delivery</li>
+                      <li>• Behavioral trigger campaigns</li>
+                      <li>• Persona-based nurture sequences</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
                   <p className="text-3xl font-bold text-blue-600">✓</p>
                   <p className="text-sm text-blue-700">Ready for CSP deployment</p>
                 </div>
@@ -94,8 +146,183 @@ const Step1Report = () => {
 
             {/* Detailed Persona Data */}
             <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">Detailed Persona Data</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">🎭 Detailed Persona Profiles</h2>
               
+              {savedPersonas.map((persona, index) => (
+                <div key={persona.id} className="mb-8 p-6 border border-gray-200 rounded-lg">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">{persona.title}</h3>
+                      <p className="text-gray-600 font-medium">{persona.description}</p>
+                      {persona.summary && (
+                        <p className="text-sm text-gray-500 italic mt-2">{persona.summary}</p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        persona.source === 'ai' 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {persona.source === 'ai' ? '🤖 AI Research-Based' : '✏️ Manual Entry'}
+                      </span>
+                      <span className="text-xs text-gray-500">Persona #{index + 1}</span>
+                    </div>
+                  </div>
+
+                  {/* CSP Implementation Data */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">📊 CSP Implementation Data</h4>
+                    <div className="grid md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Tag Name:</span>
+                        <p className="text-gray-600">{persona.title.replace(/\s+/g, '_')}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Lead Score Weight:</span>
+                        <p className="text-gray-600">{persona.source === 'ai' ? 'High (25 pts)' : 'Medium (15 pts)'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Segment Priority:</span>
+                        <p className="text-gray-600">{index === 0 ? 'Primary' : index === 1 ? 'Secondary' : 'Tertiary'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI Persona Details */}
+                  {persona.source === 'ai' && (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        {persona.keyBehaviors && (
+                          <div>
+                            <h4 className="font-semibold text-gray-800 text-sm mb-2">🎯 Key Behaviors</h4>
+                            <p className="text-gray-600 text-sm bg-white p-3 rounded border">{persona.keyBehaviors}</p>
+                          </div>
+                        )}
+                        
+                        {persona.platformPreferences && (
+                          <div>
+                            <h4 className="font-semibold text-gray-800 text-sm mb-2">📱 Platform Preferences</h4>
+                            <p className="text-gray-600 text-sm bg-white p-3 rounded border">{persona.platformPreferences}</p>
+                          </div>
+                        )}
+                        
+                        {persona.motivations && (
+                          <div>
+                            <h4 className="font-semibold text-gray-800 text-sm mb-2">💭 Motivations</h4>
+                            <p className="text-gray-600 text-sm bg-white p-3 rounded border">{persona.motivations}</p>
+                          </div>
+                        )}
+                        
+                        {persona.frustrations && (
+                          <div>
+                            <h4 className="font-semibold text-gray-800 text-sm mb-2">😤 Frustrations</h4>
+                            <p className="text-gray-600 text-sm bg-white p-3 rounded border italic">{persona.frustrations}</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-4">
+                        {persona.favoriteBrands && (
+                          <div>
+                            <h4 className="font-semibold text-gray-800 text-sm mb-2">🛍️ Favorite Brands</h4>
+                            <p className="text-gray-600 text-sm bg-white p-3 rounded border">{persona.favoriteBrands}</p>
+                          </div>
+                        )}
+                        
+                        {persona.buyingTriggers && (
+                          <div>
+                            <h4 className="font-semibold text-gray-800 text-sm mb-2">⚡ Buying Triggers</h4>
+                            <p className="text-gray-600 text-sm bg-white p-3 rounded border">{persona.buyingTriggers}</p>
+                          </div>
+                        )}
+                        
+                        {persona.contentResonance && (
+                          <div>
+                            <h4 className="font-semibold text-gray-800 text-sm mb-2">📈 Content Resonance</h4>
+                            <p className="text-gray-600 text-sm bg-white p-3 rounded border">{persona.contentResonance}</p>
+                          </div>
+                        )}
+                        
+                        {persona.unmetNeeds && (
+                          <div>
+                            <h4 className="font-semibold text-gray-800 text-sm mb-2">🔍 Unmet Needs & Opportunities</h4>
+                            <p className="text-red-600 text-sm bg-red-50 p-3 rounded border border-red-200 font-medium">{persona.unmetNeeds}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Manual Persona Details */}
+                  {persona.source === 'manual' && persona.details && (
+                    <div className="bg-white p-4 rounded border">
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">📝 Additional Details</h4>
+                      <p className="text-gray-600 text-sm">{persona.details}</p>
+                    </div>
+                  )}
+
+                  {/* CSP Action Items for this Persona */}
+                  <div className="mt-4 bg-blue-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-800 mb-3">🚀 CSP Action Items for {persona.title}</h4>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Create contact tag: "{persona.title.replace(/\s+/g, '_')}"</li>
+                      <li>• Build email sequence addressing their primary frustrations</li>
+                      <li>• Set up lead magnet targeting their biggest problem</li>
+                      {persona.platformPreferences && (
+                        <li>• Configure ads for: {persona.platformPreferences.split(',')[0]?.trim()}</li>
+                      )}
+                      {persona.buyingTriggers && (
+                        <li>• Create automation trigger: {persona.buyingTriggers.split(',')[0]?.trim()}</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Manual Client Data */}
+            {hasClientData && (
+              <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">📋 Manual Client Profile Data</h2>
+                
+                {savedClient.demographics && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Demographics</h3>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-gray-700">{savedClient.demographics}</p>
+                    </div>
+                  </div>
+                )}
+
+                {savedClient.psychographics && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Psychographics</h3>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-gray-700">{savedClient.psychographics}</p>
+                    </div>
+                  </div>
+                )}
+
+                {savedClient.painPoints && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Pain Points</h3>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-gray-700">{savedClient.painPoints}</p>
+                    </div>
+                  </div>
+                )}
+
+                {savedClient.goals && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Goals & Aspirations</h3>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-gray-700">{savedClient.goals}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
               {savedPersonas.map((persona, index) => (
                 <div key={persona.id} className="mb-8 last:mb-0">
                   <div className="bg-gray-50 rounded-lg p-6 mb-4">
