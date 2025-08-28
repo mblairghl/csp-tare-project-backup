@@ -192,26 +192,187 @@ const Step1 = () => {
 
   const generateAiSuggestions = (type) => {
     const suggestionsByType = {
-      'Demographics': [
-        { id: 1, title: 'Business Owners (35-55)', description: 'Established entrepreneurs with 5-15 years experience', details: 'Annual revenue $500K-$5M, seeking growth strategies' },
-        { id: 2, title: 'Corporate Executives', description: 'C-level executives in mid-large companies', details: 'Looking to transition to entrepreneurship or consulting' },
-        { id: 3, title: 'Professional Service Providers', description: 'Lawyers, doctors, consultants, coaches', details: 'High-income professionals wanting to scale their practice' },
-        { id: 4, title: 'Tech Entrepreneurs', description: 'Software/SaaS business owners', details: 'Seeking authority positioning in competitive markets' },
-        { id: 5, title: 'Industry Experts', description: 'Subject matter experts with deep knowledge', details: 'Want to monetize expertise through thought leadership' }
-      ],
-      'Psychographics': [
-        { id: 1, title: 'Achievement-Oriented', description: 'Driven by success and recognition', details: 'Values efficiency, results, and competitive advantage' },
-        { id: 2, title: 'Growth-Minded', description: 'Always seeking improvement and expansion', details: 'Invests in learning, development, and new opportunities' },
-        { id: 3, title: 'Authority-Seeking', description: 'Wants to be recognized as an expert', details: 'Values credibility, influence, and thought leadership' },
-        { id: 4, title: 'Freedom-Focused', description: 'Desires autonomy and flexibility', details: 'Seeks systems that provide time and location freedom' },
-        { id: 5, title: 'Impact-Driven', description: 'Motivated by making a difference', details: 'Wants to create meaningful change in their industry' }
-      ],
-      'Pain Points': [
-        { id: 1, title: 'Inconsistent Revenue', description: 'Unpredictable income streams', details: 'Feast or famine cycles, difficulty forecasting' },
-        { id: 2, title: 'Time for Money Trade', description: 'Limited by personal capacity', details: 'Cannot scale without working more hours' },
-        { id: 3, title: 'Lack of Authority', description: 'Not seen as the go-to expert', details: 'Competing on price instead of value' },
-        { id: 4, title: 'Marketing Overwhelm', description: 'Too many tactics, no clear strategy', details: 'Scattered efforts with poor ROI' },
-        { id: 5, title: 'Client Acquisition Stress', description: 'Constant pressure to find new clients', details: 'No predictable lead generation system' }
+      'Create Personas': [
+        { 
+          id: 1, 
+          title: 'The Ambitious Service Provider', 
+          description: 'Established consultants/coaches earning $250K-$500K annually seeking authority positioning',
+          summary: 'Mid-tier service providers ready to break into thought leadership',
+          keyBehaviors: 'LinkedIn daily (7-9am), X/Twitter 3x/week, industry Facebook groups, consumes content during commute',
+          platformPreferences: 'LinkedIn (primary), X/Twitter (engagement), Industry Facebook groups (networking)',
+          motivations: 'Recognition as industry expert, predictable revenue growth, work-life balance, premium positioning',
+          frustrations: '"I wish someone would just help me stand out from all the other consultants in my space"',
+          needs: 'Automated lead qualification, content creation systems, authority building frameworks',
+          favoriteBrands: 'HubSpot, ConvertKit, Calendly, industry thought leaders',
+          buyingTriggers: 'Authority building case studies, premium positioning examples, thought leadership frameworks',
+          contentResonance: 'Client success stories, industry insights, behind-the-scenes content, strategic frameworks',
+          unmetNeeds: 'Systematic authority building, differentiation strategies, premium client attraction systems'
+        },
+        { 
+          id: 2, 
+          title: 'The Corporate Escapist', 
+          description: 'Senior executives (40-55) planning transition to entrepreneurship',
+          summary: 'High-level corporate professionals seeking entrepreneurial transition',
+          keyBehaviors: 'LinkedIn lurker, Reddit researcher (r/entrepreneur), research-heavy (evenings/weekends), cautious decision-maker',
+          platformPreferences: 'LinkedIn (professional networking), Reddit (research), industry publications',
+          motivations: 'Financial security during transition, leveraging existing network, maintaining lifestyle',
+          frustrations: '"I wish someone would just show me how to leverage my corporate experience into a consulting business"',
+          needs: 'Transition timeline guidance, network monetization strategies, corporate-to-consultant positioning',
+          favoriteBrands: 'McKinsey, Deloitte, Harvard Business Review, industry-specific tools',
+          buyingTriggers: 'Step-by-step roadmaps, risk mitigation strategies, success story validation',
+          contentResonance: 'Transition case studies, risk management content, network leveraging strategies',
+          unmetNeeds: 'Corporate experience packaging, transition risk mitigation, network monetization systems'
+        },
+        { 
+          id: 3, 
+          title: 'The Tech Founder Seeking Authority', 
+          description: 'SaaS/tech entrepreneurs with $1M+ ARR wanting thought leadership',
+          summary: 'Successful tech founders ready to build industry authority',
+          keyBehaviors: 'X/Twitter daily, Product Hunt active, Hacker News reader, early adopter, shares industry insights',
+          platformPreferences: 'X/Twitter (primary), Product Hunt (launches), Hacker News (discussions), tech forums',
+          motivations: 'Industry recognition, speaking opportunities, premium pricing power, thought leadership',
+          frustrations: '"I wish someone would just help me become the go-to voice in my industry instead of just another SaaS founder"',
+          needs: 'Content amplification systems, speaking opportunity pipelines, industry positioning strategies',
+          favoriteBrands: 'Y Combinator, Stripe, Notion, industry-specific SaaS tools',
+          buyingTriggers: 'Data-driven results, industry case studies, tech community validation',
+          contentResonance: 'Industry insights, data-driven content, tech trends, innovation stories',
+          unmetNeeds: 'Industry voice development, speaking circuit access, tech authority positioning'
+        },
+        { 
+          id: 4, 
+          title: 'The Overwhelmed Agency Owner', 
+          description: 'Digital marketing agency owners ($500K-$2M revenue) drowning in client work',
+          summary: 'Successful agency owners seeking premium positioning and client attraction',
+          keyBehaviors: 'Facebook groups (agency-focused), LinkedIn sporadically, time-starved, values peer recommendations',
+          platformPreferences: 'Facebook groups (agency communities), LinkedIn (professional), industry forums',
+          motivations: 'Predictable client pipeline, premium pricing, reduced sales effort, work-life balance',
+          frustrations: '"I wish someone would just create a system that positions me as the expert so clients come to me instead of me chasing them"',
+          needs: 'Inbound lead systems, premium positioning frameworks, client education processes',
+          favoriteBrands: 'Agency management tools, CRM systems, marketing automation platforms',
+          buyingTriggers: 'Time-saving solutions, client retention strategies, premium positioning examples',
+          contentResonance: 'Agency growth strategies, client success stories, efficiency systems, premium positioning',
+          unmetNeeds: 'Inbound client attraction, premium positioning systems, authority-based marketing'
+        },
+        { 
+          id: 5, 
+          title: 'The Expert Practitioner', 
+          description: 'Industry specialists (lawyers, doctors, CPAs) wanting to expand beyond practice',
+          summary: 'Professional service providers seeking expertise monetization',
+          keyBehaviors: 'Industry forums, LinkedIn professional groups, risk-averse, values professional reputation',
+          platformPreferences: 'LinkedIn (professional networking), industry-specific forums, trade publications',
+          motivations: 'Diversified revenue streams, industry influence, legacy building, professional recognition',
+          frustrations: '"I wish someone would just show me how to package my expertise into scalable offerings without compromising my practice"',
+          needs: 'Expertise packaging systems, compliance-friendly marketing, professional authority building',
+          favoriteBrands: 'Professional associations, industry-specific software, continuing education providers',
+          buyingTriggers: 'Compliance considerations, professional reputation protection, peer validation',
+          contentResonance: 'Professional development, industry insights, ethical considerations, expertise showcases',
+          unmetNeeds: 'Expertise packaging, scalable offering development, professional authority systems'
+        },
+        { 
+          id: 6, 
+          title: 'The Course Creator Plateau', 
+          description: 'Online educators earning $100K-$300K seeking next level growth',
+          summary: 'Established course creators ready for authority positioning and scale',
+          keyBehaviors: 'YouTube creator, Instagram educator, Facebook group host, content creator, community builder',
+          platformPreferences: 'YouTube (content), Instagram (education), Facebook groups (community), email lists',
+          motivations: 'Revenue breakthrough, industry recognition, sustainable growth, authority positioning',
+          frustrations: '"I wish someone would just help me break through this revenue ceiling and become a recognized authority in my space"',
+          needs: 'Authority positioning systems, premium offering development, industry recognition strategies',
+          favoriteBrands: 'Course platforms, email marketing tools, community platforms, content creation tools',
+          buyingTriggers: 'Growth case studies, authority positioning examples, scale strategies',
+          contentResonance: 'Growth strategies, authority building, premium positioning, scale systems',
+          unmetNeeds: 'Revenue ceiling breakthrough, authority positioning, premium offering development'
+        },
+        { 
+          id: 7, 
+          title: 'The B2B Sales Leader Turned Consultant', 
+          description: 'Former VP Sales/CROs launching consulting practices',
+          summary: 'Senior sales executives transitioning to high-value consulting',
+          keyBehaviors: 'LinkedIn heavy user, Sales Navigator power user, network-focused, relationship-driven',
+          platformPreferences: 'LinkedIn (primary), Sales Navigator (prospecting), industry events, B2B forums',
+          motivations: 'Industry expertise recognition, high-value client attraction, premium consulting rates',
+          frustrations: '"I wish someone would just help me position myself as THE sales transformation expert instead of just another consultant"',
+          needs: 'B2B authority positioning, enterprise client attraction, sales expertise packaging',
+          favoriteBrands: 'Salesforce, HubSpot, LinkedIn Sales Navigator, sales methodology providers',
+          buyingTriggers: 'B2B credibility, enterprise case studies, sales transformation examples',
+          contentResonance: 'Sales transformation, B2B strategies, enterprise solutions, revenue optimization',
+          unmetNeeds: 'B2B authority establishment, enterprise client systems, sales expertise positioning'
+        },
+        { 
+          id: 8, 
+          title: 'The Niche Market Dominator', 
+          description: 'Specialists serving specific industries (healthcare, legal, finance)',
+          summary: 'Industry specialists seeking niche market leadership',
+          keyBehaviors: 'Industry-specific forums, trade publication comments, deep industry focus, values specialization',
+          platformPreferences: 'Industry forums, trade publications, professional associations, niche communities',
+          motivations: 'Niche market leadership, premium pricing power, industry influence, specialization recognition',
+          frustrations: '"I wish someone would just help me become THE recognized expert in my niche instead of competing with generalists"',
+          needs: 'Niche authority building, industry positioning strategies, specialized content frameworks',
+          favoriteBrands: 'Industry-specific software, trade publications, professional associations, niche tools',
+          buyingTriggers: 'Niche-specific case studies, industry credibility, specialization examples',
+          contentResonance: 'Industry insights, specialized solutions, niche expertise, regulatory updates',
+          unmetNeeds: 'Niche authority systems, industry positioning, specialized expertise packaging'
+        },
+        { 
+          id: 9, 
+          title: 'The International Expansion Seeker', 
+          description: 'Successful domestic consultants wanting global reach',
+          summary: 'Established consultants ready for international market expansion',
+          keyBehaviors: 'International LinkedIn groups, global industry forums, globally minded, values cultural adaptation',
+          platformPreferences: 'LinkedIn (international), global forums, international events, cross-cultural platforms',
+          motivations: 'Global market penetration, international recognition, diversified revenue streams',
+          frustrations: '"I wish someone would just show me how to establish authority in international markets without starting from scratch"',
+          needs: 'International authority building, global market entry strategies, cross-cultural positioning',
+          favoriteBrands: 'Global consulting firms, international business tools, cross-cultural training providers',
+          buyingTriggers: 'Global case studies, international credibility building, market entry examples',
+          contentResonance: 'Global strategies, cultural insights, international business, market expansion',
+          unmetNeeds: 'International authority systems, global market entry, cross-cultural positioning'
+        },
+        { 
+          id: 10, 
+          title: 'The Acquisition Target Builder', 
+          description: 'Entrepreneurs building businesses for eventual sale/acquisition',
+          summary: 'Strategic business builders focused on acquisition readiness',
+          keyBehaviors: 'M&A forums, business broker networks, industry publications, strategic thinker, long-term focused',
+          platformPreferences: 'M&A forums, business networks, industry publications, investor communities',
+          motivations: 'Business valuation increase, acquisition attractiveness, strategic positioning, exit planning',
+          frustrations: '"I wish someone would just help me build the kind of authority that makes my business an attractive acquisition target"',
+          needs: 'Authority-driven valuation strategies, acquisition positioning, strategic market building',
+          favoriteBrands: 'Business valuation firms, M&A advisors, strategic consulting firms, exit planning services',
+          buyingTriggers: 'Valuation impact, acquisition case studies, exit strategy examples',
+          contentResonance: 'Business valuation, acquisition strategies, market positioning, exit planning',
+          unmetNeeds: 'Authority-driven valuation, acquisition positioning, strategic market development'
+        },
+        { 
+          id: 11, 
+          title: 'The Speaking Circuit Aspirant', 
+          description: 'Experts wanting to monetize speaking and build authority through events',
+          summary: 'Subject matter experts seeking speaking authority and event monetization',
+          keyBehaviors: 'Event industry groups, speaker bureaus, conference organizer networks, event-focused, values stage presence',
+          platformPreferences: 'Speaker bureaus, event platforms, conference networks, professional speaking associations',
+          motivations: 'Speaking fee optimization, event authority, industry recognition, thought leadership',
+          frustrations: '"I wish someone would just create a system that gets me booked at premium speaking events consistently"',
+          needs: 'Speaking opportunity pipelines, keynote positioning, event authority building',
+          favoriteBrands: 'Speaker bureaus, event management platforms, presentation tools, speaking coaches',
+          buyingTriggers: 'Speaking fee increases, event booking success, keynote examples',
+          contentResonance: 'Speaking strategies, event insights, presentation skills, thought leadership',
+          unmetNeeds: 'Speaking pipeline systems, keynote positioning, event authority development'
+        },
+        { 
+          id: 12, 
+          title: 'The Media Authority Builder', 
+          description: 'Professionals seeking media coverage and industry recognition',
+          summary: 'Experts focused on media authority and journalist relationships',
+          keyBehaviors: 'Media monitoring tools, journalist networks, PR industry groups, media-conscious, seeks publicity opportunities',
+          platformPreferences: 'Media platforms, journalist networks, PR tools, industry publications',
+          motivations: 'Media coverage, expert recognition, industry influence, thought leadership positioning',
+          frustrations: '"I wish someone would just help me become the go-to expert that journalists call for quotes and interviews"',
+          needs: 'Media relationship building, expert positioning systems, journalist outreach strategies',
+          favoriteBrands: 'PR agencies, media monitoring tools, journalist databases, expert positioning services',
+          buyingTriggers: 'Media coverage examples, PR success stories, expert positioning case studies',
+          contentResonance: 'Media strategies, expert positioning, journalist relationships, thought leadership',
+          unmetNeeds: 'Media authority systems, journalist relationship building, expert positioning frameworks'
+        }
       ]
     };
     
@@ -339,6 +500,28 @@ const Step1 = () => {
                 Define the basic characteristics of your ideal client including age, location, income, and professional role.
               </p>
 
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold text-blue-900 mb-2">📋 How to Complete This Section</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h5 className="font-medium text-blue-800 mb-1">✏️ Use Manual Entry If:</h5>
+                    <ul className="text-blue-700 space-y-1">
+                      <li>• You already have a clear idea of your ideal client</li>
+                      <li>• You have existing client data or personas</li>
+                      <li>• You want to input specific demographics you know</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-medium text-blue-800 mb-1">🤖 Use AI Research If:</h5>
+                    <ul className="text-blue-700 space-y-1">
+                      <li>• You need help identifying your ideal client</li>
+                      <li>• You want research-based persona suggestions</li>
+                      <li>• You're looking for detailed behavioral insights</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-6">
                 {/* Manual/AI Buttons - Moved to TOP */}
                 <div className="flex gap-4">
@@ -354,7 +537,7 @@ const Step1 = () => {
                     className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
                   >
                     <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
+                    🤖 Get AI Research
                   </button>
                 </div>
 
@@ -443,7 +626,7 @@ const Step1 = () => {
                     className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
                   >
                     <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
+                    🤖 Get AI Research
                   </button>
                 </div>
 
@@ -816,9 +999,12 @@ const Step1 = () => {
         {/* AI Suggestions Modal */}
         {aiSuggestionsModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
+                <div>
+                  <h3 className="text-lg font-semibold">🤖 AI Research-Based Personas</h3>
+                  <p className="text-sm text-gray-600 mt-1">Based on digital anthropology research across social platforms, forums, and review sites</p>
+                </div>
                 <button
                   onClick={() => setAiSuggestionsModalOpen(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -828,36 +1014,97 @@ const Step1 = () => {
               </div>
               
               <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
-                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <h4 className="font-semibold text-blue-900 mb-2">🔬 Research Foundation</h4>
+                  <p className="text-blue-800 text-sm">
+                    These personas are generated using digital anthropology and AI data strategy, analyzing behavioral insights from X/Twitter, Reddit, Quora, Amazon reviews, and industry forums. Each persona includes platform preferences, buying triggers, and unmet needs based on recent data patterns.
+                  </p>
+                </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {aiSuggestions.map((suggestion) => (
-                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
+                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+                      <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
-                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
-                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
+                          <h4 className="text-xl font-bold text-gray-900">{suggestion.title}</h4>
+                          <p className="text-gray-600 mt-1 font-medium">{suggestion.description}</p>
+                          <p className="text-sm text-gray-500 mt-2 italic">{suggestion.summary}</p>
                         </div>
                         <button
                           onClick={() => addAiSuggestion(suggestion)}
-                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
+                          className="ml-4 px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all"
                         >
                           <Plus className="w-4 h-4" />
-                          Add
+                          Add Persona
                         </button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div className="space-y-3">
+                          <div>
+                            <h5 className="font-semibold text-gray-800 text-sm mb-1">🎯 Key Behaviors</h5>
+                            <p className="text-gray-600 text-sm">{suggestion.keyBehaviors}</p>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-semibold text-gray-800 text-sm mb-1">📱 Platform Preferences</h5>
+                            <p className="text-gray-600 text-sm">{suggestion.platformPreferences}</p>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-semibold text-gray-800 text-sm mb-1">💭 Motivations</h5>
+                            <p className="text-gray-600 text-sm">{suggestion.motivations}</p>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-semibold text-gray-800 text-sm mb-1">😤 Frustrations</h5>
+                            <p className="text-gray-600 text-sm italic">{suggestion.frustrations}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <h5 className="font-semibold text-gray-800 text-sm mb-1">🛍️ Favorite Brands</h5>
+                            <p className="text-gray-600 text-sm">{suggestion.favoriteBrands}</p>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-semibold text-gray-800 text-sm mb-1">⚡ Buying Triggers</h5>
+                            <p className="text-gray-600 text-sm">{suggestion.buyingTriggers}</p>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-semibold text-gray-800 text-sm mb-1">📈 Content Resonance</h5>
+                            <p className="text-gray-600 text-sm">{suggestion.contentResonance}</p>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-semibold text-gray-800 text-sm mb-1">🔍 Unmet Needs</h5>
+                            <p className="text-gray-600 text-sm font-medium text-red-600">{suggestion.unmetNeeds}</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
                   
                   {aiSuggestions.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      All suggestions have been added! Close this modal to continue.
+                    <div className="text-center py-12">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h4 className="font-semibold text-green-900 mb-2">🎉 All Personas Added!</h4>
+                        <p className="text-green-800">You've selected all available AI-generated personas. Close this modal to continue with your ideal client refinement.</p>
+                      </div>
                     </div>
                   )}
                 </div>
+                
+                {aiSuggestions.length > 0 && (
+                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="font-semibold text-yellow-900 mb-2">💡 Customer Empathy Insight</h4>
+                    <p className="text-yellow-800 text-sm">
+                      <strong>Act as your ideal customer:</strong> What are the frustrations, dreams, or "I wish someone would just..." statements they'd have related to your business? Each persona above includes 5 unmet needs or desires you could build solutions for.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
