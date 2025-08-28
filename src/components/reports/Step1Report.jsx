@@ -100,24 +100,10 @@ const Step1Report = () => {
                 </div>
               </div>
             </div>
-                  <p className="text-3xl font-bold text-blue-600">✓</p>
-                  <p className="text-sm text-blue-700">Ready for CSP deployment</p>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6">
-                <h3 className="font-semibold text-yellow-800 mb-2">Why This Step Is Critical</h3>
-                <p className="text-yellow-700">
-                  Ideal client personas form the foundation of all marketing and sales activities. Without clearly defined personas, 
-                  marketing efforts become generic and fail to resonate with specific audience segments. These personas will drive 
-                  content creation, funnel design, lead qualification, and conversion optimization throughout the entire framework.
-                </p>
-              </div>
-            </div>
 
             {/* CSP Implementation Guide */}
             <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">CSP Implementation Guide</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">🚀 CSP Implementation Guide</h2>
               
               <div className="space-y-6">
                 <div className="bg-blue-50 rounded-lg p-6">
@@ -323,160 +309,51 @@ const Step1Report = () => {
                 )}
               </div>
             )}
-              {savedPersonas.map((persona, index) => (
-                <div key={persona.id} className="mb-8 last:mb-0">
-                  <div className="bg-gray-50 rounded-lg p-6 mb-4">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      Persona {index + 1}: {persona.name}
-                    </h3>
-                    <p className="text-gray-600 mb-4">{persona.summary}</p>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">Demographics</h4>
-                        <ul className="space-y-1 text-sm text-gray-600">
-                          <li><strong>Age Range:</strong> {persona.age_range}</li>
-                          <li><strong>Occupation:</strong> {persona.occupation}</li>
-                          <li><strong>Income Level:</strong> {persona.income_level}</li>
-                          <li><strong>Location:</strong> {persona.location}</li>
-                        </ul>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">Key Insights</h4>
-                        <ul className="space-y-1 text-sm text-gray-600">
-                          <li><strong>Biggest Problem:</strong> {persona.biggest_problem}</li>
-                          <li><strong>Primary Goal:</strong> {persona.primary_goal}</li>
-                          <li><strong>Communication Style:</strong> {persona.communication_style}</li>
-                          <li><strong>Current Solution:</strong> {persona.current_solution}</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Copy-Paste Ready Content */}
-                  <div className="border rounded-lg p-6 bg-white">
-                    <h4 className="font-semibold text-gray-800 mb-4">📋 Copy-Paste Ready Content for CSP</h4>
-                    
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 rounded p-4">
-                        <h5 className="font-medium text-gray-700 mb-2">Contact Tag:</h5>
-                        <code className="bg-white px-2 py-1 rounded text-sm">{persona.name.replace(/\s+/g, '_')}</code>
-                      </div>
-
-                      <div className="bg-gray-50 rounded p-4">
-                        <h5 className="font-medium text-gray-700 mb-2">Pain Points (for email sequences):</h5>
-                        <div className="bg-white p-3 rounded text-sm">
-                          {persona.pain_points && persona.pain_points.length > 0 ? (
-                            <ul className="list-disc list-inside space-y-1">
-                              {persona.pain_points.map((pain, idx) => (
-                                <li key={idx}>{pain}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p>{persona.biggest_problem}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 rounded p-4">
-                        <h5 className="font-medium text-gray-700 mb-2">Goals (for value propositions):</h5>
-                        <div className="bg-white p-3 rounded text-sm">
-                          {persona.goals && persona.goals.length > 0 ? (
-                            <ul className="list-disc list-inside space-y-1">
-                              {persona.goals.map((goal, idx) => (
-                                <li key={idx}>{goal}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p>{persona.primary_goal}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      {persona.platforms_active && persona.platforms_active.length > 0 && (
-                        <div className="bg-gray-50 rounded p-4">
-                          <h5 className="font-medium text-gray-700 mb-2">Active Platforms (for targeting):</h5>
-                          <div className="bg-white p-3 rounded text-sm">
-                            {persona.platforms_active.join(', ')}
-                          </div>
-                        </div>
-                      )}
-
-                      {persona.additional_notes && (
-                        <div className="bg-gray-50 rounded p-4">
-                          <h5 className="font-medium text-gray-700 mb-2">Additional Notes:</h5>
-                          <div className="bg-white p-3 rounded text-sm">
-                            {persona.additional_notes}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Next Steps */}
+            {/* Next Steps Section */}
             <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">Next Steps & Integration</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b pb-3">🚀 Next Steps</h2>
               
-              <div className="space-y-6">
-                <div className="bg-blue-50 rounded-lg p-6">
-                  <h3 className="font-semibold text-blue-800 mb-4">🔄 How This Connects to Future Steps</h3>
-                  <ul className="space-y-2 text-blue-700">
-                    <li><strong>Step 2 - Marketing Funnel Mapping:</strong> These personas will determine funnel stages and content</li>
-                    <li><strong>Step 3 - Lead Intelligence:</strong> Persona data will drive lead scoring and qualification</li>
-                    <li><strong>Step 4 - Signature Funnel Build:</strong> Funnels will be persona-specific and targeted</li>
-                    <li><strong>Step 5 - Sales Pipeline:</strong> Sales processes will address persona-specific objections</li>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-green-50 rounded-lg p-6">
+                  <h3 className="font-semibold text-green-800 mb-4">Immediate Actions</h3>
+                  <ul className="space-y-2 text-green-700 text-sm">
+                    <li>• Import personas into CSP as contact tags</li>
+                    <li>• Set up custom fields for persona data</li>
+                    <li>• Create lead magnets for each persona</li>
+                    <li>• Build persona-specific email sequences</li>
                   </ul>
                 </div>
-
-                <div className="bg-green-50 rounded-lg p-6">
-                  <h3 className="font-semibold text-green-800 mb-4">✅ Implementation Checklist</h3>
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-3">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-green-700">Create contact tags for each persona in CSP</span>
-                    </label>
-                    <label className="flex items-center space-x-3">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-green-700">Set up custom fields for persona data</span>
-                    </label>
-                    <label className="flex items-center space-x-3">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-green-700">Build smart lists for persona segmentation</span>
-                    </label>
-                    <label className="flex items-center space-x-3">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-green-700">Configure lead scoring based on persona fit</span>
-                    </label>
-                    <label className="flex items-center space-x-3">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-green-700">Create persona-specific email templates</span>
-                    </label>
-                  </div>
+                
+                <div className="bg-blue-50 rounded-lg p-6">
+                  <h3 className="font-semibold text-blue-800 mb-4">Advanced Implementation</h3>
+                  <ul className="space-y-2 text-blue-700 text-sm">
+                    <li>• Configure behavioral automation triggers</li>
+                    <li>• Set up platform-specific ad campaigns</li>
+                    <li>• Create persona-based landing pages</li>
+                    <li>• Implement lead scoring workflows</li>
+                  </ul>
                 </div>
               </div>
             </div>
           </>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm p-8">
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-yellow-600 text-2xl">⚠️</span>
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Step 1 Not Completed</h2>
-              <p className="text-gray-600 mb-6">
-                Complete Step 1 to generate your comprehensive ideal client report with persona data and CSP implementation guidelines.
-              </p>
-              <Link 
-                to="/step/1"
-                className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
-              >
-                Go to Step 1
-              </Link>
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+            <div className="text-gray-400 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
             </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Data Available</h2>
+            <p className="text-gray-600 mb-6">
+              Complete Step 1: Ideal Client Refinement to generate your comprehensive report.
+            </p>
+            <Link 
+              to="/step1" 
+              className="inline-flex items-center px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-[#0c7a3a] transition-colors"
+            >
+              Go to Step 1
+            </Link>
           </div>
         )}
 
