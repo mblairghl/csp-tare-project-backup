@@ -462,28 +462,6 @@ const Step1 = () => {
     setTimeout(() => triggerAutoProgression(), 100);
   };
 
-  // Edit/Delete functions
-  const editPersona = (id) => {
-    const persona = addedPersonas.find(p => p.id === id);
-    if (persona) {
-      setManualForm({
-        type: persona.type,
-        title: persona.title,
-        description: persona.description,
-        details: persona.details
-      });
-      setCurrentModalType(persona.type);
-      deletePersona(id); // Remove original
-      setManualModalOpen(true);
-    }
-  };
-
-  const deletePersona = (id) => {
-    const updated = addedPersonas.filter(p => p.id !== id);
-    setAddedPersonas(updated);
-    storageOptimizer.safeSet('step1_added_personas', updated);
-  };
-
   // AI content generation
   const handleAIContentGeneration = async () => {
     setAiModalOpen(true);
