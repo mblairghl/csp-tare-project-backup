@@ -777,7 +777,7 @@ const Step1 = () => {
           <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
         </div>
         
-        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
+        <div className="bg-[#d5e6ed] rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
             {subSteps.map((step, index) => {
               const isUnlocked = isSubStepUnlocked(step.id);
