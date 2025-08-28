@@ -327,20 +327,7 @@ const Step1 = () => {
               </p>
 
               <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Demographics (Age, Location, Income, Role, etc.)
-                  </label>
-                  <textarea
-                    value={idealClient.demographics}
-                    onChange={(e) => handleClientChange('demographics', e.target.value)}
-                    placeholder="e.g., 35-50 years old, business owners in major US cities, $100K+ annual revenue, CEO/Founder of service-based businesses..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
+                {/* Manual/AI Buttons - Moved to TOP */}
                 <div className="flex gap-4">
                   <button
                     onClick={() => openManualModal('Demographics')}
@@ -356,6 +343,19 @@ const Step1 = () => {
                     <Sparkles className="w-4 h-4" />
                     🤖 Get AI Ideas
                   </button>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Demographics (Age, Location, Income, Role, etc.)
+                  </label>
+                  <textarea
+                    value={idealClient.demographics}
+                    onChange={(e) => handleClientChange('demographics', e.target.value)}
+                    placeholder="e.g., 35-50 years old, business owners in major US cities, $100K+ annual revenue, CEO/Founder of service-based businesses..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
                 </div>
 
                 {/* Added Demographics */}
@@ -388,7 +388,7 @@ const Step1 = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                ))}}
               </div>
 
               {hasDemographics && (
@@ -416,20 +416,7 @@ const Step1 = () => {
               </p>
 
               <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Psychographics (Values, Motivations, Mindset, etc.)
-                  </label>
-                  <textarea
-                    value={idealClient.psychographics}
-                    onChange={(e) => handleClientChange('psychographics', e.target.value)}
-                    placeholder="e.g., Achievement-oriented, values efficiency and results, motivated by growth and recognition, prefers premium solutions..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
+                {/* Manual/AI Buttons - Moved to TOP */}
                 <div className="flex gap-4">
                   <button
                     onClick={() => openManualModal('Psychographics')}
@@ -445,6 +432,19 @@ const Step1 = () => {
                     <Sparkles className="w-4 h-4" />
                     🤖 Get AI Ideas
                   </button>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Psychographics (Values, Motivations, Mindset, etc.)
+                  </label>
+                  <textarea
+                    value={idealClient.psychographics}
+                    onChange={(e) => handleClientChange('psychographics', e.target.value)}
+                    placeholder="e.g., Achievement-oriented, values efficiency and results, motivated by growth and recognition, prefers premium solutions..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
                 </div>
 
                 {/* Added Psychographics */}
@@ -505,20 +505,7 @@ const Step1 = () => {
               </p>
 
               <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pain Points & Challenges
-                  </label>
-                  <textarea
-                    value={idealClient.painPoints}
-                    onChange={(e) => handleClientChange('painPoints', e.target.value)}
-                    placeholder="e.g., Inconsistent revenue, time-for-money trap, lack of authority in market, marketing overwhelm..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
+                {/* Manual/AI Buttons - Moved to TOP */}
                 <div className="flex gap-4">
                   <button
                     onClick={() => openManualModal('Pain Points')}
@@ -534,6 +521,19 @@ const Step1 = () => {
                     <Sparkles className="w-4 h-4" />
                     🤖 Get AI Ideas
                   </button>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pain Points & Challenges
+                  </label>
+                  <textarea
+                    value={idealClient.painPoints}
+                    onChange={(e) => handleClientChange('painPoints', e.target.value)}
+                    placeholder="e.g., Inconsistent revenue, time-for-money trap, lack of authority in market, marketing overwhelm..."
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    rows={4}
+                  />
                 </div>
 
                 {/* Added Pain Points */}
@@ -695,7 +695,7 @@ const Step1 = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Component 1: Step Progress Indicator */}
         <div className="text-sm text-gray-500 mb-2">
           STEP 1 OF 9
@@ -708,7 +708,7 @@ const Step1 = () => {
 
         {/* Component 3: Step Objective */}
         <p className="text-base lg:text-lg text-gray-600 mb-6">
-          Define your ideal client persona to create targeted messaging and content that resonates with your perfect customers.
+          Define and refine your ideal client personas to create targeted, effective authority-building content and strategies.
         </p>
 
         {/* Step Completion Indicator */}
@@ -767,7 +767,7 @@ const Step1 = () => {
         </div>
 
         {/* Sub-step Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-sm border border-[#467a8f] border-opacity-20 mb-8">
           <div className="flex flex-wrap">
             {subSteps.map((step, index) => {
               const isUnlocked = isSubStepUnlocked(step.id);
@@ -787,8 +787,8 @@ const Step1 = () => {
                     isActive
                       ? 'border-[#fbae42] bg-orange-50'
                       : isUnlocked
-                      ? 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-                      : 'border-transparent bg-gray-50'
+                      ? 'border-transparent hover:border-gray-300 hover:bg-white hover:bg-opacity-50'
+                      : 'border-transparent bg-transparent'
                   } ${
                     !isUnlocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                   }`}
