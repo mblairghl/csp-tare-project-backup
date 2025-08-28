@@ -118,6 +118,8 @@ const Step1 = () => {
       hasPainPoints
     });
     
+    const isStepComplete = hasDemographics && hasPsychographics;
+    
     // Auto-progress to next sub-step when current one is complete
     if (activeSubStep === 1 && hasDemographics) {
       console.log('Auto-progressing from Demographics to Psychographics');
@@ -301,18 +303,16 @@ const Step1 = () => {
   const isSubStepUnlocked = (stepNumber) => {
     switch (stepNumber) {
       case 1: return true; // Always unlocked
-      case 2: return hasDemographics; // Unlocked when demographics complete
-      case 3: return hasDemographics && hasPsychographics; // Unlocked when first two complete
-      case 4: return hasDemographics && hasPsychographics && hasPainPoints; // Milestone - all complete
+      case 2: return hasDemographics; // Unlocked when personas created
+      case 3: return hasDemographics && hasPsychographics; // Unlocked when refinement complete
       default: return false;
     }
   };
 
   const subSteps = [
-    { id: 1, title: 'Demographics', icon: User },
-    { id: 2, title: 'Psychographics', icon: Target },
-    { id: 3, title: 'Pain Points & Goals', icon: Lightbulb },
-    { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
+    { id: 1, title: 'Create Personas', icon: User },
+    { id: 2, title: 'Manual Refinement', icon: Target },
+    { id: 3, title: 'Milestone Reflection', icon: CheckCircle2 }
   ];
 
   const renderSubStepContent = () => {
@@ -320,8 +320,8 @@ const Step1 = () => {
       case 1:
         return (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Demographics</h3>
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Personas</h3>
               <p className="text-gray-600 mb-6">
                 Define the basic characteristics of your ideal client including age, location, income, and professional role.
               </p>
@@ -409,8 +409,8 @@ const Step1 = () => {
       case 2:
         return (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Psychographics</h3>
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Manual Refinement</h3>
               <p className="text-gray-600 mb-6">
                 Understand their mindset, values, motivations, and behavioral patterns that drive their decisions.
               </p>
@@ -604,7 +604,7 @@ const Step1 = () => {
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="space-y-6">
             {showConfetti && (
@@ -617,7 +617,7 @@ const Step1 = () => {
               />
             )}
             
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
               <div className="text-center">
                 <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-8 h-8 text-white" />
@@ -628,7 +628,7 @@ const Step1 = () => {
                 </h2>
                 
                 <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've defined your ideal client persona with clarity and precision.
+                  Congratulations! You've completed your ideal client refinement with clarity and precision.
                 </p>
 
                 <div className="grid md:grid-cols-2 gap-8 text-left">
@@ -637,19 +637,15 @@ const Step1 = () => {
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Defined clear demographic characteristics</span>
+                        <span className="text-gray-700">Created detailed client personas</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Understood psychographic motivations</span>
+                        <span className="text-gray-700">Completed manual refinement process</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Identified key pain points and challenges</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created a comprehensive client profile</span>
+                        <span className="text-gray-700">Built comprehensive client understanding</span>
                       </li>
                     </ul>
                   </div>
@@ -669,10 +665,6 @@ const Step1 = () => {
                         <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700">Your content will be more targeted</span>
                       </li>
-                      <li className="flex items-start gap-3">
-                        <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll waste less time on wrong-fit clients</span>
-                      </li>
                     </ul>
                   </div>
                 </div>
@@ -680,7 +672,7 @@ const Step1 = () => {
                 <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
                   <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
                   <p className="text-gray-700">
-                    With a clear ideal client profile, every piece of content, every marketing message, and every business decision can now be filtered through this lens. You're no longer trying to appeal to everyone—you're speaking directly to your perfect customer.
+                    With a clear ideal client profile, every piece of content, every marketing message, and every business decision can now be filtered through this lens. You're ready for Step 2 - Content Strategy Audit.
                   </p>
                 </div>
               </div>
@@ -766,16 +758,20 @@ const Step1 = () => {
           )}
         </div>
 
-        {/* Sub-step Navigation */}
-        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-sm border border-[#467a8f] border-opacity-20 mb-8">
+        {/* Action Steps Navigation */}
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Action Steps</h2>
+          <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
+        </div>
+        
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
           <div className="flex flex-wrap">
             {subSteps.map((step, index) => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
-              const isCompleted = step.id < 4 ? (
+              const isCompleted = step.id < 3 ? (
                 step.id === 1 ? hasDemographics :
-                step.id === 2 ? hasPsychographics :
-                step.id === 3 ? hasPainPoints : false
+                step.id === 2 ? hasPsychographics : false
               ) : isStepComplete;
 
               return (
