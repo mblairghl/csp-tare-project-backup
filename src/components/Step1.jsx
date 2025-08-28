@@ -546,33 +546,11 @@ const Step1 = () => {
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Personas</h3>
               <p className="text-gray-600 mb-6">
-                Define the basic characteristics of your ideal client including age, location, income, and professional role.
+                Define your ideal client personas using manual entry or AI-powered research to create detailed client profiles.
               </p>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <h4 className="font-semibold text-blue-900 mb-2">📋 How to Complete This Section</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <h5 className="font-medium text-blue-800 mb-1">✏️ Use Manual Entry If:</h5>
-                    <ul className="text-blue-700 space-y-1">
-                      <li>• You already have a clear idea of your ideal client</li>
-                      <li>• You have existing client data or personas</li>
-                      <li>• You want to input specific demographics you know</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h5 className="font-medium text-blue-800 mb-1">🤖 Use AI Research If:</h5>
-                    <ul className="text-blue-700 space-y-1">
-                      <li>• You need help identifying your ideal client</li>
-                      <li>• You want research-based persona suggestions</li>
-                      <li>• You're looking for detailed behavioral insights</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
               <div className="space-y-6">
-                {/* Manual/AI Buttons - Moved to TOP */}
+                {/* Manual/AI Buttons */}
                 <div className="flex gap-4">
                   <button
                     onClick={() => openManualModal('Demographics')}
@@ -588,19 +566,6 @@ const Step1 = () => {
                     <Sparkles className="w-4 h-4" />
                     🤖 Get AI Research
                   </button>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Demographics (Age, Location, Income, Role, etc.)
-                  </label>
-                  <textarea
-                    value={idealClient.demographics}
-                    onChange={(e) => handleClientChange('demographics', e.target.value)}
-                    placeholder="e.g., 35-50 years old, business owners in major US cities, $100K+ annual revenue, CEO/Founder of service-based businesses..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
                 </div>
 
                 {/* Added Demographics */}
@@ -727,84 +692,177 @@ const Step1 = () => {
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Manual Refinement</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Refine Personas</h3>
               <p className="text-gray-600 mb-6">
-                Understand their mindset, values, motivations, and behavioral patterns that drive their decisions.
+                Review and refine the personas you created in Step 1. Add additional details, edit existing information, or remove personas that don't fit your ideal client profile.
               </p>
 
               <div className="space-y-6">
-                {/* Manual/AI Buttons - Moved to TOP */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Psychographics')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Psychographics')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Research
-                  </button>
-                </div>
+                {/* Show all personas from Step 1 for refinement */}
+                {addedPersonas.length > 0 ? (
+                  <>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                      <h4 className="font-semibold text-blue-900 mb-2">📝 Persona Refinement</h4>
+                      <p className="text-blue-800 text-sm">
+                        Below are the personas you created in Step 1. You can edit, delete, or add more details to each persona to better define your ideal client profile.
+                      </p>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Psychographics (Values, Motivations, Mindset, etc.)
-                  </label>
-                  <textarea
-                    value={idealClient.psychographics}
-                    onChange={(e) => handleClientChange('psychographics', e.target.value)}
-                    placeholder="e.g., Achievement-oriented, values efficiency and results, motivated by growth and recognition, prefers premium solutions..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Added Psychographics */}
-                {addedPersonas.filter(p => p.type === 'Psychographics').map((persona) => (
-                  <div key={persona.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{persona.title}</h4>
-                        <p className="text-gray-600 mt-1">{persona.description}</p>
-                        {persona.details && (
-                          <p className="text-gray-500 text-sm mt-2">{persona.details}</p>
+                    {addedPersonas.map((persona) => (
+                      <div key={persona.id} className="bg-white rounded-lg p-6 border border-gray-200 shadow-md hover:shadow-lg transition-all duration-200">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex-1">
+                            <h4 className="text-lg font-bold text-gray-900">{persona.title}</h4>
+                            <p className="text-gray-600 mt-1 font-medium">{persona.description}</p>
+                            {persona.summary && (
+                              <p className="text-sm text-gray-500 mt-2 italic">{persona.summary}</p>
+                            )}
+                            <span className="inline-block mt-3 px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
+                              {persona.source === 'ai' ? '🤖 AI Research-Based' : '✏️ Manual Entry'}
+                            </span>
+                          </div>
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => editPersona(persona.id)}
+                              className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                              title="Edit Persona"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => deletePersona(persona.id)}
+                              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                              title="Delete Persona"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Full AI Details */}
+                        {persona.source === 'ai' && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 rounded-lg">
+                            <div className="space-y-3">
+                              {persona.keyBehaviors && (
+                                <div>
+                                  <h5 className="font-semibold text-gray-800 text-sm mb-1">🎯 Key Behaviors</h5>
+                                  <p className="text-gray-600 text-sm">{persona.keyBehaviors}</p>
+                                </div>
+                              )}
+                              
+                              {persona.platformPreferences && (
+                                <div>
+                                  <h5 className="font-semibold text-gray-800 text-sm mb-1">📱 Platform Preferences</h5>
+                                  <p className="text-gray-600 text-sm">{persona.platformPreferences}</p>
+                                </div>
+                              )}
+                              
+                              {persona.motivations && (
+                                <div>
+                                  <h5 className="font-semibold text-gray-800 text-sm mb-1">💭 Motivations</h5>
+                                  <p className="text-gray-600 text-sm">{persona.motivations}</p>
+                                </div>
+                              )}
+                              
+                              {persona.frustrations && (
+                                <div>
+                                  <h5 className="font-semibold text-gray-800 text-sm mb-1">😤 Frustrations</h5>
+                                  <p className="text-gray-600 text-sm italic">{persona.frustrations}</p>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="space-y-3">
+                              {persona.favoriteBrands && (
+                                <div>
+                                  <h5 className="font-semibold text-gray-800 text-sm mb-1">🛍️ Favorite Brands</h5>
+                                  <p className="text-gray-600 text-sm">{persona.favoriteBrands}</p>
+                                </div>
+                              )}
+                              
+                              {persona.buyingTriggers && (
+                                <div>
+                                  <h5 className="font-semibold text-gray-800 text-sm mb-1">⚡ Buying Triggers</h5>
+                                  <p className="text-gray-600 text-sm">{persona.buyingTriggers}</p>
+                                </div>
+                              )}
+                              
+                              {persona.contentResonance && (
+                                <div>
+                                  <h5 className="font-semibold text-gray-800 text-sm mb-1">📈 Content Resonance</h5>
+                                  <p className="text-gray-600 text-sm">{persona.contentResonance}</p>
+                                </div>
+                              )}
+                              
+                              {persona.unmetNeeds && (
+                                <div>
+                                  <h5 className="font-semibold text-gray-800 text-sm mb-1">🔍 Unmet Needs</h5>
+                                  <p className="text-gray-600 text-sm font-medium text-red-600">{persona.unmetNeeds}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {persona.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
+                        
+                        {/* Manual Entry Details */}
+                        {persona.source === 'manual' && persona.details && (
+                          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                            <h5 className="font-semibold text-gray-800 text-sm mb-2">📝 Additional Details</h5>
+                            <p className="text-gray-600 text-sm">{persona.details}</p>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex gap-2 ml-4">
+                    ))}
+
+                    {/* Add More Personas Option */}
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <h4 className="font-semibold text-gray-700 mb-2">Want to add more personas?</h4>
+                      <p className="text-gray-600 text-sm mb-4">You can add additional personas to create a more comprehensive client profile.</p>
+                      <div className="flex gap-4 justify-center">
                         <button
-                          onClick={() => editPersona(persona.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                          onClick={() => openManualModal('Demographics')}
+                          className="px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Plus className="w-4 h-4" />
+                          Add Manual Entry
                         </button>
                         <button
-                          onClick={() => deletePersona(persona.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                          onClick={() => openAiSuggestionsModal('Demographics')}
+                          className="px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Sparkles className="w-4 h-4" />
+                          🤖 Get AI Research
                         </button>
                       </div>
                     </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400 mb-4">
+                      <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-700 mb-2">No Personas Created Yet</h4>
+                    <p className="text-gray-600 mb-6">Go back to Step 1 to create your first persona, then return here to refine it.</p>
+                    <button
+                      onClick={() => setActiveSubStep(1)}
+                      className="px-6 py-3 bg-[#0e9246] text-white rounded-md hover:bg-[#0c7a3a] font-medium transition-colors duration-200"
+                    >
+                      Go to Step 1
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
 
-              {hasPsychographics && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+              {addedPersonas.length > 0 && (
+                <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Psychographics Complete!</span>
+                    <span className="font-medium">Personas Ready for Refinement!</span>
                   </div>
                   <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to pain points and goals.
+                    You have {addedPersonas.length} persona{addedPersonas.length !== 1 ? 's' : ''} ready to refine. Edit any details above to perfect your ideal client profile.
                   </p>
                 </div>
               )}
