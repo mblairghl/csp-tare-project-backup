@@ -323,11 +323,24 @@ const Step7 = () => {
   };
 
   const howThisWorksContent = {
-    description: "Build comprehensive performance tracking systems to monitor your business growth, optimize operations, and make data-driven decisions.",
+    title: "How This Step Works",
+    description: "Follow these Action Steps to build comprehensive performance tracking systems for data-driven business decisions.",
     steps: [
-      { title: 'KPIs Planning', description: 'Define and track key performance indicators for your business.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
-      { title: 'Dashboard Layout', description: 'Build visual dashboards for real-time performance monitoring.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
-      { title: 'Reporting Schedule', description: 'Create automated reporting for stakeholders and decision-making.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
+      {
+        title: "KPIs Planning",
+        description: "Define and establish key performance indicators that align with your business goals and revenue targets.",
+        color: "bg-[#fbae42]"
+      },
+      {
+        title: "Dashboard Layout", 
+        description: "Design visual dashboards that provide real-time insights into your business performance and metrics.",
+        color: "bg-[#0e9246]"
+      },
+      {
+        title: "Reporting Schedule",
+        description: "Create automated reporting systems for regular performance reviews and strategic decision-making.",
+        color: "bg-[#467a8f]"
+      }
     ]
   };
 
@@ -851,19 +864,19 @@ const Step7 = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Component 1: Step Progress Indicator */}
         <div className="text-sm text-gray-500 mb-2">
           STEP 7 OF 9
         </div>
 
         {/* Component 2: Step Name */}
-        <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-4">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
           Metrics & Monitoring
         </h1>
 
         {/* Component 3: Step Objective */}
-        <p className="text-base lg:text-lg text-gray-600 mb-6">
+        <p className="text-lg text-gray-600 mb-6">
           Build comprehensive performance tracking systems to monitor your business growth, optimize operations, and make data-driven decisions.
         </p>
 
@@ -881,7 +894,7 @@ const Step7 = () => {
         )}
 
         {/* Component 4: How This Works Section */}
-        <div className={`rounded-lg shadow-sm border border-gray-200 mb-6 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
+        <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
             className="w-full px-6 py-4 flex items-center justify-between text-left"
@@ -890,7 +903,7 @@ const Step7 = () => {
               <div className="w-8 h-8 bg-[#0e9246] rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-bold">?</span>
               </div>
-              <span className="text-lg font-semibold text-gray-900">How This Works</span>
+              <span className="text-lg font-semibold text-gray-900">How This Step Works</span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-[#0e9246] font-medium">Expand</span>
@@ -922,8 +935,14 @@ const Step7 = () => {
           )}
         </div>
 
+        {/* Action Steps Navigation */}
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Action Steps</h2>
+          <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
+        </div>
+        
         {/* Sub-step Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
             {subSteps.map((step, index) => {
               const isUnlocked = isSubStepUnlocked(step.id);

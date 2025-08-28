@@ -319,11 +319,24 @@ const Step3 = () => {
   };
 
   const howThisWorksContent = {
-    description: "Analyze your current lead sources, identify expansion opportunities, and set up intelligent lead management systems.",
+    title: "How This Step Works",
+    description: "Follow these Action Steps to analyze your lead sources, identify expansion opportunities, and set up intelligent systems.",
     steps: [
-      { title: 'Current Sources', description: 'Audit and optimize your existing lead generation channels.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
-      { title: 'Expansion', description: 'Identify new opportunities to reach your ideal clients.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
-      { title: 'CSP Setup', description: 'Configure intelligent lead management and automation.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
+      {
+        title: "Current Sources",
+        description: "Audit and analyze your existing lead generation channels to understand what's working best.",
+        color: "bg-[#fbae42]"
+      },
+      {
+        title: "Expansion Opportunities", 
+        description: "Identify new channels and strategies to reach more of your ideal clients effectively.",
+        color: "bg-[#0e9246]"
+      },
+      {
+        title: "CSP Setup",
+        description: "Configure intelligent lead management systems and automation to scale your acquisition.",
+        color: "bg-[#467a8f]"
+      }
     ]
   };
 
@@ -731,20 +744,20 @@ const Step3 = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Component 1: Step Progress Indicator */}
         <div className="text-sm text-gray-500 mb-2">
           STEP 3 OF 9
         </div>
 
         {/* Component 2: Step Name */}
-        <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-4">
-          Lead Intelligence
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          Lead Generation Expansion
         </h1>
 
         {/* Component 3: Step Objective */}
-        <p className="text-base lg:text-lg text-gray-600 mb-6">
-          Analyze your current lead sources, identify expansion opportunities, and set up intelligent lead management systems.
+        <p className="text-lg text-gray-600 mb-6">
+          Analyze your current lead sources, identify expansion opportunities, and set up systems to scale your client acquisition.
         </p>
 
         {/* Step Completion Indicator */}
@@ -761,7 +774,7 @@ const Step3 = () => {
         )}
 
         {/* Component 4: How This Works Section */}
-        <div className={`rounded-lg shadow-sm border border-gray-200 mb-6 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
+        <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
             className="w-full px-6 py-4 flex items-center justify-between text-left"
@@ -770,7 +783,7 @@ const Step3 = () => {
               <div className="w-8 h-8 bg-[#0e9246] rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-bold">?</span>
               </div>
-              <span className="text-lg font-semibold text-gray-900">How This Works</span>
+              <span className="text-lg font-semibold text-gray-900">How This Step Works</span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-[#0e9246] font-medium">Expand</span>
@@ -802,8 +815,14 @@ const Step3 = () => {
           )}
         </div>
 
+        {/* Action Steps Navigation */}
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Action Steps</h2>
+          <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
+        </div>
+        
         {/* Sub-step Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
             {subSteps.map((step, index) => {
               const isUnlocked = isSubStepUnlocked(step.id);
