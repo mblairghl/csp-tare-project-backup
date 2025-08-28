@@ -4,6 +4,7 @@ import Confetti from 'react-confetti';
 import StepFooter from './StepFooter';
 import AIModal from './AIModal';
 import APIKeyModal from './APIKeyModal';
+import ManualPersonaForm from './ManualPersonaForm';
 import aiService from '../services/aiService';
 import storageOptimizer from '../utils/storageOptimizer';
 
@@ -31,6 +32,7 @@ const Step1 = () => {
   const [manualModalOpen, setManualModalOpen] = useState(false);
   const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
   const [currentModalType, setCurrentModalType] = useState('');
+  const [editingPersona, setEditingPersona] = useState(null);
 
   // Persona data
   const [idealClient, setIdealClient] = useState({
@@ -153,34 +155,45 @@ const Step1 = () => {
   // Manual entry functions
   const openManualModal = (type) => {
     setCurrentModalType(type);
-    setManualForm({
-      type: type,
-      title: '',
-      description: '',
-      details: ''
-    });
+    setEditingPersona(null);
     setManualModalOpen(true);
   };
 
-  const handleManualSubmit = () => {
-    if (manualForm.title && manualForm.description) {
-      const newPersona = {
-        id: Date.now(),
-        type: manualForm.type,
-        title: manualForm.title,
-        description: manualForm.description,
-        details: manualForm.details,
-        source: 'manual'
-      };
-      
-      const updated = [...addedPersonas, newPersona];
+  const editPersona = (personaId) => {
+    const persona = addedPersonas.find(p => p.id === personaId);
+    if (persona) {
+      setEditingPersona(persona);
+      setManualModalOpen(true);
+    }
+  };
+
+  const handleManualPersonaSave = (personaData) => {
+    if (editingPersona) {
+      // Update existing persona
+      const updated = addedPersonas.map(p => 
+        p.id === editingPersona.id ? { ...personaData, id: editingPersona.id } : p
+      );
       setAddedPersonas(updated);
       storageOptimizer.safeSet('step1_added_personas', updated);
-      setManualModalOpen(false);
-      
-      // Trigger auto-progression check after adding manual entry
-      setTimeout(() => triggerAutoProgression(), 100);
+    } else {
+      // Add new persona
+      const updated = [...addedPersonas, personaData];
+      setAddedPersonas(updated);
+      storageOptimizer.safeSet('step1_added_personas', updated);
     }
+    
+    setEditingPersona(null);
+    // Trigger auto-progression check after adding/editing persona
+    setTimeout(() => triggerAutoProgression(), 100);
+  };
+
+  const deletePersona = (personaId) => {
+    const updated = addedPersonas.filter(p => p.id !== personaId);
+    setAddedPersonas(updated);
+    storageOptimizer.safeSet('step1_added_personas', updated);
+    
+    // Trigger auto-progression check after deleting persona
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // AI suggestions functions
@@ -1072,86 +1085,16 @@ const Step1 = () => {
           {renderSubStepContent()}
         </div>
 
-        {/* Manual Entry Modal */}
-        {manualModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
-                <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                  <select
-                    value={manualForm.type}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                  >
-                    <option value="">Select type...</option>
-                    <option value="Demographics">Demographics</option>
-                    <option value="Psychographics">Psychographics</option>
-                    <option value="Pain Points">Pain Points</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                  <input
-                    type="text"
-                    value={manualForm.title}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Business Owners (35-55)"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <textarea
-                    value={manualForm.description}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Brief description..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
-                  <textarea
-                    value={manualForm.details}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
-                    placeholder="Additional details (optional)..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
-                  />
-                </div>
-              </div>
-              
-              <div className="flex gap-3 p-6 border-t">
-                <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleManualSubmit}
-                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
-                >
-                  Add Entry
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Manual Persona Form Modal */}
+        <ManualPersonaForm
+          isOpen={manualModalOpen}
+          onClose={() => {
+            setManualModalOpen(false);
+            setEditingPersona(null);
+          }}
+          onSave={handleManualPersonaSave}
+          editingPersona={editingPersona}
+        />
 
         {/* AI Suggestions Modal */}
         {aiSuggestionsModalOpen && (
