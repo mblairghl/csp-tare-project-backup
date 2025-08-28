@@ -183,14 +183,25 @@ const Step1 = () => {
   // AI suggestions functions
   const openAiSuggestionsModal = async (type) => {
     setCurrentModalType(type);
-    setAiSuggestionsModalOpen(true);
     
     // Generate AI suggestions based on type
     const suggestions = generateAiSuggestions(type);
+    console.log('Generated suggestions for type:', type, suggestions);
     setAiSuggestions(suggestions);
+    setAiSuggestionsModalOpen(true);
   };
 
   const generateAiSuggestions = (type) => {
+    // Map the button types to the suggestion key
+    const typeMapping = {
+      'Demographics': 'Create Personas',
+      'Psychographics': 'Create Personas',
+      'Create Personas': 'Create Personas'
+    };
+    
+    const mappedType = typeMapping[type] || type;
+    console.log('Type mapping:', type, '->', mappedType);
+    
     const suggestionsByType = {
       'Create Personas': [
         { 
@@ -376,7 +387,7 @@ const Step1 = () => {
       ]
     };
     
-    return suggestionsByType[type] || [];
+    return suggestionsByType[mappedType] || [];
   };
 
   const addAiSuggestion = (suggestion) => {
