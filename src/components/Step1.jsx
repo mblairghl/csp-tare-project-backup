@@ -102,11 +102,8 @@ const Step1 = () => {
     }
   }, [idealClient, addedPersonas, isStepComplete]);
 
-  // Auto-progression logic for sub-steps
-  useEffect(() => {
-    // Don't auto-progress on initial load
-    if (isInitialLoad) return;
-    
+  // Auto-progression logic for sub-steps - ONLY on user actions
+  const triggerAutoProgression = () => {
     const hasDemographics = (idealClient.demographics && idealClient.demographics.trim().length > 0) || 
                            addedPersonas.some(p => p.type === 'Demographics');
     const hasPsychographics = (idealClient.psychographics && idealClient.psychographics.trim().length > 0) || 
@@ -114,19 +111,11 @@ const Step1 = () => {
     const hasPainPoints = (idealClient.painPoints && idealClient.painPoints.trim().length > 0) || 
                          addedPersonas.some(p => p.type === 'Pain Points');
     
-    // Debug logging
-    console.log('Step 1 Auto-progression Check:', {
-      isInitialLoad,
+    console.log('Manual Auto-progression Trigger:', {
       activeSubStep,
       hasDemographics,
       hasPsychographics,
-      hasPainPoints,
-      demographicsText: idealClient.demographics?.length || 0,
-      demographicsPersonas: addedPersonas.filter(p => p.type === 'Demographics').length,
-      psychographicsText: idealClient.psychographics?.length || 0,
-      psychographicsPersonas: addedPersonas.filter(p => p.type === 'Psychographics').length,
-      painPointsText: idealClient.painPoints?.length || 0,
-      painPointsPersonas: addedPersonas.filter(p => p.type === 'Pain Points').length
+      hasPainPoints
     });
     
     // Auto-progress to next sub-step when current one is complete
@@ -140,7 +129,7 @@ const Step1 = () => {
       console.log('Auto-progressing from Pain Points to Milestone');
       setTimeout(() => setActiveSubStep(4), 500);
     }
-  }, [idealClient, addedPersonas, activeSubStep, isInitialLoad]);
+  };
 
   const handleSaveApiKey = (apiKey) => {
     aiService.setApiKey(apiKey);
@@ -151,6 +140,9 @@ const Step1 = () => {
     const updated = { ...idealClient, [field]: value };
     setIdealClient(updated);
     storageOptimizer.safeSet('step1_ideal_client', updated);
+    
+    // Trigger auto-progression check after user input
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Manual entry functions
@@ -180,6 +172,9 @@ const Step1 = () => {
       setAddedPersonas(updated);
       storageOptimizer.safeSet('step1_added_personas', updated);
       setManualModalOpen(false);
+      
+      // Trigger auto-progression check after adding manual entry
+      setTimeout(() => triggerAutoProgression(), 100);
     }
   };
 
@@ -237,6 +232,9 @@ const Step1 = () => {
     
     // Remove suggestion from list
     setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    
+    // Trigger auto-progression check after adding AI suggestion
+    setTimeout(() => triggerAutoProgression(), 100);
   };
 
   // Edit/Delete functions
