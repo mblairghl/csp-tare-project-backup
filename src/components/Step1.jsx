@@ -796,10 +796,80 @@ const Step1 = () => {
                         )}
                         
                         {/* Manual Entry Details */}
-                        {persona.source === 'manual' && persona.details && (
-                          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                            <h5 className="font-semibold text-gray-800 text-sm mb-2">📝 Additional Details</h5>
-                            <p className="text-gray-600 text-sm">{persona.details}</p>
+                        {persona.source === 'manual' && (
+                          <div className="mt-4 space-y-4">
+                            {/* Show all manual persona fields similar to AI personas */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                              <div className="space-y-3">
+                                {persona.keyBehaviors && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">🎯 Key Behaviors</h5>
+                                    <p className="text-gray-600 text-sm">{persona.keyBehaviors}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.platformPreferences && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">📱 Platform Preferences</h5>
+                                    <p className="text-gray-600 text-sm">{persona.platformPreferences}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.motivations && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">💭 Motivations</h5>
+                                    <p className="text-gray-600 text-sm">{persona.motivations}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.frustrations && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">😤 Frustrations</h5>
+                                    <p className="text-gray-600 text-sm italic">{persona.frustrations}</p>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="space-y-3">
+                                {persona.favoriteBrands && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">🛍️ Favorite Brands</h5>
+                                    <p className="text-gray-600 text-sm">{persona.favoriteBrands}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.buyingTriggers && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">⚡ Buying Triggers</h5>
+                                    <p className="text-gray-600 text-sm">{persona.buyingTriggers}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.contentResonance && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">📈 Content Resonance</h5>
+                                    <p className="text-gray-600 text-sm">{persona.contentResonance}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.unmetNeeds && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">🔍 Unmet Needs</h5>
+                                    <p className="text-gray-600 text-sm font-medium text-red-600">{persona.unmetNeeds}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Additional Details */}
+                            {persona.details && (
+                              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <h5 className="font-semibold text-blue-800 text-sm mb-2">📄 Document Content & Additional Details</h5>
+                                <div className="text-blue-700 text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
+                                  {persona.details}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

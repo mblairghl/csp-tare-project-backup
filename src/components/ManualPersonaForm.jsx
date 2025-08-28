@@ -69,13 +69,40 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
       setUploadedFile(file);
       setShowUploadSuccess(true);
       
-      // Auto-fill basic fields from filename if possible
-      const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-      if (!formData.title) {
+      // Read file content
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileContent = event.target.result;
+        
+        // Auto-fill fields from filename and content
+        const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+        
         setFormData(prev => ({
           ...prev,
-          title: fileName.charAt(0).toUpperCase() + fileName.slice(1),
-          details: `Uploaded document: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+          title: prev.title || fileName.charAt(0).toUpperCase() + fileName.slice(1),
+          description: prev.description || `Persona created from uploaded document: ${file.name}`,
+          details: `UPLOADED DOCUMENT CONTENT:\n\n${fileContent}\n\n---\nFile: ${file.name} (${(file.size / 1024).toFixed(1)} KB)\nUploaded: ${new Date().toLocaleString()}`,
+          // Try to extract some basic info for other fields
+          summary: prev.summary || `Persona profile extracted from ${file.name}`,
+          keyBehaviors: prev.keyBehaviors || 'Content extracted from uploaded document - please review and edit as needed',
+          motivations: prev.motivations || 'Content extracted from uploaded document - please review and edit as needed'
+        }));
+      };
+      
+      // Read as text for most file types
+      if (file.type.includes('text') || file.name.endsWith('.txt')) {
+        reader.readAsText(file);
+      } else {
+        // For other file types, show filename and prompt for manual entry
+        const fileName = file.name.replace(/\.[^/.]+$/, "");
+        setFormData(prev => ({
+          ...prev,
+          title: prev.title || fileName.charAt(0).toUpperCase() + fileName.slice(1),
+          description: prev.description || `Persona created from uploaded document: ${file.name}`,
+          details: `UPLOADED DOCUMENT: ${file.name}\n\nFile Size: ${(file.size / 1024).toFixed(1)} KB\nUploaded: ${new Date().toLocaleString()}\n\nNote: This file type requires manual content extraction. Please fill in the persona details above based on your document content, or convert your document to a text file (.txt) for automatic content extraction.`,
+          summary: prev.summary || `Persona profile from ${file.name} - please add details from your document`,
+          keyBehaviors: prev.keyBehaviors || 'Please add key behaviors from your uploaded document',
+          motivations: prev.motivations || 'Please add motivations from your uploaded document'
         }));
       }
     }
@@ -311,7 +338,7 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
                       <p className="text-green-800 font-medium text-sm">✅ Document Uploaded Successfully!</p>
                       <p className="text-green-700 text-xs">File: {uploadedFile.name} ({(uploadedFile.size / 1024).toFixed(1)} KB)</p>
                       <p className="text-green-700 text-xs mt-1">
-                        <strong>Next Step:</strong> Click "Create Persona" below to save this document as a persona. You can optionally fill in additional fields above or just use the document as-is.
+                        <strong>Content Extracted:</strong> Document content has been automatically filled into the form fields above. Review and edit as needed, then click "Create Persona from Document" below.
                       </p>
                     </div>
                   </div>
