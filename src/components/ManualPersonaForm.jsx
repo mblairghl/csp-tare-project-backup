@@ -95,9 +95,14 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
           {/* Basic Information */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <h3 className="font-semibold text-blue-900 mb-2">📋 Persona Information</h3>
-            <p className="text-blue-800 text-sm">
+            <p className="text-blue-800 text-sm mb-2">
               Fill out the same fields that AI personas include to create a comprehensive client profile.
             </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mt-3">
+              <p className="text-yellow-800 text-sm">
+                💡 <strong>Already have a persona document?</strong> You can upload your existing Word doc, Google doc, PDF, or other persona documentation using the upload button at the bottom instead of typing everything manually.
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -242,20 +247,56 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
           </div>
 
           {/* Form Actions */}
-          <div className="flex gap-3 pt-6 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] transition-colors"
-            >
-              {editingPersona ? 'Update Persona' : 'Create Persona'}
-            </button>
+          <div className="space-y-4 pt-6 border-t">
+            {/* Document Upload Option */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-800 mb-2">📄 Upload Existing Document</h4>
+              <p className="text-gray-600 text-sm mb-3">
+                Have a persona document already? Upload your Word doc, PDF, Google doc, or any other persona documentation instead of filling out the form manually.
+              </p>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.txt,.rtf"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    // For now, just show the filename - you can implement actual file processing later
+                    alert(`File "${file.name}" selected. File processing will be implemented to extract persona data automatically.`);
+                  }
+                }}
+                className="hidden"
+                id="persona-document-upload"
+              />
+              <label
+                htmlFor="persona-document-upload"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] cursor-pointer transition-colors font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Upload Document
+              </label>
+              <p className="text-xs text-gray-500 mt-2">
+                Supported formats: PDF, Word (.doc/.docx), Text (.txt), RTF
+              </p>
+            </div>
+
+            {/* Form Buttons */}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] transition-colors"
+              >
+                {editingPersona ? 'Update Persona' : 'Create Persona'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
