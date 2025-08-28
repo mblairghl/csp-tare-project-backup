@@ -283,15 +283,28 @@ const Step1 = () => {
   };
 
   const howThisWorksContent = {
-    description: "Define your ideal client persona to create targeted messaging and content that resonates with your perfect customers.",
+    title: "How This Step Works",
+    description: "Follow these Action Steps to define your ideal client and create targeted messaging that resonates with your perfect customers.",
     steps: [
-      { title: 'Demographics', description: 'Define the basic characteristics of your ideal client including age, location, income, and professional role.', color: 'bg-[#467A8f]', textColor: '#467A8f' },
-      { title: 'Psychographics', description: 'Understand their mindset, values, motivations, and behavioral patterns.', color: 'bg-[#0e9246]', textColor: '#0e9246' },
-      { title: 'Pain Points & Goals', description: 'Identify their challenges, frustrations, and desired outcomes.', color: 'bg-[#fbae42]', textColor: '#fbae42' }
+      {
+        title: "Create Personas",
+        description: "Define your ideal client's demographics, characteristics, and basic profile using manual entry or AI suggestions.",
+        color: "bg-[#fbae42]"
+      },
+      {
+        title: "Manual Refinement", 
+        description: "Dive deeper into their psychographics, mindset, values, and behavioral patterns that drive decisions.",
+        color: "bg-[#0e9246]"
+      },
+      {
+        title: "Milestone Reflection",
+        description: "Review your completed client profile and celebrate your progress before moving to Step 2.",
+        color: "bg-[#467a8f]"
+      }
     ]
   };
 
-  // Check section completion for tab progression - UNIFIED LOGIC
+  // Completion logic
   const hasDemographics = (idealClient.demographics && idealClient.demographics.trim().length > 0) || 
                          addedPersonas.some(p => p.type === 'Demographics');
   const hasPsychographics = (idealClient.psychographics && idealClient.psychographics.trim().length > 0) || 
@@ -320,7 +333,7 @@ const Step1 = () => {
       case 1:
         return (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Personas</h3>
               <p className="text-gray-600 mb-6">
                 Define the basic characteristics of your ideal client including age, location, income, and professional role.
@@ -409,7 +422,7 @@ const Step1 = () => {
       case 2:
         return (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Manual Refinement</h3>
               <p className="text-gray-600 mb-6">
                 Understand their mindset, values, motivations, and behavioral patterns that drive their decisions.
@@ -617,7 +630,7 @@ const Step1 = () => {
               />
             )}
             
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
               <div className="text-center">
                 <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 className="w-8 h-8 text-white" />
@@ -717,7 +730,7 @@ const Step1 = () => {
         )}
 
         {/* Component 4: How This Works Section */}
-        <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
+        <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
             className="w-full px-6 py-4 flex items-center justify-between text-left"
@@ -726,7 +739,7 @@ const Step1 = () => {
               <div className="w-8 h-8 bg-[#0e9246] rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-bold">?</span>
               </div>
-              <span className="text-lg font-semibold text-gray-900">How This Works</span>
+              <span className="text-lg font-semibold text-gray-900">How This Step Works</span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-[#0e9246] font-medium">Expand</span>
@@ -764,7 +777,7 @@ const Step1 = () => {
           <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
         </div>
         
-        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
             {subSteps.map((step, index) => {
               const isUnlocked = isSubStepUnlocked(step.id);
