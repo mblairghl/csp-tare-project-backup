@@ -532,124 +532,118 @@ const Step3 = () => {
         );
 
       case 3:
+        // Trigger confetti when Sub Step 3 opens
+        React.useEffect(() => {
+          if (activeSubStep === 3) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 5000);
+          }
+        }, [activeSubStep]);
+
         return (
           <div className="space-y-6">
+            {showConfetti && activeSubStep === 3 && (
+              <Confetti
+                width={windowDimensions.width}
+                height={windowDimensions.height}
+                recycle={false}
+                numberOfPieces={200}
+                gravity={0.3}
+              />
+            )}
+            
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">CSP Setup</h3>
-              <p className="text-gray-600 mb-6">
-                Configure your Cultivating Sales Platform for intelligent lead management, scoring, and automation.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Lead Scoring Criteria
-                  </label>
-                  <textarea
-                    value={cspSetup.leadScoring}
-                    onChange={(e) => handleSetupChange('leadScoring', e.target.value)}
-                    placeholder="Define how leads will be scored: demographics, behavior, engagement, company size..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Automation Rules
-                  </label>
-                  <textarea
-                    value={cspSetup.automationRules}
-                    onChange={(e) => handleSetupChange('automationRules', e.target.value)}
-                    placeholder="Define automation triggers: email sequences, notifications, follow-up actions..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('CSP Setup')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('CSP Setup')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added CSP Setup Items */}
-                {addedLeadItems.filter(i => i.type === 'CSP Setup').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editLeadItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteLeadItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Step 3 Milestone Celebration!</h3>
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#0e9246] rounded-full flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-white" />
                   </div>
-                ))}
-              </div>
-
-              {hasCSPSetup && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">CSP Setup Complete!</span>
+                  <div>
+                    <h4 className="text-lg font-bold text-gray-900">Congratulations! 🎊</h4>
+                    <p className="text-gray-600">You've completed your Lead Generation & Conversion System!</p>
                   </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your lead intelligence system is now configured. Check out the milestone reflection!
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">🎯 What You've Accomplished:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>✅ Identified current lead generation sources</li>
+                      <li>✅ Discovered new expansion opportunities</li>
+                      <li>✅ Configured CSP lead scoring system</li>
+                      <li>✅ Set up intelligent automation rules</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">🚀 How This Impacts Your Success:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>📈 <strong>Step 4:</strong> Lead sources inform sales funnel design</li>
+                      <li>🎯 <strong>Step 5:</strong> Scoring criteria enhance email targeting</li>
+                      <li>📧 <strong>Step 6:</strong> Automation rules trigger follow-up sequences</li>
+                      <li>🏗️ <strong>CSP Setup:</strong> Complete lead management system ready</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h5 className="font-semibold text-blue-900 mb-2">🔗 Building Your Lead Generation Empire:</h5>
+                  <p className="text-blue-800 text-sm">
+                    Your lead generation strategy from this step combines with your personas (Step 1) and content strategy (Step 2) to create a powerful conversion machine. Your Project Setup data ensures every lead is properly scored and nurtured through intelligent automation, turning prospects into loyal customers.
                   </p>
                 </div>
-              )}
-            </div>
-
-            {/* AI Enhancement Section */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-[#d7df21]" />
-                <h3 className="text-xl font-semibold text-gray-900">AI Enhancement</h3>
               </div>
-              
-              <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to optimize your lead intelligence and automation setup.
-              </p>
-
-              <button
-                onClick={handleAIContentGeneration}
-                className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-              >
-                <Sparkles className="w-4 h-4" />
-                🤖 Generate AI Lead Intelligence
-              </button>
             </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            {showConfetti && (
+              <Confetti
+                width={windowDimensions.width}
+                height={windowDimensions.height}
+                recycle={false}
+                numberOfPieces={200}
+                gravity={0.3}
+              />
+            )}
+            
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="w-8 h-8 text-white" />
+                </div>
+                
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  🎉 Milestone Achieved!
+                </h2>
+                
+                <p className="text-lg text-gray-600 mb-8">
+                  Congratulations! You've built a comprehensive lead intelligence and conversion system.
+                </p>
+
+                <div className="grid md:grid-cols-2 gap-8 text-left">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
+                    <ul className="space-y-3">
+                      <li className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Mapped current lead generation sources</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Identified expansion opportunities</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Configured intelligent lead scoring</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
+                        <span className="text-gray-700">Set up automation workflows</span>
           </div>
         );
 

@@ -576,124 +576,68 @@ const Step2 = () => {
         );
 
       case 3:
+        // Trigger confetti when Sub Step 3 opens
+        React.useEffect(() => {
+          if (activeSubStep === 3) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 5000);
+          }
+        }, [activeSubStep]);
+
         return (
           <div className="space-y-6">
+            {showConfetti && activeSubStep === 3 && (
+              <Confetti
+                width={windowDimensions.width}
+                height={windowDimensions.height}
+                recycle={false}
+                numberOfPieces={200}
+                gravity={0.3}
+              />
+            )}
+            
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Strategy</h3>
-              <p className="text-gray-600 mb-6">
-                Create a strategic content plan that builds authority, engages your audience, and drives business results.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Pillars & Themes
-                  </label>
-                  <textarea
-                    value={contentStrategy.contentPillars}
-                    onChange={(e) => handleStrategyChange('contentPillars', e.target.value)}
-                    placeholder="Define 3-5 core content themes that establish your authority and expertise..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Distribution Strategy
-                  </label>
-                  <textarea
-                    value={contentStrategy.distributionChannels}
-                    onChange={(e) => handleStrategyChange('distributionChannels', e.target.value)}
-                    placeholder="Where will you publish and promote your content? Blog, social media, email, podcasts..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Content Strategy')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Content Strategy')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Content Strategy Items */}
-                {addedContentItems.filter(i => i.type === 'Content Strategy').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editContentItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteContentItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Step 2 Milestone Celebration!</h3>
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#0e9246] rounded-full flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-white" />
                   </div>
-                ))}
-              </div>
-
-              {hasContentStrategy && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Content Strategy Complete!</span>
+                  <div>
+                    <h4 className="text-lg font-bold text-gray-900">Congratulations! 🎊</h4>
+                    <p className="text-gray-600">You've completed your Content Strategy & Authority Building foundation!</p>
                   </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your content strategy is now complete. Check out the milestone reflection!
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">🎯 What You've Accomplished:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>✅ Audited your existing content assets</li>
+                      <li>✅ Identified content gaps and opportunities</li>
+                      <li>✅ Created a strategic content plan</li>
+                      <li>✅ Established authority-building framework</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">🚀 How This Impacts Your Success:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>📈 <strong>Step 3:</strong> Your content strategy guides lead magnet creation</li>
+                      <li>🎯 <strong>Step 4:</strong> Content pillars inform your sales funnel messaging</li>
+                      <li>📧 <strong>Step 5:</strong> Authority content enhances email sequences</li>
+                      <li>🏗️ <strong>CSP Setup:</strong> Content strategy drives automation workflows</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h5 className="font-semibold text-blue-900 mb-2">🔗 Building Your Authority Empire:</h5>
+                  <p className="text-blue-800 text-sm">
+                    Your content strategy from this step becomes the foundation for everything ahead. Your Project Setup data combines with this content plan to create targeted lead magnets, personalized sales funnels, and authority-building email campaigns. Each piece works together to establish you as the go-to expert in your field.
                   </p>
                 </div>
-              )}
-            </div>
-
-            {/* AI Enhancement Section */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-[#d7df21]" />
-                <h3 className="text-xl font-semibold text-gray-900">AI Enhancement</h3>
-              </div>
-              
-              <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to enhance your content strategy based on your audit and gap analysis.
-              </p>
-
-              <button
-                onClick={handleAIContentGeneration}
-                className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-              >
-                <Sparkles className="w-4 h-4" />
-                🤖 Generate AI Content Strategy
-              </button>
-            </div>
+              </div>            </div>
           </div>
         );
 
