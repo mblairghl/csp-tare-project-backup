@@ -644,6 +644,19 @@ const Step3 = () => {
                       <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700">Set up automation workflows</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Next Steps</h3>
+                    <p className="text-gray-600">
+                      Your lead intelligence system is now ready to power your sales funnel and email automation in the upcoming steps.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
 
