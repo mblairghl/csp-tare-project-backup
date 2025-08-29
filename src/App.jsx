@@ -61,7 +61,7 @@ function App() {
                   )}
                 </button>
                 
-                <span className="text-2xl">🌱</span>
+                <img src="/logo.png" alt="Cultivating Sales Logo" className="h-8 w-8" />
                 <div>
                   <h1 className="text-lg font-semibold text-gray-900">Authority Revenue Toolkit</h1>
                   <p className="text-sm text-gray-600 hidden sm:block">Cultivating Sales, LLC</p>
