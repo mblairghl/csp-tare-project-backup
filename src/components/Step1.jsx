@@ -555,7 +555,7 @@ const Step1 = () => {
                 Build detailed personas of your ideal clients to guide your authority-building strategy. You can create personas manually or use our AI research tool.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex gap-4">
                 <button
                   onClick={() => openManualModal('Demographics')}
                   className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
@@ -563,13 +563,12 @@ const Step1 = () => {
                   <Plus className="w-4 h-4" />
                   Add Manual Entry
                 </button>
-
                 <button
                   onClick={() => openAiSuggestionsModal('Demographics')}
                   className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
                 >
                   <Sparkles className="w-4 h-4" />
-                  🤖 Get AI Research
+                  🧠 Get AI Ideas
                 </button>
               </div>
 
