@@ -116,21 +116,29 @@ const Step1 = () => {
     const hasPainPoints = (idealClient.painPoints && idealClient.painPoints.trim().length > 0) || 
                          addedPersonas.some(p => p.type === 'Pain Points' || p.type === 'Create Personas');
     
+    // For Step 1, having any personas should count as completion for both demographics and psychographics
+    const hasAnyPersonas = addedPersonas.length > 0;
+    const finalHasDemographics = hasDemographics || hasAnyPersonas;
+    const finalHasPsychographics = hasPsychographics || hasAnyPersonas;
+    
     console.log('Manual Auto-progression Trigger:', {
       activeSubStep,
       hasDemographics,
       hasPsychographics,
-      hasPainPoints,
-      addedPersonasCount: addedPersonas.length
+      hasAnyPersonas,
+      finalHasDemographics,
+      finalHasPsychographics,
+      addedPersonasCount: addedPersonas.length,
+      addedPersonasTypes: addedPersonas.map(p => p.type)
     });
     
-    const isStepComplete = hasDemographics && hasPsychographics;
+    const isStepComplete = finalHasDemographics && finalHasPsychographics;
     
     // Auto-progress to next sub-step when current one is complete
-    if (activeSubStep === 1 && hasDemographics) {
+    if (activeSubStep === 1 && finalHasDemographics) {
       console.log('Auto-progressing from Demographics to Psychographics');
       setTimeout(() => setActiveSubStep(2), 500);
-    } else if (activeSubStep === 2 && hasPsychographics) {
+    } else if (activeSubStep === 2 && finalHasPsychographics) {
       console.log('Auto-progressing from Psychographics to Milestone');
       setTimeout(() => setActiveSubStep(3), 500);
     }
