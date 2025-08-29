@@ -558,18 +558,18 @@ const Step1 = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
                   onClick={() => openManualModal('Demographics')}
-                  className="flex items-center justify-center gap-3 p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#0e9246] hover:bg-green-50 transition-all duration-200 group"
+                  className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
                 >
-                  <Plus className="w-6 h-6 text-gray-400 group-hover:text-[#0e9246]" />
-                  <span className="text-gray-600 group-hover:text-[#0e9246] font-medium">Manual Entry</span>
+                  <Plus className="w-4 h-4" />
+                  Add Manual Entry
                 </button>
 
                 <button
                   onClick={() => openAiSuggestionsModal('Demographics')}
-                  className="flex items-center justify-center gap-3 p-6 bg-gradient-to-r from-[#d7df21] to-[#fbae42] text-gray-800 rounded-lg hover:from-[#c5cd1f] hover:to-[#e89d3b] transition-all duration-200 font-medium shadow-md hover:shadow-lg"
+                  className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
                 >
-                  <Sparkles className="w-6 h-6" />
-                  <span>🧠 Get AI Research</span>
+                  <Sparkles className="w-4 h-4" />
+                  🤖 Get AI Research
                 </button>
               </div>
 
