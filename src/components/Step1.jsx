@@ -910,9 +910,17 @@ const Step1 = () => {
         );
 
       case 3:
+        // Trigger confetti when Sub Step 3 opens
+        React.useEffect(() => {
+          if (activeSubStep === 3) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 5000);
+          }
+        }, [activeSubStep]);
+
         return (
           <div className="space-y-6">
-            {showConfetti && (
+            {showConfetti && activeSubStep === 3 && (
               <Confetti
                 width={windowDimensions.width}
                 height={windowDimensions.height}
@@ -922,55 +930,53 @@ const Step1 = () => {
               />
             )}
             
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-8 h-8 text-white" />
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Step 1 Milestone Celebration!</h3>
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#0e9246] rounded-full flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-gray-900">Congratulations! 🎊</h4>
+                    <p className="text-gray-600">You've completed your Ideal Client Persona foundation!</p>
+                  </div>
                 </div>
                 
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  🎉 Milestone Achieved!
-                </h2>
-                
-                <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've completed your ideal client refinement with clarity and precision.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-8 text-left">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created detailed client personas</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Completed manual refinement process</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Built comprehensive client understanding</span>
-                      </li>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">🎯 What You've Accomplished:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>✅ Created detailed client personas</li>
+                      <li>✅ Identified behavioral patterns and motivations</li>
+                      <li>✅ Refined target audience understanding</li>
+                      <li>✅ Built comprehensive client profiles</li>
                     </ul>
                   </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What This Means</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your messaging will resonate deeply</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll attract higher-quality prospects</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Target className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your content will be more targeted</span>
-                      </li>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">🚀 How This Impacts Your Success:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>📈 <strong>Step 2:</strong> Personas guide content strategy creation</li>
+                      <li>🎯 <strong>Step 3:</strong> Target audience informs lead generation</li>
+                      <li>📧 <strong>Step 4:</strong> Client insights shape sales funnels</li>
+                      <li>🏗️ <strong>CSP Setup:</strong> Persona data drives automation targeting</li>
                     </ul>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h5 className="font-semibold text-blue-900 mb-2">🔗 Building Your Authority Foundation:</h5>
+                  <p className="text-blue-800 text-sm">
+                    Your ideal client personas from this step become the cornerstone of everything ahead. Combined with your Project Setup data, these personas will guide content creation, lead generation strategies, and personalized automation sequences. Every message, offer, and touchpoint will now speak directly to your ideal clients.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
                   </div>
                 </div>
 
