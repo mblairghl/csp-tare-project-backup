@@ -570,29 +570,35 @@ const Step2 = () => {
           )}
         </div>
 
-        {/* Component 5: Sub-step Navigation */}
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 mb-6 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Action Steps</h3>
-          <p className="text-gray-600 mb-6">Complete all Action Steps below before moving to the next Step page.</p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            {subSteps.map((step) => {
-              const isActive = activeSubStep === step.id;
-              const isCompleted = step.id < activeSubStep;
+        {/* Action Steps Navigation */}
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Action Steps</h2>
+          <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
+        </div>
+        
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
+          <div className="flex flex-wrap">
+            {subSteps.map((step, index) => {
               const isUnlocked = isSubStepUnlocked(step.id);
-              
+              const isActive = activeSubStep === step.id;
+              const isCompleted = step.id < 3 ? (
+                step.id === 1 ? hasContentLibrary :
+                step.id === 2 ? hasMappedContent : false
+              ) : isStepComplete;
+
               return (
                 <button
                   key={step.id}
                   onClick={() => isUnlocked && setActiveSubStep(step.id)}
-                  className={`flex-1 p-4 rounded-lg border-2 transition-all duration-200 ${
+                  disabled={!isUnlocked}
+                  className={`flex-1 min-w-0 px-4 py-4 text-center border-b-2 transition-colors duration-200 ${
                     isActive
-                      ? 'border-[#fbae42] bg-[#fbae42] text-white shadow-lg'
-                      : isCompleted
-                      ? 'border-[#0e9246] bg-[#0e9246] text-white'
+                      ? 'border-[#fbae42] bg-orange-50'
                       : isUnlocked
-                      ? 'border-gray-300 bg-white text-gray-700 hover:border-[#fbae42] hover:bg-orange-50'
-                      : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      ? 'border-transparent hover:border-gray-300 hover:bg-white hover:bg-opacity-50'
+                      : 'border-transparent bg-transparent'
+                  } ${
+                    !isUnlocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                   }`}
                 >
                   <div className="flex flex-col items-center space-y-2">
@@ -608,7 +614,7 @@ const Step2 = () => {
                       {isCompleted ? (
                         <CheckCircle2 className="w-4 h-4" />
                       ) : !isUnlocked ? (
-                        <span className="text-sm">🔒</span>
+                        <span className="text-xs">🔒</span>
                       ) : (
                         <span className="text-sm font-bold">{step.id}</span>
                       )}
