@@ -535,7 +535,412 @@ const Step1 = () => {
     { id: 3, title: 'Milestone Reflection', icon: CheckCircle2 }
   ];
 
+  // Confetti effect for milestone
+  React.useEffect(() => {
+    if (activeSubStep === 3 && !showConfetti) {
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeSubStep, showConfetti]);
+
   const renderSubStepContent = () => {
+    switch (activeSubStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Your Ideal Client Personas</h3>
+              <p className="text-gray-600 mb-6">
+                Build detailed personas of your ideal clients to guide your authority-building strategy. You can create personas manually or use our AI research tool.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  onClick={() => openManualModal('Demographics')}
+                  className="flex items-center justify-center gap-3 p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#0e9246] hover:bg-green-50 transition-all duration-200 group"
+                >
+                  <Plus className="w-6 h-6 text-gray-400 group-hover:text-[#0e9246]" />
+                  <span className="text-gray-600 group-hover:text-[#0e9246] font-medium">Manual Entry</span>
+                </button>
+
+                <button
+                  onClick={() => openAiSuggestionsModal('Demographics')}
+                  className="flex items-center justify-center gap-3 p-6 bg-gradient-to-r from-[#d7df21] to-[#fbae42] text-gray-800 rounded-lg hover:from-[#c5cd1f] hover:to-[#e89d3b] transition-all duration-200 font-medium shadow-md hover:shadow-lg"
+                >
+                  <Sparkles className="w-6 h-6" />
+                  <span>🧠 Get AI Research</span>
+                </button>
+              </div>
+
+              {/* Display added personas */}
+              {addedPersonas.length > 0 && (
+                <div className="mt-8">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Your Personas ({addedPersonas.length})</h4>
+                  <div className="space-y-4">
+                    {addedPersonas.map((persona) => (
+                      <div key={persona.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h5 className="font-semibold text-gray-900">{persona.title}</h5>
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                persona.source === 'ai' 
+                                  ? 'bg-blue-100 text-blue-800' 
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {persona.source === 'ai' ? 'AI Research-Based' : 'Manual Entry'}
+                              </span>
+                            </div>
+                            <p className="text-gray-600 text-sm mb-3">{persona.description}</p>
+                            
+                            {/* AI Persona Details */}
+                            {persona.source === 'ai' && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-white rounded-lg border border-gray-200">
+                                <div className="space-y-3">
+                                  <div>
+                                    <h6 className="font-semibold text-gray-800 text-sm mb-1">🎯 Key Behaviors</h6>
+                                    <p className="text-gray-600 text-sm">{persona.keyBehaviors}</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <h6 className="font-semibold text-gray-800 text-sm mb-1">📱 Platform Preferences</h6>
+                                    <p className="text-gray-600 text-sm">{persona.platformPreferences}</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <h6 className="font-semibold text-gray-800 text-sm mb-1">💭 Motivations</h6>
+                                    <p className="text-gray-600 text-sm">{persona.motivations}</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <h6 className="font-semibold text-gray-800 text-sm mb-1">😤 Frustrations</h6>
+                                    <p className="text-gray-600 text-sm italic">{persona.frustrations}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                  <div>
+                                    <h6 className="font-semibold text-gray-800 text-sm mb-1">🛍️ Favorite Brands</h6>
+                                    <p className="text-gray-600 text-sm">{persona.favoriteBrands}</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <h6 className="font-semibold text-gray-800 text-sm mb-1">⚡ Buying Triggers</h6>
+                                    <p className="text-gray-600 text-sm">{persona.buyingTriggers}</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <h6 className="font-semibold text-gray-800 text-sm mb-1">📈 Content Resonance</h6>
+                                    <p className="text-gray-600 text-sm">{persona.contentResonance}</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <h6 className="font-semibold text-gray-800 text-sm mb-1">🔍 Unmet Needs</h6>
+                                    <p className="text-gray-600 text-sm font-medium text-red-600">{persona.unmetNeeds}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Manual Entry Details */}
+                            {persona.source === 'manual' && persona.details && (
+                              <div className="p-3 bg-white rounded border border-gray-200">
+                                <p className="text-gray-600 text-sm">{persona.details}</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => editPersona(persona.id)}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                              title="Edit persona"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => deletePersona(persona.id)}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200"
+                              title="Delete persona"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Refine Your Personas</h3>
+              <p className="text-gray-600 mb-6">
+                Review and refine your personas. Add additional details, edit existing information, or create new personas to complete your ideal client profile.
+              </p>
+
+              {addedPersonas.length > 0 ? (
+                <div className="space-y-6">
+                    {addedPersonas.map((persona) => (
+                      <div key={persona.id} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <h4 className="text-lg font-semibold text-gray-900">{persona.title}</h4>
+                            <span className={`px-3 py-1 text-xs rounded-full font-medium ${
+                              persona.source === 'ai' 
+                                ? 'bg-blue-100 text-blue-800' 
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {persona.source === 'ai' ? 'AI Research-Based' : 'Manual Entry'}
+                            </span>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => editPersona(persona.id)}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200"
+                              title="Edit persona"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => deletePersona(persona.id)}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200"
+                              title="Delete persona"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <p className="text-gray-600 mb-4">{persona.description}</p>
+                        
+                        {/* AI Persona Details */}
+                        {persona.source === 'ai' && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-white rounded-lg border border-gray-200">
+                            <div className="space-y-3">
+                              <div>
+                                <h5 className="font-semibold text-gray-800 text-sm mb-1">🎯 Key Behaviors</h5>
+                                <p className="text-gray-600 text-sm">{persona.keyBehaviors}</p>
+                              </div>
+                              
+                              <div>
+                                <h5 className="font-semibold text-gray-800 text-sm mb-1">📱 Platform Preferences</h5>
+                                <p className="text-gray-600 text-sm">{persona.platformPreferences}</p>
+                              </div>
+                              
+                              <div>
+                                <h5 className="font-semibold text-gray-800 text-sm mb-1">💭 Motivations</h5>
+                                <p className="text-gray-600 text-sm">{persona.motivations}</p>
+                              </div>
+                              
+                              <div>
+                                <h5 className="font-semibold text-gray-800 text-sm mb-1">😤 Frustrations</h5>
+                                <p className="text-gray-600 text-sm italic">{persona.frustrations}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              <div>
+                                <h5 className="font-semibold text-gray-800 text-sm mb-1">🛍️ Favorite Brands</h5>
+                                <p className="text-gray-600 text-sm">{persona.favoriteBrands}</p>
+                              </div>
+                              
+                              <div>
+                                <h5 className="font-semibold text-gray-800 text-sm mb-1">⚡ Buying Triggers</h5>
+                                <p className="text-gray-600 text-sm">{persona.buyingTriggers}</p>
+                              </div>
+                              
+                              <div>
+                                <h5 className="font-semibold text-gray-800 text-sm mb-1">📈 Content Resonance</h5>
+                                <p className="text-gray-600 text-sm">{persona.contentResonance}</p>
+                              </div>
+                              
+                              <div>
+                                <h5 className="font-semibold text-gray-800 text-sm mb-1">🔍 Unmet Needs</h5>
+                                <p className="text-gray-600 text-sm font-medium text-red-600">{persona.unmetNeeds}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Manual Entry Details */}
+                        {persona.source === 'manual' && (
+                          <div className="mt-4 space-y-4">
+                            {/* Show all manual persona fields similar to AI personas */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                              <div className="space-y-3">
+                                {persona.keyBehaviors && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">🎯 Key Behaviors</h5>
+                                    <p className="text-gray-600 text-sm">{persona.keyBehaviors}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.platformPreferences && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">📱 Platform Preferences</h5>
+                                    <p className="text-gray-600 text-sm">{persona.platformPreferences}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.motivations && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">💭 Motivations</h5>
+                                    <p className="text-gray-600 text-sm">{persona.motivations}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.frustrations && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">😤 Frustrations</h5>
+                                    <p className="text-gray-600 text-sm italic">{persona.frustrations}</p>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="space-y-3">
+                                {persona.favoriteBrands && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">🛍️ Favorite Brands</h5>
+                                    <p className="text-gray-600 text-sm">{persona.favoriteBrands}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.buyingTriggers && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">⚡ Buying Triggers</h5>
+                                    <p className="text-gray-600 text-sm">{persona.buyingTriggers}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.contentResonance && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">📈 Content Resonance</h5>
+                                    <p className="text-gray-600 text-sm">{persona.contentResonance}</p>
+                                  </div>
+                                )}
+                                
+                                {persona.unmetNeeds && (
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800 text-sm mb-1">🔍 Unmet Needs</h5>
+                                    <p className="text-gray-600 text-sm font-medium text-red-600">{persona.unmetNeeds}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Additional Details */}
+                            {persona.details && (
+                              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <h5 className="font-semibold text-blue-800 text-sm mb-2">📄 Document Content & Additional Details</h5>
+                                <div className="text-blue-700 text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
+                                  {persona.details}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 mb-4">
+                      <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-700 mb-2">No Personas Created Yet</h4>
+                    <p className="text-gray-600 mb-6">Go back to Step 1 to create your first persona, then return here to refine it.</p>
+                    <button
+                      onClick={() => setActiveSubStep(1)}
+                      className="px-6 py-3 bg-[#0e9246] text-white rounded-md hover:bg-[#0c7a3a] font-medium transition-colors duration-200"
+                    >
+                      Go to Step 1
+                    </button>
+                  </div>
+                )}
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            {showConfetti && activeSubStep === 3 && (
+              <Confetti
+                width={windowDimensions.width}
+                height={windowDimensions.height}
+                recycle={false}
+                numberOfPieces={200}
+                gravity={0.3}
+              />
+            )}
+            
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Step 1 Milestone Celebration!</h3>
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#0e9246] rounded-full flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-gray-900">Congratulations! 🎊</h4>
+                    <p className="text-gray-600">You've completed your Ideal Client Persona foundation!</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">🎯 What You've Accomplished:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>✅ Created detailed client personas</li>
+                      <li>✅ Identified behavioral patterns and motivations</li>
+                      <li>✅ Refined target audience understanding</li>
+                      <li>✅ Built comprehensive client profiles</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h5 className="font-semibold text-gray-900 mb-2">🚀 How This Impacts Your Success:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>📈 <strong>Step 2:</strong> Personas guide content strategy creation</li>
+                      <li>🎯 <strong>Step 3:</strong> Target audience informs lead generation</li>
+                      <li>📧 <strong>Step 4:</strong> Client insights shape sales funnels</li>
+                      <li>🏗️ <strong>CSP Setup:</strong> Persona data drives automation targeting</li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h5 className="font-semibold text-blue-900 mb-2">🔗 Building Your Authority Foundation:</h5>
+                  <p className="text-blue-800 text-sm">
+                    Your ideal client personas from this step become the cornerstone of everything ahead. Combined with your Project Setup data, these personas will guide content creation, lead generation strategies, and personalized automation sequences. Every message, offer, and touchpoint will now speak directly to your ideal clients.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Please complete the previous steps to unlock this section.</p>
+          </div>
+        );
+    }
+  };
+
+  const renderSubStepContent_OLD = () => {
     switch (activeSubStep) {
       case 1:
         return (
@@ -697,7 +1102,7 @@ const Step1 = () => {
               <div className="space-y-6">
                 {/* Show all personas from Step 1 for refinement */}
                 {addedPersonas.length > 0 ? (
-                  <>
+                  <div>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                       <h4 className="font-semibold text-blue-900 mb-2">📝 Persona Refinement</h4>
                       <p className="text-blue-800 text-sm">
@@ -880,10 +1285,10 @@ const Step1 = () => {
                         )}
                       </div>
                     ))}
-                  </>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="text-gray-400 mb-4">
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 mb-4">
                       <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                       </svg>
@@ -916,14 +1321,6 @@ const Step1 = () => {
         );
 
       case 3:
-        // Trigger confetti when Sub Step 3 opens
-        React.useEffect(() => {
-          if (activeSubStep === 3) {
-            setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 5000);
-          }
-        }, [activeSubStep]);
-
         return (
           <div className="space-y-6">
             {showConfetti && activeSubStep === 3 && (
