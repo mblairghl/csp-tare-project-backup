@@ -660,92 +660,12 @@ const Step3 = () => {
           </div>
         );
 
-      case 4:
+      default:
         return (
-          <div className="space-y-6">
-            {showConfetti && (
-              <Confetti
-                width={windowDimensions.width}
-                height={windowDimensions.height}
-                recycle={false}
-                numberOfPieces={200}
-                gravity={0.3}
-              />
-            )}
-            
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-8 h-8 text-white" />
-                </div>
-                
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  🎉 Milestone Achieved!
-                </h2>
-                
-                <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've set up intelligent lead management and identified growth opportunities.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-8 text-left">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Analyzed current lead sources</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Identified expansion opportunities</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Configured intelligent lead scoring</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Set up automation rules</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What This Means</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <TrendingUp className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your lead generation will be more systematic</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <TrendingUp className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll identify high-quality leads faster</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <TrendingUp className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Automation will save you time</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <TrendingUp className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll have clear growth pathways</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
-                  <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
-                  <p className="text-gray-700">
-                    Intelligent lead management is the bridge between marketing and sales. With your system configured, you'll spend less time chasing unqualified leads and more time closing deals with your ideal clients.
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="text-center py-8">
+            <p className="text-gray-500">Please complete the previous steps to unlock this section.</p>
           </div>
         );
-
-      default:
-        return null;
     }
   };
 

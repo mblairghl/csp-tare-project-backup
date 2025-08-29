@@ -977,22 +977,11 @@ const Step1 = () => {
         );
 
       default:
-                  </div>
-                </div>
-
-                <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
-                  <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
-                  <p className="text-gray-700">
-                    With a clear ideal client profile, every piece of content, every marketing message, and every business decision can now be filtered through this lens. You're ready for Step 2 - Content Strategy Audit.
-                  </p>
-                </div>
-              </div>
-            </div>
+        return (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Please complete the previous steps to unlock this section.</p>
           </div>
         );
-
-      default:
-        return null;
     }
   };
 
