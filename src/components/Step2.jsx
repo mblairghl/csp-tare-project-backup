@@ -165,23 +165,86 @@ const Step2 = () => {
     setAiLoading(true);
     
     try {
-      // Simulate AI placement suggestions
-      const suggestions = contentLibrary.map(content => ({
-        contentId: content.id,
-        contentTitle: content.title,
-        suggestedStage: funnelStages[Math.floor(Math.random() * funnelStages.length)].id,
-        reasoning: `Based on the content type "${content.type}" and description, this content would work best in this funnel stage.`
-      }));
+      // Enhanced AI placement suggestions with detailed analysis
+      const suggestions = contentLibrary.map(content => {
+        // Determine best funnel stage based on content type and characteristics
+        let suggestedStage, reasoning;
+        
+        switch (content.type.toLowerCase()) {
+          case 'blog post':
+          case 'article':
+          case 'infographic':
+          case 'social media post':
+            suggestedStage = 'discover';
+            reasoning = 'Blog posts and articles are excellent for top-of-funnel awareness. They help prospects discover new possibilities and establish your expertise in the field.';
+            break;
+          case 'case study':
+          case 'testimonial video':
+          case 'white paper':
+            suggestedStage = 'resonate';
+            reasoning = 'Case studies and testimonials build emotional connection by showing real results. They help prospects resonate with your mission and see social proof.';
+            break;
+          case 'demo video':
+          case 'webinar':
+          case 'presentation':
+          case 'training video':
+            suggestedStage = 'envision';
+            reasoning = 'Demonstrations and training content help prospects envision their transformation. They can see the tangible results of working with you.';
+            break;
+          case 'checklist':
+          case 'template':
+          case 'tool':
+          case 'guide':
+          case 'pdf document':
+            suggestedStage = 'trust';
+            reasoning = 'Practical tools and resources build confidence in your ability to deliver. They demonstrate your process and expertise, building trust.';
+            break;
+          case 'sales page':
+          case 'landing page':
+          case 'quiz':
+          case 'lead magnet':
+            suggestedStage = 'authority';
+            reasoning = 'Sales pages and lead magnets are designed for action. They position you as the authority and encourage prospects to take the next step.';
+            break;
+          default:
+            suggestedStage = 'discover';
+            reasoning = 'Based on the content type, this would work well for initial awareness and discovery of your expertise.';
+        }
+
+        return {
+          contentId: content.id,
+          contentTitle: content.title,
+          contentType: content.type,
+          suggestedStage: suggestedStage,
+          reasoning: reasoning,
+          confidence: 'High',
+          alternativeStages: getAlternativeStages(suggestedStage)
+        };
+      });
       
       setAiResult({
         type: 'placement',
-        suggestions: suggestions
+        title: 'AI Content Placement Analysis',
+        description: 'Based on analysis of your content with AI-powered funnel stage placement',
+        suggestions: suggestions,
+        summary: `Analyzed ${suggestions.length} content items and provided funnel stage recommendations based on content type, purpose, and customer journey positioning.`
       });
     } catch (error) {
       console.error('Error generating AI placement:', error);
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const getAlternativeStages = (primaryStage) => {
+    const alternatives = {
+      'discover': ['resonate'],
+      'resonate': ['discover', 'envision'],
+      'envision': ['resonate', 'trust'],
+      'trust': ['envision', 'authority'],
+      'authority': ['trust']
+    };
+    return alternatives[primaryStage] || [];
   };
 
   const handleGapAnalysis = async () => {
@@ -674,15 +737,40 @@ const Step2 = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
                   >
                     <option value="">Select type</option>
+                    <option value="Article">Article</option>
+                    <option value="Audio Course">Audio Course</option>
                     <option value="Blog Post">Blog Post</option>
-                    <option value="Video">Video</option>
-                    <option value="Podcast">Podcast</option>
-                    <option value="Lead Magnet">Lead Magnet</option>
+                    <option value="Book">Book</option>
+                    <option value="Brochure">Brochure</option>
                     <option value="Case Study">Case Study</option>
-                    <option value="Webinar">Webinar</option>
-                    <option value="Social Media">Social Media</option>
+                    <option value="Checklist">Checklist</option>
+                    <option value="Community Post">Community Post</option>
+                    <option value="Comparison Chart">Comparison Chart</option>
+                    <option value="Demo Video">Demo Video</option>
+                    <option value="E-book">E-book</option>
                     <option value="Email">Email</option>
+                    <option value="FAQ Document">FAQ Document</option>
+                    <option value="Flowchart">Flowchart</option>
+                    <option value="Guide">Guide</option>
+                    <option value="Infographic">Infographic</option>
                     <option value="Landing Page">Landing Page</option>
+                    <option value="Lead Magnet">Lead Magnet</option>
+                    <option value="PDF Document">PDF Document</option>
+                    <option value="Playlist">Playlist</option>
+                    <option value="Podcast">Podcast</option>
+                    <option value="Presentation">Presentation</option>
+                    <option value="Quiz">Quiz</option>
+                    <option value="Resource List">Resource List</option>
+                    <option value="Sales Page">Sales Page</option>
+                    <option value="Social Media Post">Social Media Post</option>
+                    <option value="Template">Template</option>
+                    <option value="Testimonial Video">Testimonial Video</option>
+                    <option value="Tool">Tool</option>
+                    <option value="Training Video">Training Video</option>
+                    <option value="Video">Video</option>
+                    <option value="Webinar">Webinar</option>
+                    <option value="White Paper">White Paper</option>
+                    <option value="Workshop">Workshop</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
@@ -728,15 +816,170 @@ const Step2 = () => {
           </div>
         )}
 
-        {/* AI Modal */}
-        <AIModal
-          isOpen={aiModalOpen}
-          onClose={() => setAiModalOpen(false)}
-          title={aiResult?.type === 'placement' ? "AI Content Placement Suggestions" : "AI Gap Analysis"}
-          content={aiResult}
-          isLoading={aiLoading}
-          onUseContent={() => {}}
-        />
+        {/* AI Results Modal */}
+        {aiModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {aiResult?.title || 'AI Analysis Results'}
+                  </h3>
+                  <button
+                    onClick={() => setAiModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                {aiResult?.description && (
+                  <p className="text-gray-600 mt-2">{aiResult.description}</p>
+                )}
+              </div>
+              
+              <div className="p-6">
+                {aiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Analyzing your content...</span>
+                  </div>
+                ) : aiResult?.type === 'placement' ? (
+                  <div className="space-y-6">
+                    {aiResult.summary && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p className="text-blue-800">{aiResult.summary}</p>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-900">Content Analysis Results ({aiResult.suggestions?.length || 0} items)</h4>
+                      {aiResult.suggestions?.map((suggestion, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h5 className="font-medium text-gray-900">{suggestion.contentTitle}</h5>
+                              <p className="text-sm text-gray-600">{suggestion.contentType}</p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                                {suggestion.confidence} Confidence
+                              </span>
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                suggestion.suggestedStage === 'discover' ? 'bg-blue-100 text-blue-800' :
+                                suggestion.suggestedStage === 'resonate' ? 'bg-green-100 text-green-800' :
+                                suggestion.suggestedStage === 'envision' ? 'bg-yellow-100 text-yellow-800' :
+                                suggestion.suggestedStage === 'trust' ? 'bg-orange-100 text-orange-800' :
+                                'bg-purple-100 text-purple-800'
+                              }`}>
+                                {suggestion.suggestedStage === 'discover' ? 'Discover the Possibility' :
+                                 suggestion.suggestedStage === 'resonate' ? 'Resonate with the Mission' :
+                                 suggestion.suggestedStage === 'envision' ? 'Envision Their Transformation' :
+                                 suggestion.suggestedStage === 'trust' ? 'Trust the Process' :
+                                 'Step Into Authority'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 rounded-md p-3">
+                            <p className="text-sm text-gray-700">
+                              <span className="font-medium">AI Recommendation:</span> {suggestion.reasoning}
+                            </p>
+                          </div>
+                          
+                          <div className="mt-3 flex justify-between items-center">
+                            <div className="flex space-x-2">
+                              {suggestion.alternativeStages?.map((altStage, altIndex) => (
+                                <span key={altIndex} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                  Alt: {altStage === 'discover' ? 'Discover' :
+                                       altStage === 'resonate' ? 'Resonate' :
+                                       altStage === 'envision' ? 'Envision' :
+                                       altStage === 'trust' ? 'Trust' : 'Authority'}
+                                </span>
+                              ))}
+                            </div>
+                            <button
+                              onClick={() => {
+                                // Apply the AI suggestion
+                                const content = contentLibrary.find(c => c.id === suggestion.contentId);
+                                if (content) {
+                                  const targetStage = funnelStages.find(stage => 
+                                    stage.id === suggestion.suggestedStage
+                                  );
+                                  if (targetStage) {
+                                    setFunnelContent({
+                                      ...funnelContent,
+                                      [targetStage.id]: [...(funnelContent[targetStage.id] || []), content]
+                                    });
+                                    setContentLibrary(prev => prev.filter(c => c.id !== content.id));
+                                  }
+                                }
+                              }}
+                              className="px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
+                            >
+                              Apply Suggestion
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => {
+                          // Apply all suggestions
+                          aiResult.suggestions?.forEach(suggestion => {
+                            const content = contentLibrary.find(c => c.id === suggestion.contentId);
+                            if (content) {
+                              const targetStage = funnelStages.find(stage => 
+                                stage.id === suggestion.suggestedStage
+                              );
+                              if (targetStage) {
+                                setFunnelContent(prev => ({
+                                  ...prev,
+                                  [targetStage.id]: [...(prev[targetStage.id] || []), content]
+                                }));
+                              }
+                            }
+                          });
+                          setContentLibrary([]);
+                          setAiModalOpen(false);
+                        }}
+                        className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                      >
+                        Apply All Suggestions
+                      </button>
+                      <button
+                        onClick={() => setAiModalOpen(false)}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                      >
+                        Review Later
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // Gap analysis results
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Gap Analysis Results</h4>
+                    {aiResult?.gaps?.map((gap, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <h5 className="font-medium text-gray-900 mb-2">{gap.stage}</h5>
+                        <p className="text-gray-600 mb-3">{gap.description}</p>
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-gray-700">Recommended Content:</p>
+                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            {gap.recommendations?.map((rec, recIndex) => (
+                              <li key={recIndex}>{rec}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* API Key Modal */}
         <APIKeyModal
