@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, ChevronDown, ChevronUp, Plus, Sparkles, X, Target, FileText, Lightbulb } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 const Step2 = () => {
   // Sub-step management
@@ -94,12 +93,8 @@ const Step2 = () => {
       setActiveSubStep(4);
     } else if (activeSubStep === 4 && hasMarketingCopy) {
       setActiveSubStep(5);
-      // Trigger confetti for milestone
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
+      // Trigger celebration for milestone
+      console.log('🎉 Milestone reached!');
     }
   }, [hasContentLibrary, hasPlacedContent, hasCompletedGapAnalysis, hasMarketingCopy, activeSubStep]);
 
