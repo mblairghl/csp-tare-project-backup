@@ -1,899 +1,607 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, BookOpen, Users, Calendar, Plus, Sparkles, X, Edit, Trash2, Search, Zap } from 'lucide-react';
-import Confetti from 'react-confetti';
-import StepFooter from './StepFooter';
-import AIModal from './AIModal';
-import APIKeyModal from './APIKeyModal';
-import aiService from '../services/aiService';
-import storageOptimizer from '../utils/storageOptimizer';
+import { CheckCircle2, ChevronDown, ChevronUp, Plus, Sparkles, X, Calendar, MessageSquare, Phone } from 'lucide-react';
 
 const Step5 = () => {
-  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [windowDimensions, setWindowDimensions] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight
-  });
-
-  // Tab management
-  const [activeSubStep, setActiveSubStep] = useState(1);
-
-  // Step completion tracking
-  const [isStepComplete, setIsStepComplete] = useState(false);
-
+  // Sub-step management (3 steps total)
+  const [activeSubStep, setActiveSubStep] = useState(0);
+  const [discoverySetup, setDiscoverySetup] = useState(null);
+  const [conversationFramework, setConversationFramework] = useState(null);
+  
   // Modal states
-  const [manualModalOpen, setManualModalOpen] = useState(false);
-  const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
-  const [currentModalType, setCurrentModalType] = useState('');
-
-  // Sales pipeline data
-  const [discoveryProcess, setDiscoveryProcess] = useState({
-    qualificationCriteria: '',
-    discoveryQuestions: '',
-    needsAssessment: '',
-    painPointIdentification: ''
+  const [discoverySetupModalOpen, setDiscoverySetupModalOpen] = useState(false);
+  const [aiDiscoveryQuestionsModalOpen, setAiDiscoveryQuestionsModalOpen] = useState(false);
+  const [conversationFrameworkModalOpen, setConversationFrameworkModalOpen] = useState(false);
+  const [longTermNurtureModalOpen, setLongTermNurtureModalOpen] = useState(false);
+  
+  // Form states
+  const [discoveryForm, setDiscoveryForm] = useState({
+    sessionName: '',
+    timeFrame: '',
+    calendarLink: '',
+    confirmationMessage: '',
+    smsEnabled: false,
+    questions: []
   });
-
-  const [automationSetup, setAutomationSetup] = useState({
-    leadScoring: '',
-    emailSequences: '',
-    followUpTasks: '',
-    crmIntegration: ''
+  
+  const [conversationForm, setConversationForm] = useState({
+    questions: [],
+    objections: [],
+    closingScript: '',
+    callOutcomes: [],
+    longTermNurture: ''
   });
+  
+  // AI results
+  const [aiDiscoveryQuestions, setAiDiscoveryQuestions] = useState([]);
+  const [aiConversationFramework, setAiConversationFramework] = useState(null);
+  const [aiLongTermNurture, setAiLongTermNurture] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  
+  // UI states
+  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
 
-  const [integrationPlan, setIntegrationPlan] = useState({
-    toolsIntegration: '',
-    dataFlow: '',
-    reportingSetup: '',
-    teamAccess: ''
-  });
+  // Sub-steps configuration (3 steps total)
+  const subSteps = [
+    { id: 0, title: 'Discovery Setup', completed: false },
+    { id: 1, title: 'Conversation Framework', completed: false },
+    { id: 2, title: 'Milestone Reflection', completed: false }
+  ];
 
-  // Added pipeline items list
-  const [addedPipelineItems, setAddedPipelineItems] = useState([]);
+  // Check completion status
+  const hasDiscoverySetup = discoverySetup !== null;
+  const hasConversationFramework = conversationFramework !== null;
+  const isStepComplete = hasDiscoverySetup && hasConversationFramework;
 
-  // Manual form data
-  const [manualForm, setManualForm] = useState({
-    type: '',
-    title: '',
-    description: '',
-    details: ''
-  });
-
-  // AI suggestions
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [aiResult, setAiResult] = useState(null);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Load saved data
-  useEffect(() => {
-    const savedDiscovery = storageOptimizer.safeGet('step5_discovery_process');
-    const savedAutomation = storageOptimizer.safeGet('step5_automation_setup');
-    const savedIntegration = storageOptimizer.safeGet('step5_integration_plan');
-    const savedItems = storageOptimizer.safeGet('step5_added_pipeline_items');
-    
-    if (savedDiscovery && typeof savedDiscovery === 'object') {
-      setDiscoveryProcess(savedDiscovery);
+  // Sub-step unlock logic
+  const isSubStepUnlocked = (stepId) => {
+    switch (stepId) {
+      case 0: return true; // Discovery Setup always unlocked
+      case 1: return hasDiscoverySetup; // Conversation Framework unlocked when discovery setup exists
+      case 2: return hasConversationFramework; // Milestone unlocked when conversation framework exists
+      default: return false;
     }
-    if (savedAutomation && typeof savedAutomation === 'object') {
-      setAutomationSetup(savedAutomation);
-    }
-    if (savedIntegration && typeof savedIntegration === 'object') {
-      setIntegrationPlan(savedIntegration);
-    }
-    if (savedItems && Array.isArray(savedItems)) {
-      setAddedPipelineItems(savedItems);
-    }
-  }, []);
+  };
 
-  // Check completion status and auto-progression
-  useEffect(() => {
-    const discoveryComplete = Object.values(discoveryProcess).every(value => value && value.trim().length > 0);
-    const automationComplete = Object.values(automationSetup).every(value => value && value.trim().length > 0);
-    const integrationComplete = Object.values(integrationPlan).every(value => value && value.trim().length > 0);
-    
-    const wasComplete = isStepComplete;
-    const nowComplete = discoveryComplete && automationComplete && integrationComplete;
-    
-    setIsStepComplete(nowComplete);
-    
-    // Show confetti when step becomes complete
-    if (!wasComplete && nowComplete) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
+  const isSubStepCompleted = (stepId) => {
+    switch (stepId) {
+      case 0: return hasDiscoverySetup; // Discovery Setup completed when setup exists
+      case 1: return hasConversationFramework; // Conversation Framework completed when framework exists
+      case 2: return isStepComplete; // Milestone completed when everything is done
+      default: return false;
     }
-  }, [discoveryProcess, automationSetup, integrationPlan, isStepComplete]);
+  };
 
-  // Auto-progression logic for sub-steps - ONLY on user actions
-  const triggerAutoProgression = () => {
-    const hasDiscoveryProcess = Object.values(discoveryProcess).every(value => value && value.trim().length > 0) ||
-                               addedPipelineItems.some(item => item.type === 'Discovery Process');
-    const hasAutomationSetup = Object.values(automationSetup).every(value => value && value.trim().length > 0) ||
-                              addedPipelineItems.some(item => item.type === 'Automation Setup');
-    const hasIntegrationPlan = Object.values(integrationPlan).every(value => value && value.trim().length > 0) ||
-                              addedPipelineItems.some(item => item.type === 'Integration Plan');
-    
-    console.log('Step 5 Auto-progression Trigger:', {
-      activeSubStep,
-      hasDiscoveryProcess,
-      hasAutomationSetup,
-      hasIntegrationPlan
+  // Add discovery question
+  const addDiscoveryQuestion = (question) => {
+    setDiscoveryForm({
+      ...discoveryForm,
+      questions: [...discoveryForm.questions, { id: Date.now(), question }]
     });
-    
-    // Auto-progress to next sub-step when current one is complete
-    if (activeSubStep === 1 && hasDiscoveryProcess) {
-      console.log('Auto-progressing from Discovery Process to Automation Setup');
-      setTimeout(() => setActiveSubStep(2), 500);
-    } else if (activeSubStep === 2 && hasAutomationSetup) {
-      console.log('Auto-progressing from Automation Setup to Integration Plan');
-      setTimeout(() => setActiveSubStep(3), 500);
-    } else if (activeSubStep === 3 && hasIntegrationPlan) {
-      console.log('Auto-progressing from Integration Plan to Milestone');
-      setTimeout(() => setActiveSubStep(4), 500);
+  };
+
+  // Save discovery setup
+  const handleSaveDiscoverySetup = () => {
+    if (!discoveryForm.sessionName || !discoveryForm.timeFrame) {
+      alert('Please fill in session name and time frame');
+      return;
     }
-  };
 
-  const handleSaveApiKey = (apiKey) => {
-    aiService.setApiKey(apiKey);
-  };
-
-  // Handle form changes
-  const handleDiscoveryChange = (field, value) => {
-    const updated = { ...discoveryProcess, [field]: value };
-    setDiscoveryProcess(updated);
-    storageOptimizer.safeSet('step5_discovery_process', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  const handleAutomationChange = (field, value) => {
-    const updated = { ...automationSetup, [field]: value };
-    setAutomationSetup(updated);
-    storageOptimizer.safeSet('step5_automation_setup', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  const handleIntegrationChange = (field, value) => {
-    const updated = { ...integrationPlan, [field]: value };
-    setIntegrationPlan(updated);
-    storageOptimizer.safeSet('step5_integration_plan', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  // Manual entry functions
-  const openManualModal = (type) => {
-    setCurrentModalType(type);
-    setManualForm({
-      type: type,
-      title: '',
-      description: '',
-      details: ''
-    });
-    setManualModalOpen(true);
-  };
-
-  const handleManualSubmit = () => {
-    if (manualForm.title && manualForm.description) {
-      const newItem = {
-        id: Date.now(),
-        type: manualForm.type,
-        title: manualForm.title,
-        description: manualForm.description,
-        details: manualForm.details,
-        source: 'manual'
-      };
-      
-      const updated = [...addedPipelineItems, newItem];
-      setAddedPipelineItems(updated);
-      storageOptimizer.safeSet('step5_added_pipeline_items', updated);
-      setManualModalOpen(false);
-      
-      // Trigger auto-progression check after adding manual entry
-      setTimeout(() => triggerAutoProgression(), 100);
-    }
-  };
-
-  // AI suggestions functions
-  const openAiSuggestionsModal = async (type) => {
-    setCurrentModalType(type);
-    setAiSuggestionsModalOpen(true);
-    
-    // Generate AI suggestions based on type
-    const suggestions = generateAiSuggestions(type);
-    setAiSuggestions(suggestions);
-  };
-
-  const generateAiSuggestions = (type) => {
-    const suggestionsByType = {
-      'Discovery Process': [
-        { id: 1, title: 'BANT Qualification Framework', description: 'Budget, Authority, Need, Timeline qualification', details: 'Systematic approach to qualify prospects using BANT criteria' },
-        { id: 2, title: 'Pain Point Discovery Questions', description: 'Strategic questions to uncover client challenges', details: 'Open-ended questions that reveal deep pain points and motivations' },
-        { id: 3, title: 'Solution Fit Assessment', description: 'Evaluate if your solution matches their needs', details: 'Framework to determine if there\'s a good fit before proposing' },
-        { id: 4, title: 'Decision-Making Process Mapping', description: 'Understand how they make purchasing decisions', details: 'Identify stakeholders, timeline, and decision criteria' },
-        { id: 5, title: 'Current State Analysis', description: 'Assess their current situation and challenges', details: 'Comprehensive review of their existing processes and pain points' }
-      ],
-      'Automation Setup': [
-        { id: 1, title: 'Lead Scoring Algorithm', description: 'Automated lead qualification and prioritization', details: 'Score leads based on engagement, demographics, and behavior patterns' },
-        { id: 2, title: 'Email Drip Campaigns', description: 'Automated nurture sequences for different stages', details: 'Targeted email sequences for prospects, qualified leads, and customers' },
-        { id: 3, title: 'Task Automation Rules', description: 'Automatic task creation and assignment', details: 'Create follow-up tasks based on prospect actions and timeline' },
-        { id: 4, title: 'Pipeline Stage Automation', description: 'Automatic movement through sales stages', details: 'Rules for advancing prospects based on completed actions' },
-        { id: 5, title: 'Notification Systems', description: 'Alerts for important prospect activities', details: 'Real-time notifications for hot leads and urgent follow-ups' }
-      ],
-      'Integration Plan': [
-        { id: 1, title: 'CRM Integration', description: 'Connect with your existing CRM system', details: 'Seamless data flow between marketing and sales platforms' },
-        { id: 2, title: 'Email Marketing Integration', description: 'Sync with email marketing platforms', details: 'Connect with Mailchimp, ConvertKit, or other email tools' },
-        { id: 3, title: 'Calendar Integration', description: 'Automated scheduling and booking', details: 'Connect with Calendly, Acuity, or other scheduling tools' },
-        { id: 4, title: 'Analytics Integration', description: 'Comprehensive tracking and reporting', details: 'Connect with Google Analytics, Facebook Pixel, and other tracking' },
-        { id: 5, title: 'Payment Processing Integration', description: 'Seamless payment collection', details: 'Integrate with Stripe, PayPal, or other payment processors' }
-      ]
-    };
-    
-    return suggestionsByType[type] || [];
-  };
-
-  const addAiSuggestion = (suggestion) => {
-    const newItem = {
+    setDiscoverySetup({
       id: Date.now(),
-      type: currentModalType,
-      title: suggestion.title,
-      description: suggestion.description,
-      details: suggestion.details,
-      source: 'ai'
-    };
+      sessionName: discoveryForm.sessionName,
+      timeFrame: discoveryForm.timeFrame,
+      calendarLink: discoveryForm.calendarLink,
+      confirmationMessage: discoveryForm.confirmationMessage,
+      smsEnabled: discoveryForm.smsEnabled,
+      questions: discoveryForm.questions
+    });
     
-    const updated = [...addedPipelineItems, newItem];
-    setAddedPipelineItems(updated);
-    storageOptimizer.safeSet('step5_added_pipeline_items', updated);
-    
-    // Remove suggestion from list
-    setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
-    
-    // Trigger auto-progression check after adding AI suggestion
-    setTimeout(() => triggerAutoProgression(), 100);
+    setDiscoverySetupModalOpen(false);
   };
 
-  // Edit/Delete functions
-  const editPipelineItem = (id) => {
-    const item = addedPipelineItems.find(i => i.id === id);
-    if (item) {
-      setManualForm({
-        type: item.type,
-        title: item.title,
-        description: item.description,
-        details: item.details
-      });
-      setCurrentModalType(item.type);
-      deletePipelineItem(id); // Remove original
-      setManualModalOpen(true);
+  // Generate AI Discovery Questions
+  const handleAIDiscoveryQuestions = () => {
+    setIsAiLoading(true);
+    setAiDiscoveryQuestionsModalOpen(true);
+
+    // Simulate AI analysis for discovery questions
+    setTimeout(() => {
+      const questions = [
+        {
+          category: 'Current Situation',
+          question: 'What\'s your current biggest challenge with [your business area]?',
+          purpose: 'Identify pain points and establish need'
+        },
+        {
+          category: 'Current Situation', 
+          question: 'How are you currently handling [specific process] in your business?',
+          purpose: 'Understand current state and inefficiencies'
+        },
+        {
+          category: 'Impact Assessment',
+          question: 'What would it mean for your business if this challenge was completely resolved?',
+          purpose: 'Quantify value and create urgency'
+        },
+        {
+          category: 'Impact Assessment',
+          question: 'What\'s this problem currently costing you in terms of time, money, or opportunities?',
+          purpose: 'Establish cost of inaction'
+        },
+        {
+          category: 'Decision Making',
+          question: 'What\'s prevented you from solving this problem until now?',
+          purpose: 'Identify obstacles and objections'
+        },
+        {
+          category: 'Decision Making',
+          question: 'Who else would be involved in making a decision about this?',
+          purpose: 'Identify decision makers and process'
+        },
+        {
+          category: 'Timeline & Budget',
+          question: 'What\'s your ideal timeline for getting this resolved?',
+          purpose: 'Establish urgency and fit'
+        },
+        {
+          category: 'Timeline & Budget',
+          question: 'What kind of investment are you prepared to make to solve this problem?',
+          purpose: 'Qualify budget and commitment level'
+        },
+        {
+          category: 'Qualification',
+          question: 'How committed are you to making a change, on a scale of 1-10?',
+          purpose: 'Assess motivation and likelihood to buy'
+        },
+        {
+          category: 'Next Steps',
+          question: 'If I could show you exactly how to solve this, what would your next step be?',
+          purpose: 'Test readiness to move forward'
+        }
+      ];
+
+      setAiDiscoveryQuestions(questions);
+      setIsAiLoading(false);
+    }, 2000);
+  };
+
+  // Add AI discovery question
+  const addAIDiscoveryQuestion = (question) => {
+    addDiscoveryQuestion(question.question);
+  };
+
+  // Generate AI Conversation Framework
+  const handleAIConversationFramework = () => {
+    setIsAiLoading(true);
+    setConversationFrameworkModalOpen(true);
+
+    // Simulate AI conversation framework generation
+    setTimeout(() => {
+      const framework = {
+        questions: [
+          'Based on what you\'ve shared, it sounds like [summarize their situation]. Is that accurate?',
+          'What would success look like for you in [specific timeframe]?',
+          'What\'s the cost of not solving this problem in the next 6 months?',
+          'How important is it for you to get this resolved quickly?',
+          'What questions do you have about our approach to solving this?'
+        ],
+        objections: [
+          {
+            objection: 'I need to think about it',
+            response: 'I understand wanting to think it through. What specifically would you like to think about? Is it the investment, the timeline, or something else?'
+          },
+          {
+            objection: 'It\'s too expensive',
+            response: 'I hear you on the investment. Let me ask - what\'s it costing you to not solve this problem? Often the cost of inaction is much higher than the cost of action.'
+          },
+          {
+            objection: 'I need to talk to my partner/team',
+            response: 'That makes sense. What concerns do you think they might have? Let\'s address those now so you can present this confidently.'
+          },
+          {
+            objection: 'I\'ve tried similar things before',
+            response: 'I appreciate you sharing that. What was missing from those previous attempts? Our approach specifically addresses [key differentiator].'
+          },
+          {
+            objection: 'I don\'t have time right now',
+            response: 'I understand time is tight. That\'s exactly why this is so important - our system is designed to save you time, not cost you more time.'
+          }
+        ],
+        closingScript: `Based on everything we've discussed, it's clear that [summarize their situation and pain points].
+
+Our [program name] is specifically designed to help business owners like you [achieve desired outcome] without [common obstacle they mentioned].
+
+Here's what I recommend:
+
+**Option 1: [Premium Package]**
+- [Key benefit 1]
+- [Key benefit 2] 
+- [Key benefit 3]
+- Investment: $[amount]
+
+**Option 2: [Standard Package]**
+- [Key benefit 1]
+- [Key benefit 2]
+- Investment: $[amount]
+
+Given what you've shared about [their specific situation], I believe [recommended option] would be the best fit because [specific reasoning].
+
+The question isn't whether you need this - we've established that. The question is: are you ready to make the investment in yourself and your business to get this handled once and for all?
+
+What questions do you have?`,
+        callOutcomes: [
+          'Closed - Signed up for [Program Name]',
+          'Follow-up scheduled - Needs to discuss with partner',
+          'Follow-up scheduled - Reviewing proposal',
+          'Not qualified - Budget not aligned',
+          'Not qualified - Not decision maker',
+          'Not qualified - No urgency',
+          'Lost - Went with competitor',
+          'Lost - Decided not to move forward'
+        ]
+      };
+
+      setAiConversationFramework(framework);
+      setIsAiLoading(false);
+    }, 3000);
+  };
+
+  // Save conversation framework
+  const saveConversationFramework = () => {
+    if (!aiConversationFramework) {
+      alert('Please generate conversation framework first');
+      return;
     }
-  };
 
-  const deletePipelineItem = (id) => {
-    const updated = addedPipelineItems.filter(i => i.id !== id);
-    setAddedPipelineItems(updated);
-    storageOptimizer.safeSet('step5_added_pipeline_items', updated);
-  };
-
-  // AI content generation
-  const handleAIContentGeneration = async () => {
-    setAiModalOpen(true);
-    setAiLoading(true);
+    setConversationFramework({
+      id: Date.now(),
+      questions: aiConversationFramework.questions,
+      objections: aiConversationFramework.objections,
+      closingScript: aiConversationFramework.closingScript,
+      callOutcomes: aiConversationFramework.callOutcomes,
+      longTermNurture: aiLongTermNurture
+    });
     
-    try {
-      const result = await aiService.generateSalesPipeline();
-      setAiResult(result);
-    } catch (error) {
-      console.error('Error generating sales pipeline:', error);
-    } finally {
-      setAiLoading(false);
-    }
+    setConversationFrameworkModalOpen(false);
   };
 
-  const handleUseAIContent = (content) => {
-    // Apply AI suggestions to current sub-step
-    if (activeSubStep === 1) {
-      setDiscoveryProcess(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step5_discovery_process', { ...discoveryProcess, ...content });
-    } else if (activeSubStep === 2) {
-      setAutomationSetup(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step5_automation_setup', { ...automationSetup, ...content });
-    } else if (activeSubStep === 3) {
-      setIntegrationPlan(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step5_integration_plan', { ...integrationPlan, ...content });
-    }
-    setAiModalOpen(false);
+  // Generate 12-Month Long Term Nurture
+  const handleLongTermNurture = () => {
+    setIsAiLoading(true);
+    setLongTermNurtureModalOpen(true);
+
+    // Simulate AI long-term nurture generation
+    setTimeout(() => {
+      const nurture = `# 12-MONTH LONG-TERM NURTURE SEQUENCE
+## For Prospects Not Ready Now
+
+### EMAIL 1: Month 1 - Thank You & Stay Connected
+**Subject:** Thank you for our conversation + staying connected
+
+Hi [First Name],
+
+Thank you for taking the time to speak with me about [their challenge]. I really enjoyed learning about your business and the goals you're working toward.
+
+I know you mentioned that now isn't the right time to move forward with [solution], and I completely understand. Timing is everything in business.
+
+I wanted to let you know that I'll be staying in touch over the coming months with valuable insights, case studies, and strategies that can help you with [their specific challenge] - no strings attached.
+
+My goal is simple: to be a valuable resource for you, whether we work together or not.
+
+Here's something you can implement right away: [Quick tip related to their challenge]
+
+Looking forward to staying connected!
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 2: Month 2 - Case Study
+**Subject:** How [Similar Client] overcame [similar challenge]
+
+Hi [First Name],
+
+I wanted to share a quick story that reminded me of our conversation.
+
+[Client Name], a [similar business type], was facing [similar challenge to prospect]. Like you, they were [specific situation].
+
+Here's what happened: [Brief case study with specific results]
+
+The transformation took [timeframe] and the results speak for themselves: [specific outcomes].
+
+What made the difference? [Key insight or strategy]
+
+I thought you might find this interesting given what you shared about [their specific situation].
+
+How are things going with [their challenge] on your end?
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 3: Month 3 - Industry Insight
+**Subject:** New trend affecting [their industry]
+
+Hi [First Name],
+
+I've been seeing an interesting trend in [their industry] that I thought you'd want to know about.
+
+[Share relevant industry insight, statistic, or trend]
+
+This is particularly relevant for businesses like yours because [connection to their situation].
+
+Here's what I recommend: [Actionable advice]
+
+How is this trend affecting your business? I'd love to hear your perspective.
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 4: Month 4 - Resource Share
+**Subject:** Thought you'd find this useful
+
+Hi [First Name],
+
+I came across [resource/tool/article] and immediately thought of you and our conversation about [their challenge].
+
+[Brief description of resource and why it's valuable]
+
+You can access it here: [Link]
+
+The part that I think will be most relevant for you is [specific section], especially given what you mentioned about [their specific situation].
+
+Let me know what you think!
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 5: Month 5 - Quick Check-in
+**Subject:** Quick question about [their challenge]
+
+Hi [First Name],
+
+I was just thinking about our conversation from a few months ago about [their challenge].
+
+How are things progressing with that? Have you been able to make any headway?
+
+I ask because I've been working with several businesses facing similar challenges, and I've learned some new strategies that might be helpful.
+
+If you're still working on this, I'd be happy to share what's been working best.
+
+Either way, I hope business is going well for you!
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 6: Month 6 - Mid-Year Check-in
+**Subject:** How's your year going so far?
+
+Hi [First Name],
+
+Can you believe we're already halfway through the year?
+
+I was reflecting on the goals and challenges we discussed back in [month of conversation], and I'm curious - how has your year been unfolding?
+
+Have you been able to make progress on [their specific challenge]? 
+
+I've been working with [number] businesses this year on similar challenges, and I've seen some incredible transformations. The common thread among the most successful ones has been [key insight].
+
+If you're still working on [their challenge] and want to explore some new approaches, I'm here to help.
+
+How can I best support you in the second half of the year?
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 7: Month 7 - Success Story
+**Subject:** Amazing results from [similar client]
+
+Hi [First Name],
+
+I had to share this with you because it reminded me so much of what you were dealing with when we spoke.
+
+[Client Name] just achieved [specific result] after implementing [solution/strategy]. What makes this especially relevant is that they started in a very similar position to where you were - [similar challenge/situation].
+
+Here's what they did: [Brief overview of approach]
+
+The results: [Specific outcomes and timeline]
+
+What I found most interesting was [key insight or lesson learned].
+
+I thought you might find this encouraging, especially if you're still working on [their challenge].
+
+How are things going on your end?
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 8: Month 8 - Strategy Tip
+**Subject:** One strategy that's working really well right now
+
+Hi [First Name],
+
+I wanted to share a strategy that's been working incredibly well for businesses like yours.
+
+It's called [strategy name] and here's how it works:
+
+[Detailed explanation of strategy]
+
+The reason this is so effective is [explanation of why it works].
+
+I've seen businesses implement this and get [specific type of results] within [timeframe].
+
+Given what you shared about [their situation], this could be particularly effective for you because [specific reason].
+
+Want to give it a try? Here's how to get started:
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+Let me know how it goes!
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 9: Month 9 - Market Update
+**Subject:** What I'm seeing in [their industry] right now
+
+Hi [First Name],
+
+I wanted to give you a quick update on what I'm seeing in [their industry] right now.
+
+**The Challenge:** [Current industry challenge]
+**The Opportunity:** [Current industry opportunity]
+**What This Means for You:** [Specific implications]
+
+The businesses that are thriving right now are the ones that [key success factor].
+
+Based on what I know about your business, I think you're well-positioned to [specific opportunity] if you [specific action].
+
+What are you seeing in your market? I'd love to hear your perspective.
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 10: Month 10 - Personal Note
+**Subject:** Thinking of you
+
+Hi [First Name],
+
+I was just reviewing my notes from our conversation almost a year ago, and I realized how much I enjoyed speaking with you.
+
+Your insights about [something they shared] really stuck with me, and I've actually shared that perspective with other clients (with your permission, of course).
+
+I'm curious - how has your year been? Have you been able to make progress on [their original challenge]?
+
+I know when we spoke, you were [their situation at the time]. I hope things have been moving in a positive direction.
+
+If there's anything I can do to support you as you finish out the year strong, please don't hesitate to reach out.
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 11: Month 11 - Year-End Reflection
+**Subject:** As we head into the new year...
+
+Hi [First Name],
+
+As we approach the end of the year, I find myself reflecting on the conversations and connections that have meant the most to me.
+
+Our conversation about [their challenge] was definitely one of those meaningful exchanges. Your perspective on [something they shared] really influenced how I think about [related topic].
+
+As you're planning for next year, I'm curious:
+- What were your biggest wins this year?
+- What challenges are you hoping to tackle in the new year?
+- How can I best support you moving forward?
+
+I've been working on some new approaches to [their area of challenge] that I think you'd find interesting. If you're open to it, I'd love to share what I've learned.
+
+Here's to a strong finish to this year and an even better next year!
+
+Best,
+[Your Name]
+
+---
+
+### EMAIL 12: Month 12 - New Year, New Opportunities
+**Subject:** Ready for your best year yet?
+
+Hi [First Name],
+
+Happy New Year! 
+
+As we start fresh, I wanted to reach out and see how you're feeling about the year ahead.
+
+It's been almost a year since we first spoke about [their challenge]. A lot can change in a year, and I'm curious where things stand for you now.
+
+Are you still working on [their original challenge]? Has your situation evolved?
+
+I ask because I've developed some new strategies and approaches over the past year that have been incredibly effective for businesses like yours. 
+
+If you're ready to tackle [their challenge] with fresh energy and new tools, I'd love to explore how I can help.
+
+I have a few spots open in my calendar this month for complimentary strategy sessions. These are designed to:
+✓ Assess where you are now vs. where you want to be
+✓ Identify the biggest opportunities for growth
+✓ Create a clear roadmap for achieving your goals
+
+No pressure, no sales pitch - just valuable insights you can use whether we work together or not.
+
+If you're interested, simply reply with "STRATEGY" and I'll send you the calendar link.
+
+Here's to making this your best year yet!
+
+Best,
+[Your Name]
+
+---
+
+**SEQUENCE SUMMARY:**
+- **Total emails:** 12
+- **Timeline:** 12 months
+- **Purpose:** Stay top-of-mind with prospects not ready to buy now
+- **Key elements:** Value delivery, relationship building, soft re-engagement
+- **Conversion goal:** Re-open conversation when timing is better`;
+
+      setAiLongTermNurture(nurture);
+      setIsAiLoading(false);
+    }, 3000);
   };
 
+  // How This Works content
   const howThisWorksContent = {
-    title: "How This Step Works",
-    description: "Follow these Action Steps to build an automated sales pipeline that qualifies prospects and converts leads efficiently.",
+    description: "Automate your sales pipeline with discovery sessions, conversation frameworks, and long-term nurturing.",
     steps: [
       {
-        title: "Discovery Process",
-        description: "Create a systematic approach to qualify prospects and understand their needs and decision-making process.",
-        color: "bg-[#fbae42]"
-      },
-      {
-        title: "Automation Setup", 
-        description: "Implement automated systems for lead scoring, nurturing sequences, and follow-up communications.",
+        title: "Discovery Setup",
+        description: "Configure discovery sessions and questions",
         color: "bg-[#0e9246]"
       },
       {
-        title: "Integration Plan",
-        description: "Connect all tools and systems to create a seamless, efficient sales pipeline operation.",
+        title: "Conversation Framework", 
+        description: "Build objection handling and closing scripts",
+        color: "bg-[#d7df21]"
+      },
+      {
+        title: "Milestone",
+        description: "Complete your sales automation",
         color: "bg-[#467a8f]"
       }
     ]
   };
 
-  // Check section completion for tab progression
-  const hasDiscoveryProcess = Object.values(discoveryProcess).every(value => value && value.trim().length > 0);
-  const hasAutomationSetup = Object.values(automationSetup).every(value => value && value.trim().length > 0);
-  const hasIntegrationPlan = Object.values(integrationPlan).every(value => value && value.trim().length > 0);
-
-  // Tab progression logic
-  const isSubStepUnlocked = (stepNumber) => {
-    switch (stepNumber) {
-      case 1: return true; // Always unlocked
-      case 2: return hasDiscoveryProcess; // Unlocked when discovery complete
-      case 3: return hasDiscoveryProcess && hasAutomationSetup; // Unlocked when first two complete
-      case 4: return hasDiscoveryProcess && hasAutomationSetup && hasIntegrationPlan; // Milestone - all complete
-      default: return false;
-    }
-  };
-
-  const subSteps = [
-    { id: 1, title: 'Discovery Process', icon: Search },
-    { id: 2, title: 'Automation Setup', icon: Zap },
-    { id: 3, title: 'Integration Plan', icon: Users },
-    { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
-  ];
-
-  const renderSubStepContent = () => {
-    switch (activeSubStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Discovery Process</h3>
-              <p className="text-gray-600 mb-6">
-                Create a systematic approach to qualify prospects, understand their needs, and determine if there's a good fit.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Qualification Criteria
-                  </label>
-                  <textarea
-                    value={discoveryProcess.qualificationCriteria}
-                    onChange={(e) => handleDiscoveryChange('qualificationCriteria', e.target.value)}
-                    placeholder="Define your ideal client criteria: budget range, company size, decision-making authority..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Discovery Questions
-                  </label>
-                  <textarea
-                    value={discoveryProcess.discoveryQuestions}
-                    onChange={(e) => handleDiscoveryChange('discoveryQuestions', e.target.value)}
-                    placeholder="List key questions to understand their situation, challenges, and goals..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Needs Assessment Process
-                  </label>
-                  <textarea
-                    value={discoveryProcess.needsAssessment}
-                    onChange={(e) => handleDiscoveryChange('needsAssessment', e.target.value)}
-                    placeholder="How will you assess if your solution fits their needs?"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pain Point Identification
-                  </label>
-                  <textarea
-                    value={discoveryProcess.painPointIdentification}
-                    onChange={(e) => handleDiscoveryChange('painPointIdentification', e.target.value)}
-                    placeholder="How will you uncover and validate their key pain points?"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Discovery Process')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Discovery Process')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Discovery Process Items */}
-                {addedPipelineItems.filter(i => i.type === 'Discovery Process').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editPipelineItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deletePipelineItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasDiscoveryProcess && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Discovery Process Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Great! You can now move to automation setup.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Automation Setup</h3>
-              <p className="text-gray-600 mb-6">
-                Implement automated systems for lead scoring, nurturing, and follow-up to maximize efficiency and conversion.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Lead Scoring System
-                  </label>
-                  <textarea
-                    value={automationSetup.leadScoring}
-                    onChange={(e) => handleAutomationChange('leadScoring', e.target.value)}
-                    placeholder="Define how leads will be scored: engagement level, demographics, behavior, company fit..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Sequences
-                  </label>
-                  <textarea
-                    value={automationSetup.emailSequences}
-                    onChange={(e) => handleAutomationChange('emailSequences', e.target.value)}
-                    placeholder="Describe your automated email sequences for different prospect stages..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Follow-up Tasks
-                  </label>
-                  <textarea
-                    value={automationSetup.followUpTasks}
-                    onChange={(e) => handleAutomationChange('followUpTasks', e.target.value)}
-                    placeholder="What automated tasks will be created for follow-up and nurturing?"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    CRM Integration
-                  </label>
-                  <textarea
-                    value={automationSetup.crmIntegration}
-                    onChange={(e) => handleAutomationChange('crmIntegration', e.target.value)}
-                    placeholder="How will automation integrate with your CRM system?"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Automation Setup')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Automation Setup')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Automation Setup Items */}
-                {addedPipelineItems.filter(i => i.type === 'Automation Setup').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editPipelineItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deletePipelineItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasAutomationSetup && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Automation Setup Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to integration planning.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Integration Plan</h3>
-              <p className="text-gray-600 mb-6">
-                Connect all your tools and systems for seamless data flow and unified sales pipeline management.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tools Integration
-                  </label>
-                  <textarea
-                    value={integrationPlan.toolsIntegration}
-                    onChange={(e) => handleIntegrationChange('toolsIntegration', e.target.value)}
-                    placeholder="List the tools you'll integrate: CRM, email marketing, calendar, payment processing..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Data Flow Design
-                  </label>
-                  <textarea
-                    value={integrationPlan.dataFlow}
-                    onChange={(e) => handleIntegrationChange('dataFlow', e.target.value)}
-                    placeholder="How will data flow between systems? Lead capture → CRM → Email → Analytics..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reporting Setup
-                  </label>
-                  <textarea
-                    value={integrationPlan.reportingSetup}
-                    onChange={(e) => handleIntegrationChange('reportingSetup', e.target.value)}
-                    placeholder="What reports and dashboards will you create to track pipeline performance?"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Team Access & Permissions
-                  </label>
-                  <textarea
-                    value={integrationPlan.teamAccess}
-                    onChange={(e) => handleIntegrationChange('teamAccess', e.target.value)}
-                    placeholder="Who will have access to what systems? Define roles and permissions..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Integration Plan')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Integration Plan')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Integration Plan Items */}
-                {addedPipelineItems.filter(i => i.type === 'Integration Plan').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editPipelineItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deletePipelineItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasIntegrationPlan && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Integration Plan Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your sales pipeline automation is now complete. Check out the milestone reflection!
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* AI Enhancement Section */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-[#d7df21]" />
-                <h3 className="text-xl font-semibold text-gray-900">AI Enhancement</h3>
-              </div>
-              
-              <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to optimize your complete sales pipeline automation.
-              </p>
-
-              <button
-                onClick={handleAIContentGeneration}
-                className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-              >
-                <Sparkles className="w-4 h-4" />
-                🤖 Generate AI Pipeline Strategy
-              </button>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            {showConfetti && (
-              <Confetti
-                width={windowDimensions.width}
-                height={windowDimensions.height}
-                recycle={false}
-                numberOfPieces={200}
-                gravity={0.3}
-              />
-            )}
-            
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-8 h-8 text-white" />
-                </div>
-                
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  🎉 Milestone Achieved!
-                </h2>
-                
-                <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've built an automated sales pipeline that will efficiently convert prospects into clients.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-8 text-left">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created systematic discovery process</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Set up automated lead scoring and nurturing</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Planned comprehensive tool integration</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Built scalable sales pipeline system</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What This Means</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your sales process will be more efficient</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll qualify prospects more effectively</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Follow-up will happen automatically</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Conversion rates will improve significantly</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
-                  <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
-                  <p className="text-gray-700">
-                    Automation doesn't replace relationships—it enhances them. Your pipeline now ensures no prospect falls through the cracks while maintaining the personal touch that builds trust and drives conversions.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Component 1: Step Progress Indicator */}
-        <div className="text-sm text-gray-500 mb-2">
-          STEP 5 OF 9
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-sm text-gray-500 mb-2">STEP 5 OF 9</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Sales Pipeline Automation
+          </h1>
+          <p className="text-base lg:text-lg text-gray-600">
+            Automate your sales process with discovery sessions, conversation frameworks, and nurturing sequences.
+          </p>
         </div>
 
-        {/* Component 2: Step Name */}
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Sales Pipeline Automation
-        </h1>
-
-        {/* Component 3: Step Objective */}
-        <p className="text-lg text-gray-600 mb-6">
-          Build an automated sales pipeline that qualifies prospects, nurtures relationships, and converts leads into clients efficiently.
-        </p>
-
-        {/* Step Completion Indicator */}
-        {isStepComplete && (
-          <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
-            <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
-            <div>
-              <p className="font-semibold">🎉 Step 5 Complete! Your sales pipeline is automated.</p>
-              <p className="text-sm text-green-700 mt-1">
-                You now have an efficient system to convert prospects into clients.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Component 4: How This Works Section */}
+        {/* How This Works Section */}
         <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
@@ -906,7 +614,9 @@ const Step5 = () => {
               <span className="text-lg font-semibold text-gray-900">How This Step Works</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-[#0e9246] font-medium">Expand</span>
+              <span className="text-sm text-[#0e9246] font-medium">
+                {isHowThisWorksOpen ? 'Collapse' : 'Expand'}
+              </span>
               {isHowThisWorksOpen ? (
                 <ChevronUp className="w-5 h-5 text-[#0e9246]" />
               ) : (
@@ -941,17 +651,12 @@ const Step5 = () => {
           <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
         </div>
         
-        {/* Sub-step Navigation */}
-        <div className="bg-[#d5e6ed] rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
-            {subSteps.map((step, index) => {
+            {subSteps.map((step) => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
-              const isCompleted = step.id < 4 ? (
-                step.id === 1 ? hasDiscoveryProcess :
-                step.id === 2 ? hasAutomationSetup :
-                step.id === 3 ? hasIntegrationPlan : false
-              ) : isStepComplete;
+              const isCompleted = isSubStepCompleted(step.id);
 
               return (
                 <button
@@ -962,8 +667,8 @@ const Step5 = () => {
                     isActive
                       ? 'border-[#fbae42] bg-orange-50'
                       : isUnlocked
-                      ? 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-                      : 'border-transparent bg-gray-50'
+                      ? 'border-transparent hover:border-gray-300 hover:bg-white hover:bg-opacity-50'
+                      : 'border-transparent bg-transparent'
                   } ${
                     !isUnlocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                   }`}
@@ -981,9 +686,9 @@ const Step5 = () => {
                       {isCompleted ? (
                         <CheckCircle2 className="w-4 h-4" />
                       ) : !isUnlocked ? (
-                        <span className="text-sm">🔒</span>
+                        <span className="text-xs">🔒</span>
                       ) : (
-                        <span className="text-sm font-bold">{step.id}</span>
+                        <span className="text-sm font-bold">{step.id + 1}</span>
                       )}
                     </div>
                     <span className={`text-sm font-medium ${
@@ -1003,165 +708,500 @@ const Step5 = () => {
         </div>
 
         {/* Sub-step Content */}
-        <div className="mb-8">
-          {renderSubStepContent()}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Current Sub-step */}
+          <div className="space-y-6">
+            {activeSubStep === 0 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Discovery Setup</h3>
+                <p className="text-gray-600 mb-6">Configure your discovery session details and questions.</p>
+                
+                {/* Discovery Session Setup */}
+                <div className="mb-8">
+                  <button
+                    onClick={() => setDiscoverySetupModalOpen(true)}
+                    className="w-full px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                  >
+                    <Calendar className="w-5 h-5" />
+                    <span>Setup Discovery Session</span>
+                  </button>
+                </div>
+
+                {/* AI Discovery Questions */}
+                <div className="mb-8">
+                  <button
+                    onClick={handleAIDiscoveryQuestions}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Generate Discovery Questions</span>
+                  </button>
+                </div>
+
+                {/* Discovery Setup Display */}
+                {!discoverySetup ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No discovery setup configured yet</p>
+                  </div>
+                ) : (
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">{discoverySetup.sessionName}</h4>
+                    <p className="text-sm text-gray-600 mb-2">Duration: {discoverySetup.timeFrame}</p>
+                    {discoverySetup.calendarLink && (
+                      <p className="text-sm text-gray-600 mb-2">Calendar: {discoverySetup.calendarLink}</p>
+                    )}
+                    <p className="text-sm text-gray-600 mb-2">SMS Enabled: {discoverySetup.smsEnabled ? 'Yes' : 'No'}</p>
+                    <p className="text-sm text-gray-600">Questions: {discoverySetup.questions.length}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 1 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Conversation Framework</h3>
+                <p className="text-gray-600 mb-6">Build your conversation framework with objection handling and closing scripts.</p>
+                
+                <button
+                  onClick={handleAIConversationFramework}
+                  className="w-full mb-6 px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  <span>Generate Conversation Framework</span>
+                </button>
+
+                {aiConversationFramework && (
+                  <div className="space-y-4">
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-2">Framework Generated</h4>
+                      <div className="text-sm text-gray-600 space-y-2">
+                        <p>• {aiConversationFramework.questions.length} Discovery Questions</p>
+                        <p>• {aiConversationFramework.objections.length} Objection Responses</p>
+                        <p>• Complete Closing Script</p>
+                        <p>• {aiConversationFramework.callOutcomes.length} Call Outcome Options</p>
+                      </div>
+                      <button
+                        onClick={() => setConversationFrameworkModalOpen(true)}
+                        className="mt-3 text-[#0e9246] hover:text-green-700 text-sm font-medium"
+                      >
+                        View Full Framework →
+                      </button>
+                    </div>
+
+                    {/* Long Term Nurture Section */}
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-2">12-Month Long Term Nurture</h4>
+                      <p className="text-sm text-gray-600 mb-3">For prospects not ready now</p>
+                      <button
+                        onClick={handleLongTermNurture}
+                        className="w-full px-4 py-2 bg-[#fbae42] text-white rounded-lg hover:bg-[#e09d3a] flex items-center justify-center space-x-2"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Generate 12-Month Nurture</span>
+                      </button>
+                      
+                      {aiLongTermNurture && (
+                        <div className="mt-3">
+                          <p className="text-sm text-green-600">✅ 12 emails generated</p>
+                          <button
+                            onClick={() => setLongTermNurtureModalOpen(true)}
+                            className="mt-2 text-[#0e9246] hover:text-green-700 text-sm font-medium"
+                          >
+                            View 12-Month Sequence →
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 2 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
+                <p className="text-gray-600 mb-6">Congratulations! You've automated your sales pipeline.</p>
+                
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-900 mb-2">What You've Accomplished:</h4>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li>✅ Configured discovery session: "{discoverySetup?.sessionName}"</li>
+                      <li>✅ Generated discovery questions and conversation framework</li>
+                      <li>✅ Built objection handling and closing scripts</li>
+                      <li>✅ Created 12-month long-term nurture sequence</li>
+                      <li>✅ Established complete sales automation system</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
+                    <p className="text-sm text-blue-800">
+                      Move on to Step 6: Build Your Delivery System to create your service delivery framework.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Pipeline Overview */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Sales Pipeline Overview</h3>
+            
+            {/* Discovery Setup Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Discovery Setup</h4>
+              {!discoverySetup ? (
+                <p className="text-gray-500 text-sm">No discovery setup configured yet</p>
+              ) : (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <Calendar className="w-4 h-4 text-blue-600 mr-2" />
+                    <span className="font-medium text-blue-900">{discoverySetup.sessionName}</span>
+                  </div>
+                  <p className="text-sm text-blue-700">{discoverySetup.timeFrame} session</p>
+                  <p className="text-sm text-blue-700">{discoverySetup.questions.length} questions</p>
+                </div>
+              )}
+            </div>
+
+            {/* Conversation Framework Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Conversation Framework</h4>
+              {!conversationFramework ? (
+                <p className="text-gray-500 text-sm">No conversation framework generated yet</p>
+              ) : (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <MessageSquare className="w-4 h-4 text-green-600 mr-2" />
+                    <span className="font-medium text-green-900">Complete Framework</span>
+                  </div>
+                  <p className="text-sm text-green-700">Questions, objections, closing script</p>
+                  <p className="text-sm text-green-700">12-month nurture sequence</p>
+                </div>
+              )}
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-3">Pipeline Progress</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Discovery Setup</span>
+                  <span className={`text-sm font-medium ${hasDiscoverySetup ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasDiscoverySetup ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Conversation Framework</span>
+                  <span className={`text-sm font-medium ${hasConversationFramework ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasConversationFramework ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Manual Entry Modal */}
-        {manualModalOpen && (
+        {/* Discovery Setup Modal */}
+        {discoverySetupModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
-                <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Discovery Session Setup</h3>
+                  <button
+                    onClick={() => setDiscoverySetupModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
               
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Session Name *</label>
+                  <input
+                    type="text"
+                    value={discoveryForm.sessionName}
+                    onChange={(e) => setDiscoveryForm({...discoveryForm, sessionName: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="e.g., Strategy Session, Discovery Call"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Time Frame *</label>
                   <select
-                    value={manualForm.type}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    value={discoveryForm.timeFrame}
+                    onChange={(e) => setDiscoveryForm({...discoveryForm, timeFrame: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
                   >
-                    <option value="">Select type...</option>
-                    <option value="Discovery Process">Discovery Process</option>
-                    <option value="Automation Setup">Automation Setup</option>
-                    <option value="Integration Plan">Integration Plan</option>
+                    <option value="">Select duration</option>
+                    <option value="30 minutes">30 minutes</option>
+                    <option value="45 minutes">45 minutes</option>
+                    <option value="60 minutes">60 minutes</option>
+                    <option value="90 minutes">90 minutes</option>
                   </select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Calendar Link</label>
                   <input
-                    type="text"
-                    value={manualForm.title}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., BANT Qualification Framework"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    type="url"
+                    value={discoveryForm.calendarLink}
+                    onChange={(e) => setDiscoveryForm({...discoveryForm, calendarLink: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="https://calendly.com/your-link"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Confirmation Message</label>
                   <textarea
-                    value={manualForm.description}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Brief description..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
+                    value={discoveryForm.confirmationMessage}
+                    onChange={(e) => setDiscoveryForm({...discoveryForm, confirmationMessage: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    rows="3"
+                    placeholder="Thank you for booking! I'm looking forward to our conversation..."
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
-                  <textarea
-                    value={manualForm.details}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
-                    placeholder="Additional details (optional)..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="smsEnabled"
+                    checked={discoveryForm.smsEnabled}
+                    onChange={(e) => setDiscoveryForm({...discoveryForm, smsEnabled: e.target.checked})}
+                    className="mr-2"
                   />
+                  <label htmlFor="smsEnabled" className="text-sm text-gray-700">Enable SMS reminders</label>
                 </div>
               </div>
               
-              <div className="flex gap-3 p-6 border-t">
+              <div className="p-6 border-t border-gray-200 flex space-x-3">
                 <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  onClick={() => setDiscoverySetupModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleManualSubmit}
-                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
+                  onClick={handleSaveDiscoverySetup}
+                  className="flex-1 px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
                 >
-                  Add Entry
+                  Save Setup
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* AI Suggestions Modal */}
-        {aiSuggestionsModalOpen && (
+        {/* AI Discovery Questions Modal */}
+        {aiDiscoveryQuestionsModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
-                <button
-                  onClick={() => setAiSuggestionsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">AI Discovery Questions</h3>
+                  <button
+                    onClick={() => setAiDiscoveryQuestionsModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <p className="text-gray-600 mt-2">AI-generated discovery questions to uncover needs and qualify prospects</p>
               </div>
               
               <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
-                </p>
-                
-                <div className="space-y-4">
-                  {aiSuggestions.map((suggestion) => (
-                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
-                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
-                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating discovery questions...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Recommended Questions ({aiDiscoveryQuestions.length} questions)</h4>
+                    {aiDiscoveryQuestions.map((item, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-gray-600">{item.category}</span>
+                            <h5 className="font-medium text-gray-900 mt-1">{item.question}</h5>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => addAiSuggestion(suggestion)}
-                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add
-                        </button>
+                        
+                        <div className="bg-gray-50 rounded-md p-3 mb-3">
+                          <p className="text-sm text-gray-700">
+                            <span className="font-medium">Purpose:</span> {item.purpose}
+                          </p>
+                        </div>
+                        
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => addAIDiscoveryQuestion(item)}
+                            className="px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
+                          >
+                            Add Question
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Conversation Framework Modal */}
+        {conversationFrameworkModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Complete Conversation Framework</h3>
+                  <button
+                    onClick={() => setConversationFrameworkModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating conversation framework...</span>
+                  </div>
+                ) : aiConversationFramework && (
+                  <div className="space-y-6">
+                    {/* Discovery Questions */}
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Discovery Questions</h4>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <ul className="space-y-2">
+                          {aiConversationFramework.questions.map((question, index) => (
+                            <li key={index} className="text-sm text-gray-700">• {question}</li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
-                  ))}
-                  
-                  {aiSuggestions.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      All suggestions have been added! Close this modal to continue.
+
+                    {/* Objection Handling */}
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Objection Handling</h4>
+                      <div className="space-y-3">
+                        {aiConversationFramework.objections.map((item, index) => (
+                          <div key={index} className="bg-gray-50 rounded-lg p-4">
+                            <p className="font-medium text-gray-900 mb-2">"{item.objection}"</p>
+                            <p className="text-sm text-gray-700">{item.response}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  )}
+
+                    {/* Closing Script */}
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Closing Script</h4>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{aiConversationFramework.closingScript}</pre>
+                      </div>
+                    </div>
+
+                    {/* Call Outcomes */}
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Call Outcomes</h4>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <ul className="space-y-1">
+                          {aiConversationFramework.callOutcomes.map((outcome, index) => (
+                            <li key={index} className="text-sm text-gray-700">• {outcome}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      const content = JSON.stringify(aiConversationFramework, null, 2);
+                      navigator.clipboard.writeText(content);
+                      alert('Conversation framework copied to clipboard!');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  >
+                    Copy to Clipboard
+                  </button>
+                  <button
+                    onClick={saveConversationFramework}
+                    className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                  >
+                    Save Framework
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* AI Modal */}
-        <AIModal
-          isOpen={aiModalOpen}
-          onClose={() => setAiModalOpen(false)}
-          title="AI Sales Pipeline"
-          content={aiResult}
-          isLoading={aiLoading}
-          onUseContent={handleUseAIContent}
-        />
-
-        {/* API Key Modal */}
-        <APIKeyModal
-          isOpen={apiKeyModalOpen}
-          onClose={() => setApiKeyModalOpen(false)}
-          onSave={handleSaveApiKey}
-        />
-
-        {/* Footer */}
-        <StepFooter 
-          currentStep={5}
-          isStepComplete={isStepComplete}
-          onPrevious={() => {}}
-          onNext={() => {}}
-        />
+        {/* Long Term Nurture Modal */}
+        {longTermNurtureModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">12-Month Long Term Nurture Sequence</h3>
+                  <button
+                    onClick={() => setLongTermNurtureModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <p className="text-gray-600 mt-2">For prospects not ready to buy now</p>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating 12-month nurture sequence...</span>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-6">
+                    <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{aiLongTermNurture}</pre>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3 mt-4">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(aiLongTermNurture);
+                      alert('12-month nurture sequence copied to clipboard!');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  >
+                    Copy to Clipboard
+                  </button>
+                  <button
+                    onClick={() => setLongTermNurtureModalOpen(false)}
+                    className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                  >
+                    Save Sequence
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
