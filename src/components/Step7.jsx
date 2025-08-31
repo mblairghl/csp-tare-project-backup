@@ -1,899 +1,395 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, BarChart3, Layout, Calendar, Plus, Sparkles, X, Edit, Trash2, Target, TrendingUp, Activity } from 'lucide-react';
-import Confetti from 'react-confetti';
-import StepFooter from './StepFooter';
-import AIModal from './AIModal';
-import APIKeyModal from './APIKeyModal';
-import aiService from '../services/aiService';
-import storageOptimizer from '../utils/storageOptimizer';
+import { CheckCircle2, ChevronDown, ChevronUp, Plus, Sparkles, X, BarChart3, Layout, Calendar, Target, TrendingUp, Activity, Edit, Trash2 } from 'lucide-react';
 
 const Step7 = () => {
-  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [windowDimensions, setWindowDimensions] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight
-  });
-
-  // Tab management
-  const [activeSubStep, setActiveSubStep] = useState(1);
-
-  // Step completion tracking
-  const [isStepComplete, setIsStepComplete] = useState(false);
-
+  // Sub-step management (4 steps total)
+  const [activeSubStep, setActiveSubStep] = useState(0);
+  const [kpiPlan, setKpiPlan] = useState(null);
+  const [dashboardLayout, setDashboardLayout] = useState(null);
+  const [reportingSchedule, setReportingSchedule] = useState(null);
+  
   // Modal states
-  const [manualModalOpen, setManualModalOpen] = useState(false);
-  const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
-  const [currentModalType, setCurrentModalType] = useState('');
-
-  // Performance tracking data
-  const [kpiPlanning, setKpiPlanning] = useState({
-    businessMetrics: '',
-    performanceIndicators: '',
-    trackingMethods: '',
-    reportingFrequency: ''
-  });
-
-  const [dashboardLayout, setDashboardLayout] = useState({
-    dashboardTools: '',
-    visualizations: '',
-    dataConnections: '',
-    accessPermissions: ''
-  });
-
-  const [reportingSchedule, setReportingSchedule] = useState({
-    reportTypes: '',
-    automatedReports: '',
-    stakeholderReports: '',
-    actionableInsights: ''
-  });
-
-  // Added tracking items list
-  const [addedTrackingItems, setAddedTrackingItems] = useState([]);
-
-  // Manual form data
-  const [manualForm, setManualForm] = useState({
-    type: '',
-    title: '',
+  const [aiKpiModalOpen, setAiKpiModalOpen] = useState(false);
+  const [addKpiModalOpen, setAddKpiModalOpen] = useState(false);
+  const [aiDashboardModalOpen, setAiDashboardModalOpen] = useState(false);
+  const [aiReportingModalOpen, setAiReportingModalOpen] = useState(false);
+  
+  // Form states
+  const [kpiForm, setKpiForm] = useState({
+    name: '',
     description: '',
-    details: ''
+    target: '',
+    frequency: '',
+    category: ''
   });
+  
+  // AI results
+  const [aiKpiSuggestions, setAiKpiSuggestions] = useState([]);
+  const [aiDashboardSuggestion, setAiDashboardSuggestion] = useState(null);
+  const [aiReportingSuggestion, setAiReportingSuggestion] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  
+  // UI states
+  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
 
-  // AI suggestions
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [aiResult, setAiResult] = useState(null);
+  // Sub-steps configuration (4 steps total)
+  const subSteps = [
+    { id: 0, title: 'KPIs Planning', completed: false },
+    { id: 1, title: 'Dashboard Layout', completed: false },
+    { id: 2, title: 'Reporting Schedule', completed: false },
+    { id: 3, title: 'Milestone Reflection', completed: false }
+  ];
 
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
+  // Check completion status
+  const hasKpiPlan = kpiPlan !== null && kpiPlan.kpis && kpiPlan.kpis.length > 0;
+  const hasDashboardLayout = dashboardLayout !== null;
+  const hasReportingSchedule = reportingSchedule !== null;
+  const isStepComplete = hasKpiPlan && hasDashboardLayout && hasReportingSchedule;
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Load saved data
-  useEffect(() => {
-    const savedKpi = storageOptimizer.safeGet('step7_kpi_planning');
-    const savedDashboard = storageOptimizer.safeGet('step7_dashboard_layout');
-    const savedReporting = storageOptimizer.safeGet('step7_reporting_schedule');
-    const savedItems = storageOptimizer.safeGet('step7_added_tracking_items');
-    
-    if (savedKpi && typeof savedKpi === 'object') {
-      setKpiPlanning(savedKpi);
-    }
-    if (savedDashboard && typeof savedDashboard === 'object') {
-      setDashboardLayout(savedDashboard);
-    }
-    if (savedReporting && typeof savedReporting === 'object') {
-      setReportingSchedule(savedReporting);
-    }
-    if (savedItems && Array.isArray(savedItems)) {
-      setAddedTrackingItems(savedItems);
-    }
-  }, []);
-
-  // Check completion status and auto-progression
-  useEffect(() => {
-    const kpiComplete = Object.values(kpiPlanning).every(value => value && value.trim().length > 0);
-    const dashboardComplete = Object.values(dashboardLayout).every(value => value && value.trim().length > 0);
-    const reportingComplete = Object.values(reportingSchedule).every(value => value && value.trim().length > 0);
-    
-    const wasComplete = isStepComplete;
-    const nowComplete = kpiComplete && dashboardComplete && reportingComplete;
-    
-    setIsStepComplete(nowComplete);
-    
-    // Show confetti when step becomes complete
-    if (!wasComplete && nowComplete) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-    }
-  }, [kpiPlanning, dashboardLayout, reportingSchedule, isStepComplete]);
-
-  // Auto-progression logic for sub-steps - ONLY on user actions
-  const triggerAutoProgression = () => {
-    const hasKpiPlanning = Object.values(kpiPlanning).every(value => value && value.trim().length > 0) ||
-                          addedTrackingItems.some(item => item.type === 'KPIs Planning');
-    const hasDashboardLayout = Object.values(dashboardLayout).every(value => value && value.trim().length > 0) ||
-                              addedTrackingItems.some(item => item.type === 'Dashboard Layout');
-    const hasReportingSchedule = Object.values(reportingSchedule).every(value => value && value.trim().length > 0) ||
-                                addedTrackingItems.some(item => item.type === 'Reporting Schedule');
-    
-    console.log('Step 7 Auto-progression Trigger:', {
-      activeSubStep,
-      hasKpiPlanning,
-      hasDashboardLayout,
-      hasReportingSchedule
-    });
-    
-    // Auto-progress to next sub-step when current one is complete
-    if (activeSubStep === 1 && hasKpiPlanning) {
-      console.log('Auto-progressing from KPIs Planning to Dashboard Layout');
-      setTimeout(() => setActiveSubStep(2), 500);
-    } else if (activeSubStep === 2 && hasDashboardLayout) {
-      console.log('Auto-progressing from Dashboard Layout to Reporting Schedule');
-      setTimeout(() => setActiveSubStep(3), 500);
-    } else if (activeSubStep === 3 && hasReportingSchedule) {
-      console.log('Auto-progressing from Reporting Schedule to Milestone');
-      setTimeout(() => setActiveSubStep(4), 500);
+  // Sub-step unlock logic
+  const isSubStepUnlocked = (stepId) => {
+    switch (stepId) {
+      case 0: return true; // KPIs Planning always unlocked
+      case 1: return hasKpiPlan; // Dashboard unlocked when KPIs exist
+      case 2: return hasDashboardLayout; // Reporting unlocked when dashboard exists
+      case 3: return hasReportingSchedule; // Milestone unlocked when reporting exists
+      default: return false;
     }
   };
 
-  const handleSaveApiKey = (apiKey) => {
-    aiService.setApiKey(apiKey);
-  };
-
-  // Handle form changes
-  const handleKpiChange = (field, value) => {
-    const updated = { ...kpiPlanning, [field]: value };
-    setKpiPlanning(updated);
-    storageOptimizer.safeSet('step7_kpi_planning', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  const handleDashboardChange = (field, value) => {
-    const updated = { ...dashboardLayout, [field]: value };
-    setDashboardLayout(updated);
-    storageOptimizer.safeSet('step7_dashboard_layout', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  const handleReportingChange = (field, value) => {
-    const updated = { ...reportingSchedule, [field]: value };
-    setReportingSchedule(updated);
-    storageOptimizer.safeSet('step7_reporting_schedule', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  // Manual entry functions
-  const openManualModal = (type) => {
-    setCurrentModalType(type);
-    setManualForm({
-      type: type,
-      title: '',
-      description: '',
-      details: ''
-    });
-    setManualModalOpen(true);
-  };
-
-  const handleManualSubmit = () => {
-    if (manualForm.title && manualForm.description) {
-      const newItem = {
-        id: Date.now(),
-        type: manualForm.type,
-        title: manualForm.title,
-        description: manualForm.description,
-        details: manualForm.details,
-        source: 'manual'
-      };
-      
-      const updated = [...addedTrackingItems, newItem];
-      setAddedTrackingItems(updated);
-      storageOptimizer.safeSet('step7_added_tracking_items', updated);
-      setManualModalOpen(false);
-      
-      // Trigger auto-progression check after adding manual entry
-      setTimeout(() => triggerAutoProgression(), 100);
+  const isSubStepCompleted = (stepId) => {
+    switch (stepId) {
+      case 0: return hasKpiPlan; // KPIs completed when plan exists
+      case 1: return hasDashboardLayout; // Dashboard completed when layout exists
+      case 2: return hasReportingSchedule; // Reporting completed when schedule exists
+      case 3: return isStepComplete; // Milestone completed when everything is done
+      default: return false;
     }
   };
 
-  // AI suggestions functions
-  const openAiSuggestionsModal = async (type) => {
-    setCurrentModalType(type);
-    setAiSuggestionsModalOpen(true);
-    
-    // Generate AI suggestions based on type
-    const suggestions = generateAiSuggestions(type);
-    setAiSuggestions(suggestions);
+  // Generate AI KPI Suggestions
+  const handleAIKpiSuggestions = () => {
+    setIsAiLoading(true);
+    setAiKpiModalOpen(true);
+
+    // Simulate AI KPI generation
+    setTimeout(() => {
+      const kpiSuggestions = [
+        {
+          name: 'Monthly Recurring Revenue (MRR)',
+          description: 'Track predictable monthly revenue from recurring clients and programs',
+          target: '$10,000/month',
+          frequency: 'Monthly',
+          category: 'Revenue',
+          reasoning: 'Essential for measuring business growth and financial stability'
+        },
+        {
+          name: 'Lead Conversion Rate',
+          description: 'Percentage of leads that convert to paying clients',
+          target: '15%',
+          frequency: 'Weekly',
+          category: 'Sales',
+          reasoning: 'Critical for optimizing your sales process and lead quality'
+        },
+        {
+          name: 'Content Engagement Rate',
+          description: 'Average engagement across all content platforms (likes, shares, comments)',
+          target: '5%',
+          frequency: 'Weekly',
+          category: 'Marketing',
+          reasoning: 'Measures authority building and audience connection'
+        },
+        {
+          name: 'Client Lifetime Value (CLV)',
+          description: 'Average total revenue generated per client over their relationship',
+          target: '$5,000',
+          frequency: 'Quarterly',
+          category: 'Revenue',
+          reasoning: 'Helps optimize pricing and client retention strategies'
+        },
+        {
+          name: 'Authority Score',
+          description: 'Composite score based on speaking engagements, media mentions, and thought leadership',
+          target: '75/100',
+          frequency: 'Monthly',
+          category: 'Authority',
+          reasoning: 'Tracks your positioning and recognition in your industry'
+        },
+        {
+          name: 'Pipeline Health Score',
+          description: 'Percentage of sales pipeline that is actively progressing',
+          target: '80%',
+          frequency: 'Weekly',
+          category: 'Sales',
+          reasoning: 'Ensures consistent revenue flow and identifies bottlenecks'
+        },
+        {
+          name: 'Client Satisfaction Score',
+          description: 'Average satisfaction rating from client feedback surveys',
+          target: '4.5/5',
+          frequency: 'Monthly',
+          category: 'Service',
+          reasoning: 'Maintains service quality and identifies improvement opportunities'
+        },
+        {
+          name: 'Lead Generation Rate',
+          description: 'Number of qualified leads generated per month',
+          target: '50 leads/month',
+          frequency: 'Weekly',
+          category: 'Marketing',
+          reasoning: 'Ensures consistent pipeline flow and marketing effectiveness'
+        }
+      ];
+
+      setAiKpiSuggestions(kpiSuggestions);
+      setIsAiLoading(false);
+    }, 3000);
   };
 
-  const generateAiSuggestions = (type) => {
-    const suggestionsByType = {
-      'KPIs Planning': [
-        { id: 1, title: 'Revenue Growth Metrics', description: 'Track monthly recurring revenue and growth rate', details: 'Monitor MRR, ARR, revenue growth percentage, and revenue per client' },
-        { id: 2, title: 'Client Acquisition KPIs', description: 'Measure lead generation and conversion effectiveness', details: 'Track lead volume, conversion rates, cost per acquisition, and sales cycle length' },
-        { id: 3, title: 'Client Satisfaction Metrics', description: 'Monitor client happiness and retention', details: 'Net Promoter Score, client retention rate, satisfaction surveys, testimonials' },
-        { id: 4, title: 'Operational Efficiency KPIs', description: 'Track business process effectiveness', details: 'Project completion time, resource utilization, automation adoption rate' },
-        { id: 5, title: 'Authority Building Metrics', description: 'Measure thought leadership and brand growth', details: 'Social media engagement, content reach, speaking opportunities, media mentions' }
-      ],
-      'Dashboard Layout': [
-        { id: 1, title: 'Executive Dashboard', description: 'High-level overview for strategic decisions', details: 'Revenue trends, client metrics, growth indicators, and key alerts' },
-        { id: 2, title: 'Sales Performance Dashboard', description: 'Track sales pipeline and conversion metrics', details: 'Pipeline value, conversion rates, sales activities, and forecasting' },
-        { id: 3, title: 'Marketing Analytics Dashboard', description: 'Monitor marketing campaign effectiveness', details: 'Lead generation, content performance, social media metrics, ROI tracking' },
-        { id: 4, title: 'Client Success Dashboard', description: 'Track client engagement and satisfaction', details: 'Client progress, engagement levels, support tickets, success milestones' },
-        { id: 5, title: 'Financial Performance Dashboard', description: 'Monitor financial health and profitability', details: 'Revenue streams, expenses, profit margins, cash flow analysis' }
-      ],
-      'Reporting Schedule': [
-        { id: 1, title: 'Weekly Performance Reports', description: 'Regular updates on key business metrics', details: 'Automated weekly summaries with trends, alerts, and action items' },
-        { id: 2, title: 'Monthly Business Reviews', description: 'Comprehensive monthly business analysis', details: 'Detailed performance analysis, goal progress, and strategic recommendations' },
-        { id: 3, title: 'Quarterly Strategic Reports', description: 'High-level strategic performance reviews', details: 'Quarterly goal assessment, market analysis, and strategic planning insights' },
-        { id: 4, title: 'Client Progress Reports', description: 'Individual client success tracking', details: 'Client-specific progress reports, milestones achieved, and next steps' },
-        { id: 5, title: 'ROI Analysis Reports', description: 'Return on investment tracking and analysis', details: 'Campaign ROI, investment performance, and optimization recommendations' }
-      ]
-    };
+  // Use AI KPI Suggestions
+  const useAIKpiSuggestions = () => {
+    if (!aiKpiSuggestions.length) return;
     
-    return suggestionsByType[type] || [];
-  };
-
-  const addAiSuggestion = (suggestion) => {
-    const newItem = {
+    setKpiPlan({
       id: Date.now(),
-      type: currentModalType,
-      title: suggestion.title,
-      description: suggestion.description,
-      details: suggestion.details,
-      source: 'ai'
-    };
+      kpis: aiKpiSuggestions,
+      trackingMethod: 'Monthly KPI Review Dashboard',
+      reviewFrequency: 'Monthly with quarterly deep dives'
+    });
     
-    const updated = [...addedTrackingItems, newItem];
-    setAddedTrackingItems(updated);
-    storageOptimizer.safeSet('step7_added_tracking_items', updated);
-    
-    // Remove suggestion from list
-    setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
-    
-    // Trigger auto-progression check after adding AI suggestion
-    setTimeout(() => triggerAutoProgression(), 100);
+    setAiKpiModalOpen(false);
   };
 
-  // Edit/Delete functions
-  const editTrackingItem = (id) => {
-    const item = addedTrackingItems.find(i => i.id === id);
-    if (item) {
-      setManualForm({
-        type: item.type,
-        title: item.title,
-        description: item.description,
-        details: item.details
+  // Add Individual KPI
+  const addIndividualKpi = (kpi) => {
+    const currentKpis = kpiPlan?.kpis || [];
+    const newKpi = { ...kpi, id: Date.now() };
+    
+    setKpiPlan({
+      id: kpiPlan?.id || Date.now(),
+      kpis: [...currentKpis, newKpi],
+      trackingMethod: kpiPlan?.trackingMethod || 'Monthly KPI Review Dashboard',
+      reviewFrequency: kpiPlan?.reviewFrequency || 'Monthly with quarterly deep dives'
+    });
+  };
+
+  // Generate AI Dashboard Layout
+  const handleAIDashboardLayout = () => {
+    setIsAiLoading(true);
+    setAiDashboardModalOpen(true);
+
+    // Simulate AI dashboard generation
+    setTimeout(() => {
+      const dashboard = {
+        layout: 'Executive Dashboard Layout',
+        description: 'A comprehensive business intelligence dashboard designed for authority-based service providers',
+        sections: [
+          {
+            title: 'Revenue Overview',
+            position: 'Top Left',
+            widgets: ['Monthly Revenue Chart', 'Revenue vs Target', 'Revenue Growth %'],
+            purpose: 'Track financial performance and growth trends'
+          },
+          {
+            title: 'Sales Pipeline',
+            position: 'Top Right', 
+            widgets: ['Pipeline Value', 'Conversion Rates', 'Deal Stages'],
+            purpose: 'Monitor sales process health and opportunities'
+          },
+          {
+            title: 'Authority Metrics',
+            position: 'Middle Left',
+            widgets: ['Content Engagement', 'Speaking Engagements', 'Media Mentions'],
+            purpose: 'Track authority building and thought leadership'
+          },
+          {
+            title: 'Client Success',
+            position: 'Middle Right',
+            widgets: ['Client Satisfaction', 'Retention Rate', 'Referral Rate'],
+            purpose: 'Monitor service delivery and client relationships'
+          },
+          {
+            title: 'Marketing Performance',
+            position: 'Bottom Left',
+            widgets: ['Lead Generation', 'Cost per Lead', 'Channel Performance'],
+            purpose: 'Optimize marketing spend and lead quality'
+          },
+          {
+            title: 'Operational Efficiency',
+            position: 'Bottom Right',
+            widgets: ['Project Completion Rate', 'Resource Utilization', 'Profit Margins'],
+            purpose: 'Ensure efficient operations and profitability'
+          }
+        ],
+        tools: [
+          'Google Analytics for website traffic',
+          'HubSpot CRM for sales pipeline',
+          'Mailchimp for email marketing metrics',
+          'Social media analytics (LinkedIn, Twitter)',
+          'Financial tracking (QuickBooks or similar)',
+          'Client feedback surveys (Typeform)',
+          'Time tracking (Toggl or RescueTime)',
+          'Project management (Asana or Monday.com)'
+        ],
+        updateFrequency: 'Real-time data with daily snapshots'
+      };
+
+      setAiDashboardSuggestion(dashboard);
+      setIsAiLoading(false);
+    }, 3000);
+  };
+
+  // Use AI Dashboard Suggestion
+  const useAIDashboardSuggestion = () => {
+    if (!aiDashboardSuggestion) return;
+    
+    setDashboardLayout({
+      id: Date.now(),
+      layout: aiDashboardSuggestion.layout,
+      description: aiDashboardSuggestion.description,
+      sections: aiDashboardSuggestion.sections,
+      tools: aiDashboardSuggestion.tools,
+      updateFrequency: aiDashboardSuggestion.updateFrequency
+    });
+    
+    setAiDashboardModalOpen(false);
+  };
+
+  // Generate AI Reporting Schedule
+  const handleAIReportingSchedule = () => {
+    setIsAiLoading(true);
+    setAiReportingModalOpen(true);
+
+    // Simulate AI reporting schedule generation
+    setTimeout(() => {
+      const reporting = {
+        schedule: 'Comprehensive Reporting Schedule',
+        description: 'Strategic reporting framework for authority-based businesses',
+        reports: [
+          {
+            name: 'Daily Pulse Report',
+            frequency: 'Daily',
+            time: '9:00 AM',
+            metrics: ['New leads', 'Revenue today', 'Content engagement', 'Pipeline updates'],
+            audience: 'Business owner',
+            format: 'Email summary (5 minutes to review)',
+            purpose: 'Quick daily health check and priority setting'
+          },
+          {
+            name: 'Weekly Performance Review',
+            frequency: 'Weekly',
+            time: 'Monday 10:00 AM',
+            metrics: ['Weekly revenue', 'Lead conversion rates', 'Content performance', 'Client satisfaction'],
+            audience: 'Business owner + team',
+            format: 'Dashboard review + team meeting',
+            purpose: 'Weekly planning and course correction'
+          },
+          {
+            name: 'Monthly Business Review',
+            frequency: 'Monthly',
+            time: 'First Monday of month',
+            metrics: ['Monthly revenue vs target', 'Authority metrics', 'Client retention', 'Marketing ROI'],
+            audience: 'Business owner + advisors',
+            format: 'Comprehensive report + strategy session',
+            purpose: 'Strategic planning and goal adjustment'
+          },
+          {
+            name: 'Quarterly Growth Analysis',
+            frequency: 'Quarterly',
+            time: 'First week of quarter',
+            metrics: ['Quarterly growth', 'Market positioning', 'Competitive analysis', 'Strategic initiatives'],
+            audience: 'Business owner + board/advisors',
+            format: 'Executive presentation + planning retreat',
+            purpose: 'Long-term strategy and major decision making'
+          }
+        ],
+        automation: [
+          'Automated data collection from all connected tools',
+          'Scheduled report generation and distribution',
+          'Alert system for metrics outside target ranges',
+          'Monthly report compilation and formatting'
+        ],
+        tools: [
+          'Google Data Studio for dashboard creation',
+          'Zapier for data automation',
+          'Slack for alert notifications',
+          'Email automation for report distribution'
+        ]
+      };
+
+      setAiReportingSuggestion(reporting);
+      setIsAiLoading(false);
+    }, 3000);
+  };
+
+  // Use AI Reporting Suggestion
+  const useAIReportingSuggestion = () => {
+    if (!aiReportingSuggestion) return;
+    
+    setReportingSchedule({
+      id: Date.now(),
+      schedule: aiReportingSuggestion.schedule,
+      description: aiReportingSuggestion.description,
+      reports: aiReportingSuggestion.reports,
+      automation: aiReportingSuggestion.automation,
+      tools: aiReportingSuggestion.tools
+    });
+    
+    setAiReportingModalOpen(false);
+  };
+
+  // Delete KPI
+  const deleteKpi = (kpiId) => {
+    if (kpiPlan) {
+      setKpiPlan({
+        ...kpiPlan,
+        kpis: kpiPlan.kpis.filter(kpi => kpi.id !== kpiId)
       });
-      setCurrentModalType(item.type);
-      deleteTrackingItem(id); // Remove original
-      setManualModalOpen(true);
     }
   };
 
-  const deleteTrackingItem = (id) => {
-    const updated = addedTrackingItems.filter(i => i.id !== id);
-    setAddedTrackingItems(updated);
-    storageOptimizer.safeSet('step7_added_tracking_items', updated);
-  };
-
-  // AI content generation
-  const handleAIContentGeneration = async () => {
-    setAiModalOpen(true);
-    setAiLoading(true);
-    
-    try {
-      const result = await aiService.generatePerformanceTracking();
-      setAiResult(result);
-    } catch (error) {
-      console.error('Error generating performance tracking:', error);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const handleUseAIContent = (content) => {
-    // Apply AI suggestions to current sub-step
-    if (activeSubStep === 1) {
-      setKpiPlanning(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step7_kpi_planning', { ...kpiPlanning, ...content });
-    } else if (activeSubStep === 2) {
-      setDashboardLayout(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step7_dashboard_layout', { ...dashboardLayout, ...content });
-    } else if (activeSubStep === 3) {
-      setReportingSchedule(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step7_reporting_schedule', { ...reportingSchedule, ...content });
-    }
-    setAiModalOpen(false);
-  };
-
+  // How This Works content
   const howThisWorksContent = {
-    title: "How This Step Works",
-    description: "Follow these Action Steps to build comprehensive performance tracking systems for data-driven business decisions.",
+    description: "Set up your measurement and monitoring systems to track business performance and growth.",
     steps: [
       {
         title: "KPIs Planning",
-        description: "Define and establish key performance indicators that align with your business goals and revenue targets.",
-        color: "bg-[#fbae42]"
-      },
-      {
-        title: "Dashboard Layout", 
-        description: "Design visual dashboards that provide real-time insights into your business performance and metrics.",
+        description: "Define key performance indicators",
         color: "bg-[#0e9246]"
       },
       {
+        title: "Dashboard Layout", 
+        description: "Design your monitoring dashboard",
+        color: "bg-[#d7df21]"
+      },
+      {
         title: "Reporting Schedule",
-        description: "Create automated reporting systems for regular performance reviews and strategic decision-making.",
+        description: "Create automated reporting system",
+        color: "bg-[#fbae42]"
+      },
+      {
+        title: "Milestone",
+        description: "Complete your measurement system",
         color: "bg-[#467a8f]"
       }
     ]
   };
 
-  // Check section completion for tab progression
-  const hasKpiPlanning = Object.values(kpiPlanning).every(value => value && value.trim().length > 0);
-  const hasDashboardLayout = Object.values(dashboardLayout).every(value => value && value.trim().length > 0);
-  const hasReportingSchedule = Object.values(reportingSchedule).every(value => value && value.trim().length > 0);
-
-  // Tab progression logic
-  const isSubStepUnlocked = (stepNumber) => {
-    switch (stepNumber) {
-      case 1: return true; // Always unlocked
-      case 2: return hasKpiPlanning; // Unlocked when KPI planning complete
-      case 3: return hasKpiPlanning && hasDashboardLayout; // Unlocked when first two complete
-      case 4: return hasKpiPlanning && hasDashboardLayout && hasReportingSchedule; // Milestone - all complete
-      default: return false;
-    }
-  };
-
-  const subSteps = [
-    { id: 1, title: 'KPIs Planning', icon: Target },
-    { id: 2, title: 'Dashboard Layout', icon: Layout },
-    { id: 3, title: 'Reporting Schedule', icon: Calendar },
-    { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
-  ];
-
-  const renderSubStepContent = () => {
-    switch (activeSubStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">KPIs Planning</h3>
-              <p className="text-gray-600 mb-6">
-                Define and establish key performance indicators that will help you track business growth and make informed decisions.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Business Metrics
-                  </label>
-                  <textarea
-                    value={kpiPlanning.businessMetrics}
-                    onChange={(e) => handleKpiChange('businessMetrics', e.target.value)}
-                    placeholder="Define your core business metrics: revenue, profit margins, client acquisition cost, lifetime value..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Performance Indicators
-                  </label>
-                  <textarea
-                    value={kpiPlanning.performanceIndicators}
-                    onChange={(e) => handleKpiChange('performanceIndicators', e.target.value)}
-                    placeholder="List specific KPIs you'll track: conversion rates, client satisfaction scores, project completion times..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tracking Methods
-                  </label>
-                  <textarea
-                    value={kpiPlanning.trackingMethods}
-                    onChange={(e) => handleKpiChange('trackingMethods', e.target.value)}
-                    placeholder="How will you track these KPIs? Tools, systems, data sources, collection methods..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reporting Frequency
-                  </label>
-                  <textarea
-                    value={kpiPlanning.reportingFrequency}
-                    onChange={(e) => handleKpiChange('reportingFrequency', e.target.value)}
-                    placeholder="How often will you review these KPIs? Daily, weekly, monthly reporting schedules..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('KPIs Planning')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('KPIs Planning')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added KPIs Planning Items */}
-                {addedTrackingItems.filter(i => i.type === 'KPIs Planning').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editTrackingItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteTrackingItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasKpiPlanning && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">KPIs Planning Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Great! You can now move to dashboard layout design.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Dashboard Layout</h3>
-              <p className="text-gray-600 mb-6">
-                Design visual dashboards that provide real-time insights into your business performance and key metrics.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Dashboard Tools
-                  </label>
-                  <textarea
-                    value={dashboardLayout.dashboardTools}
-                    onChange={(e) => handleDashboardChange('dashboardTools', e.target.value)}
-                    placeholder="What tools will you use for dashboards? Google Data Studio, Tableau, Power BI, custom solutions..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Visualizations
-                  </label>
-                  <textarea
-                    value={dashboardLayout.visualizations}
-                    onChange={(e) => handleDashboardChange('visualizations', e.target.value)}
-                    placeholder="What types of charts and visualizations will you include? Graphs, tables, gauges, trend lines..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Data Connections
-                  </label>
-                  <textarea
-                    value={dashboardLayout.dataConnections}
-                    onChange={(e) => handleDashboardChange('dataConnections', e.target.value)}
-                    placeholder="What data sources will connect to your dashboard? CRM, analytics, financial systems, marketing tools..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Access Permissions
-                  </label>
-                  <textarea
-                    value={dashboardLayout.accessPermissions}
-                    onChange={(e) => handleDashboardChange('accessPermissions', e.target.value)}
-                    placeholder="Who will have access to which dashboards? Team roles, client access, stakeholder permissions..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Dashboard Layout')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Dashboard Layout')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Dashboard Layout Items */}
-                {addedTrackingItems.filter(i => i.type === 'Dashboard Layout').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editTrackingItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteTrackingItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasDashboardLayout && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Dashboard Layout Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to reporting schedule setup.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Reporting Schedule</h3>
-              <p className="text-gray-600 mb-6">
-                Create automated reporting schedules that provide regular insights and support data-driven decision making.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Report Types
-                  </label>
-                  <textarea
-                    value={reportingSchedule.reportTypes}
-                    onChange={(e) => handleReportingChange('reportTypes', e.target.value)}
-                    placeholder="What types of reports will you create? Performance reports, financial summaries, client progress reports..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Automated Reports
-                  </label>
-                  <textarea
-                    value={reportingSchedule.automatedReports}
-                    onChange={(e) => handleReportingChange('automatedReports', e.target.value)}
-                    placeholder="Which reports will be automated? Daily summaries, weekly performance, monthly reviews..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Stakeholder Reports
-                  </label>
-                  <textarea
-                    value={reportingSchedule.stakeholderReports}
-                    onChange={(e) => handleReportingChange('stakeholderReports', e.target.value)}
-                    placeholder="What reports will you share with stakeholders? Client reports, investor updates, team summaries..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Actionable Insights
-                  </label>
-                  <textarea
-                    value={reportingSchedule.actionableInsights}
-                    onChange={(e) => handleReportingChange('actionableInsights', e.target.value)}
-                    placeholder="How will reports drive action? Recommendations, alerts, optimization suggestions..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Reporting Schedule')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Reporting Schedule')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Reporting Schedule Items */}
-                {addedTrackingItems.filter(i => i.type === 'Reporting Schedule').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editTrackingItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteTrackingItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasReportingSchedule && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Reporting Schedule Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your metrics and monitoring system is now complete. Check out the milestone reflection!
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* AI Enhancement Section */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-[#d7df21]" />
-                <h3 className="text-xl font-semibold text-gray-900">AI Enhancement</h3>
-              </div>
-              
-              <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to optimize your complete metrics and monitoring system.
-              </p>
-
-              <button
-                onClick={handleAIContentGeneration}
-                className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-              >
-                <Sparkles className="w-4 h-4" />
-                🤖 Generate AI Metrics Strategy
-              </button>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            {showConfetti && (
-              <Confetti
-                width={windowDimensions.width}
-                height={windowDimensions.height}
-                recycle={false}
-                numberOfPieces={200}
-                gravity={0.3}
-              />
-            )}
-            
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-8 h-8 text-white" />
-                </div>
-                
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  🎉 Milestone Achieved!
-                </h2>
-                
-                <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've built a comprehensive metrics and monitoring system that will drive data-driven growth.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-8 text-left">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Established key performance indicators</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Designed visual performance dashboards</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created automated reporting schedules</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Enabled data-driven decision making</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What This Means</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <BarChart3 className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll have clear visibility into business performance</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <BarChart3 className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Decisions will be based on real data</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <BarChart3 className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Problems will be identified early</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <BarChart3 className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Growth opportunities will be maximized</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
-                  <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
-                  <p className="text-gray-700">
-                    What gets measured gets managed. Your metrics and monitoring system transforms your business from guesswork to precision, enabling you to optimize every aspect of your operations and accelerate growth with confidence.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Component 1: Step Progress Indicator */}
-        <div className="text-sm text-gray-500 mb-2">
-          STEP 7 OF 9
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-sm text-gray-500 mb-2">STEP 7 OF 9</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Metrics & Monitoring
+          </h1>
+          <p className="text-base lg:text-lg text-gray-600">
+            Set up systems to measure and monitor your business performance and growth.
+          </p>
         </div>
 
-        {/* Component 2: Step Name */}
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Metrics & Monitoring
-        </h1>
-
-        {/* Component 3: Step Objective */}
-        <p className="text-lg text-gray-600 mb-6">
-          Build comprehensive performance tracking systems to monitor your business growth, optimize operations, and make data-driven decisions.
-        </p>
-
-        {/* Step Completion Indicator */}
-        {isStepComplete && (
-          <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
-            <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
-            <div>
-              <p className="font-semibold">🎉 Step 7 Complete! Your metrics and monitoring is set up.</p>
-              <p className="text-sm text-green-700 mt-1">
-                You now have comprehensive systems to monitor and optimize your business.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Component 4: How This Works Section */}
+        {/* How This Works Section */}
         <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
@@ -906,7 +402,9 @@ const Step7 = () => {
               <span className="text-lg font-semibold text-gray-900">How This Step Works</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-[#0e9246] font-medium">Expand</span>
+              <span className="text-sm text-[#0e9246] font-medium">
+                {isHowThisWorksOpen ? 'Collapse' : 'Expand'}
+              </span>
               {isHowThisWorksOpen ? (
                 <ChevronUp className="w-5 h-5 text-[#0e9246]" />
               ) : (
@@ -918,7 +416,7 @@ const Step7 = () => {
           {isHowThisWorksOpen && (
             <div className="px-6 pb-6 bg-white border-t border-[#0e9246]">
               <p className="text-gray-600 mb-6">{howThisWorksContent.description}</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {howThisWorksContent.steps.map((step, index) => (
                   <div key={index} className="text-center">
                     <div 
@@ -941,17 +439,12 @@ const Step7 = () => {
           <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
         </div>
         
-        {/* Sub-step Navigation */}
-        <div className="bg-[#d5e6ed] rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
-            {subSteps.map((step, index) => {
+            {subSteps.map((step) => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
-              const isCompleted = step.id < 4 ? (
-                step.id === 1 ? hasKpiPlanning :
-                step.id === 2 ? hasDashboardLayout :
-                step.id === 3 ? hasReportingSchedule : false
-              ) : isStepComplete;
+              const isCompleted = isSubStepCompleted(step.id);
 
               return (
                 <button
@@ -962,8 +455,8 @@ const Step7 = () => {
                     isActive
                       ? 'border-[#fbae42] bg-orange-50'
                       : isUnlocked
-                      ? 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-                      : 'border-transparent bg-gray-50'
+                      ? 'border-transparent hover:border-gray-300 hover:bg-white hover:bg-opacity-50'
+                      : 'border-transparent bg-transparent'
                   } ${
                     !isUnlocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                   }`}
@@ -981,9 +474,9 @@ const Step7 = () => {
                       {isCompleted ? (
                         <CheckCircle2 className="w-4 h-4" />
                       ) : !isUnlocked ? (
-                        <span className="text-sm">🔒</span>
+                        <span className="text-xs">🔒</span>
                       ) : (
-                        <span className="text-sm font-bold">{step.id}</span>
+                        <span className="text-sm font-bold">{step.id + 1}</span>
                       )}
                     </div>
                     <span className={`text-sm font-medium ${
@@ -1003,165 +496,622 @@ const Step7 = () => {
         </div>
 
         {/* Sub-step Content */}
-        <div className="mb-8">
-          {renderSubStepContent()}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Current Sub-step */}
+          <div className="space-y-6">
+            {activeSubStep === 0 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">KPIs Planning</h3>
+                <p className="text-gray-600 mb-6">Define the key performance indicators you'll track to measure business success.</p>
+                
+                <div className="space-y-4 mb-6">
+                  <button
+                    onClick={handleAIKpiSuggestions}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Generate KPIs with AI</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setAddKpiModalOpen(true)}
+                    className="w-full px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Add Manual KPI</span>
+                  </button>
+                </div>
+
+                {/* KPI Display */}
+                {!kpiPlan || !kpiPlan.kpis || kpiPlan.kpis.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Target className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No KPIs defined yet</p>
+                    <p className="text-sm">Start by generating AI suggestions or adding manual KPIs</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-gray-900">Your KPIs ({kpiPlan.kpis.length})</h4>
+                    {kpiPlan.kpis.map((kpi, index) => (
+                      <div key={kpi.id || index} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-900">{kpi.name}</h5>
+                            <p className="text-sm text-gray-600 mt-1">{kpi.description}</p>
+                            <div className="flex space-x-4 text-xs text-gray-500 mt-2">
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">{kpi.category}</span>
+                              <span>Target: {kpi.target}</span>
+                              <span>Track: {kpi.frequency}</span>
+                            </div>
+                          </div>
+                          <div className="flex space-x-1 ml-4">
+                            <button className="p-1 text-gray-400 hover:text-gray-600">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => deleteKpi(kpi.id)}
+                              className="p-1 text-gray-400 hover:text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 1 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Dashboard Layout</h3>
+                <p className="text-gray-600 mb-6">Design your business intelligence dashboard for monitoring KPIs.</p>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={handleAIDashboardLayout}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Generate Dashboard with AI</span>
+                  </button>
+                </div>
+
+                {dashboardLayout && (
+                  <div className="mt-6 border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">{dashboardLayout.layout}</h4>
+                    <p className="text-sm text-gray-600 mb-3">{dashboardLayout.description}</p>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>• {dashboardLayout.sections?.length || 0} dashboard sections</p>
+                      <p>• {dashboardLayout.tools?.length || 0} integrated tools</p>
+                      <p>• {dashboardLayout.updateFrequency}</p>
+                    </div>
+                    <button
+                      onClick={() => setAiDashboardModalOpen(true)}
+                      className="mt-3 text-[#0e9246] hover:text-green-700 text-sm font-medium"
+                    >
+                      View Full Dashboard Layout →
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 2 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Reporting Schedule</h3>
+                <p className="text-gray-600 mb-6">Create your automated reporting schedule and distribution system.</p>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={handleAIReportingSchedule}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Generate Reporting Schedule with AI</span>
+                  </button>
+                </div>
+
+                {reportingSchedule && (
+                  <div className="mt-6 border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">{reportingSchedule.schedule}</h4>
+                    <p className="text-sm text-gray-600 mb-3">{reportingSchedule.description}</p>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>• {reportingSchedule.reports?.length || 0} automated reports</p>
+                      <p>• Daily, weekly, monthly, and quarterly schedules</p>
+                      <p>• Automated data collection and distribution</p>
+                    </div>
+                    <button
+                      onClick={() => setAiReportingModalOpen(true)}
+                      className="mt-3 text-[#0e9246] hover:text-green-700 text-sm font-medium"
+                    >
+                      View Full Reporting Schedule →
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 3 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
+                <p className="text-gray-600 mb-6">Congratulations! You've set up your complete measurement and monitoring system.</p>
+                
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-900 mb-2">What You've Accomplished:</h4>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li>✅ Defined {kpiPlan?.kpis?.length || 0} key performance indicators</li>
+                      <li>✅ Designed comprehensive business dashboard</li>
+                      <li>✅ Created automated reporting schedule</li>
+                      <li>✅ Set up measurement framework for growth tracking</li>
+                      <li>✅ Established data-driven decision making system</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
+                    <p className="text-sm text-blue-800">
+                      Move on to Step 8: Conversion Optimization to maximize your business performance and revenue.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Measurement Overview */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Measurement System Overview</h3>
+            
+            {/* KPI Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Key Performance Indicators</h4>
+              {!kpiPlan || !kpiPlan.kpis || kpiPlan.kpis.length === 0 ? (
+                <p className="text-gray-500 text-sm">No KPIs defined yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {kpiPlan.kpis.slice(0, 3).map((kpi, index) => (
+                    <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-center mb-1">
+                        <Target className="w-4 h-4 text-blue-600 mr-2" />
+                        <span className="font-medium text-blue-900 text-sm">{kpi.name}</span>
+                      </div>
+                      <p className="text-xs text-blue-700">Target: {kpi.target} | {kpi.frequency}</p>
+                    </div>
+                  ))}
+                  {kpiPlan.kpis.length > 3 && (
+                    <p className="text-xs text-gray-500">+ {kpiPlan.kpis.length - 3} more KPIs</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Dashboard Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Dashboard Layout</h4>
+              {!dashboardLayout ? (
+                <p className="text-gray-500 text-sm">No dashboard layout created yet</p>
+              ) : (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <Layout className="w-4 h-4 text-green-600 mr-2" />
+                    <span className="font-medium text-green-900">{dashboardLayout.layout}</span>
+                  </div>
+                  <p className="text-sm text-green-700">{dashboardLayout.sections?.length || 0} sections</p>
+                  <p className="text-sm text-green-700">{dashboardLayout.tools?.length || 0} integrated tools</p>
+                </div>
+              )}
+            </div>
+
+            {/* Reporting Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Reporting Schedule</h4>
+              {!reportingSchedule ? (
+                <p className="text-gray-500 text-sm">No reporting schedule created yet</p>
+              ) : (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <Calendar className="w-4 h-4 text-orange-600 mr-2" />
+                    <span className="font-medium text-orange-900">{reportingSchedule.schedule}</span>
+                  </div>
+                  <p className="text-sm text-orange-700">{reportingSchedule.reports?.length || 0} automated reports</p>
+                  <p className="text-sm text-orange-700">Daily, weekly, monthly, quarterly</p>
+                </div>
+              )}
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-3">Setup Progress</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">KPI Planning</span>
+                  <span className={`text-sm font-medium ${hasKpiPlan ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasKpiPlan ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Dashboard Layout</span>
+                  <span className={`text-sm font-medium ${hasDashboardLayout ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasDashboardLayout ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Reporting Schedule</span>
+                  <span className={`text-sm font-medium ${hasReportingSchedule ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasReportingSchedule ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Manual Entry Modal */}
-        {manualModalOpen && (
+        {/* AI KPI Modal */}
+        {aiKpiModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
-                <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">AI KPI Recommendations</h3>
+                  <button
+                    onClick={() => setAiKpiModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <p className="text-gray-600 mt-2">AI-recommended KPIs for authority-based service businesses</p>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating KPI recommendations...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-semibold text-gray-900">Recommended KPIs ({aiKpiSuggestions.length})</h4>
+                      <button
+                        onClick={useAIKpiSuggestions}
+                        className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                      >
+                        Use All KPIs
+                      </button>
+                    </div>
+                    
+                    {aiKpiSuggestions.map((kpi, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-900">{kpi.name}</h5>
+                            <p className="text-sm text-gray-600 mt-1">{kpi.description}</p>
+                            <div className="flex space-x-4 text-xs text-gray-500 mt-2">
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">{kpi.category}</span>
+                              <span>Target: {kpi.target}</span>
+                              <span>Track: {kpi.frequency}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2 italic">{kpi.reasoning}</p>
+                          </div>
+                          <button
+                            onClick={() => addIndividualKpi(kpi)}
+                            className="ml-4 px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
+                          >
+                            Add KPI
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Dashboard Modal */}
+        {aiDashboardModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Dashboard Layout Design</h3>
+                  <button
+                    onClick={() => setAiDashboardModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating dashboard layout...</span>
+                  </div>
+                ) : aiDashboardSuggestion && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">{aiDashboardSuggestion.layout}</h4>
+                      <p className="text-gray-600 mb-4">{aiDashboardSuggestion.description}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Dashboard Sections ({aiDashboardSuggestion.sections.length})</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {aiDashboardSuggestion.sections.map((section, index) => (
+                          <div key={index} className="border border-gray-200 rounded-lg p-4">
+                            <h5 className="font-medium text-gray-900">{section.title}</h5>
+                            <p className="text-xs text-gray-500 mb-2">{section.position}</p>
+                            <p className="text-sm text-gray-600 mb-2">{section.purpose}</p>
+                            <div className="text-xs text-gray-500">
+                              <span className="font-medium">Widgets:</span> {section.widgets.join(', ')}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Recommended Tools ({aiDashboardSuggestion.tools.length})</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {aiDashboardSuggestion.tools.map((tool, index) => (
+                          <div key={index} className="text-sm text-gray-600 bg-gray-50 rounded p-2">
+                            • {tool}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h5 className="font-medium text-blue-900 mb-2">Update Frequency</h5>
+                      <p className="text-sm text-blue-800">{aiDashboardSuggestion.updateFrequency}</p>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      const content = JSON.stringify(aiDashboardSuggestion, null, 2);
+                      navigator.clipboard.writeText(content);
+                      alert('Dashboard layout copied to clipboard!');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  >
+                    Copy to Clipboard
+                  </button>
+                  <button
+                    onClick={useAIDashboardSuggestion}
+                    className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                  >
+                    Use This Layout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Reporting Modal */}
+        {aiReportingModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Automated Reporting Schedule</h3>
+                  <button
+                    onClick={() => setAiReportingModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating reporting schedule...</span>
+                  </div>
+                ) : aiReportingSuggestion && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">{aiReportingSuggestion.schedule}</h4>
+                      <p className="text-gray-600 mb-4">{aiReportingSuggestion.description}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Automated Reports ({aiReportingSuggestion.reports.length})</h4>
+                      <div className="space-y-4">
+                        {aiReportingSuggestion.reports.map((report, index) => (
+                          <div key={index} className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <h5 className="font-medium text-gray-900">{report.name}</h5>
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{report.frequency}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">{report.purpose}</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-500">
+                              <div>
+                                <span className="font-medium">Schedule:</span> {report.time}
+                              </div>
+                              <div>
+                                <span className="font-medium">Audience:</span> {report.audience}
+                              </div>
+                              <div>
+                                <span className="font-medium">Format:</span> {report.format}
+                              </div>
+                              <div>
+                                <span className="font-medium">Metrics:</span> {report.metrics.join(', ')}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Automation Features</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {aiReportingSuggestion.automation.map((feature, index) => (
+                          <div key={index} className="text-sm text-gray-600 bg-gray-50 rounded p-2">
+                            • {feature}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Required Tools</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {aiReportingSuggestion.tools.map((tool, index) => (
+                          <div key={index} className="text-sm text-gray-600 bg-gray-50 rounded p-2">
+                            • {tool}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      const content = JSON.stringify(aiReportingSuggestion, null, 2);
+                      navigator.clipboard.writeText(content);
+                      alert('Reporting schedule copied to clipboard!');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  >
+                    Copy to Clipboard
+                  </button>
+                  <button
+                    onClick={useAIReportingSuggestion}
+                    className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                  >
+                    Use This Schedule
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add KPI Modal */}
+        {addKpiModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Add Custom KPI</h3>
+                  <button
+                    onClick={() => setAddKpiModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
               
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">KPI Name *</label>
+                  <input
+                    type="text"
+                    value={kpiForm.name}
+                    onChange={(e) => setKpiForm({...kpiForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="e.g., Monthly Recurring Revenue"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={kpiForm.description}
+                    onChange={(e) => setKpiForm({...kpiForm, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    rows="3"
+                    placeholder="What does this KPI measure?"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target</label>
+                  <input
+                    type="text"
+                    value={kpiForm.target}
+                    onChange={(e) => setKpiForm({...kpiForm, target: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="e.g., $10,000/month, 15%, 50 leads"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Frequency</label>
                   <select
-                    value={manualForm.type}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    value={kpiForm.frequency}
+                    onChange={(e) => setKpiForm({...kpiForm, frequency: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
                   >
-                    <option value="">Select type...</option>
-                    <option value="KPIs Planning">KPIs Planning</option>
-                    <option value="Dashboard Layout">Dashboard Layout</option>
-                    <option value="Reporting Schedule">Reporting Schedule</option>
+                    <option value="">Select frequency</option>
+                    <option value="Daily">Daily</option>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Quarterly">Quarterly</option>
                   </select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                  <input
-                    type="text"
-                    value={manualForm.title}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Revenue Growth Metrics"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <textarea
-                    value={manualForm.description}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Brief description..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
-                  <textarea
-                    value={manualForm.details}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
-                    placeholder="Additional details (optional)..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select
+                    value={kpiForm.category}
+                    onChange={(e) => setKpiForm({...kpiForm, category: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                  >
+                    <option value="">Select category</option>
+                    <option value="Revenue">Revenue</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Authority">Authority</option>
+                    <option value="Service">Service</option>
+                    <option value="Operations">Operations</option>
+                  </select>
                 </div>
               </div>
               
-              <div className="flex gap-3 p-6 border-t">
+              <div className="p-6 border-t border-gray-200 flex space-x-3">
                 <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  onClick={() => setAddKpiModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleManualSubmit}
-                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
+                  onClick={() => {
+                    if (!kpiForm.name) {
+                      alert('Please enter KPI name');
+                      return;
+                    }
+                    addIndividualKpi({...kpiForm, id: Date.now()});
+                    setKpiForm({ name: '', description: '', target: '', frequency: '', category: '' });
+                    setAddKpiModalOpen(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
                 >
-                  Add Entry
+                  Add KPI
                 </button>
               </div>
             </div>
           </div>
         )}
-
-        {/* AI Suggestions Modal */}
-        {aiSuggestionsModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
-                <button
-                  onClick={() => setAiSuggestionsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              
-              <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
-                </p>
-                
-                <div className="space-y-4">
-                  {aiSuggestions.map((suggestion) => (
-                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
-                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
-                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
-                        </div>
-                        <button
-                          onClick={() => addAiSuggestion(suggestion)}
-                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {aiSuggestions.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      All suggestions have been added! Close this modal to continue.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* AI Modal */}
-        <AIModal
-          isOpen={aiModalOpen}
-          onClose={() => setAiModalOpen(false)}
-          title="AI Metrics & Monitoring"
-          content={aiResult}
-          isLoading={aiLoading}
-          onUseContent={handleUseAIContent}
-        />
-
-        {/* API Key Modal */}
-        <APIKeyModal
-          isOpen={apiKeyModalOpen}
-          onClose={() => setApiKeyModalOpen(false)}
-          onSave={handleSaveApiKey}
-        />
-
-        {/* Footer */}
-        <StepFooter 
-          currentStep={7}
-          isStepComplete={isStepComplete}
-          onPrevious={() => {}}
-          onNext={() => {}}
-        />
       </div>
     </div>
   );
