@@ -1,899 +1,457 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, DollarSign, Target, TrendingUp, Plus, Sparkles, X, Edit, Trash2, Package, Layers, BarChart3 } from 'lucide-react';
-import Confetti from 'react-confetti';
-import StepFooter from './StepFooter';
-import AIModal from './AIModal';
-import APIKeyModal from './APIKeyModal';
-import aiService from '../services/aiService';
-import storageOptimizer from '../utils/storageOptimizer';
+import { CheckCircle2, ChevronDown, ChevronUp, Plus, Sparkles, X, Package, BookOpen, Edit, Trash2 } from 'lucide-react';
 
 const Step6 = () => {
-  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [windowDimensions, setWindowDimensions] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight
-  });
-
-  // Tab management
-  const [activeSubStep, setActiveSubStep] = useState(1);
-
-  // Step completion tracking
-  const [isStepComplete, setIsStepComplete] = useState(false);
-
+  // Sub-step management (3 steps total)
+  const [activeSubStep, setActiveSubStep] = useState(0);
+  const [signatureProgram, setSignatureProgram] = useState(null);
+  const [onboardingProcess, setOnboardingProcess] = useState(null);
+  
   // Modal states
-  const [manualModalOpen, setManualModalOpen] = useState(false);
-  const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
-  const [currentModalType, setCurrentModalType] = useState('');
-
-  // Revenue structure data
-  const [serviceStructure, setServiceStructure] = useState({
-    coreServices: '',
-    servicePackages: '',
+  const [aiProgramModalOpen, setAiProgramModalOpen] = useState(false);
+  const [addModuleModalOpen, setAddModuleModalOpen] = useState(false);
+  const [aiModulesModalOpen, setAiModulesModalOpen] = useState(false);
+  const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
+  const [aiOnboardingModalOpen, setAiOnboardingModalOpen] = useState(false);
+  
+  // Form states
+  const [programForm, setProgramForm] = useState({
+    name: '',
+    description: '',
+    duration: '',
     deliveryMethod: '',
-    serviceTimeline: ''
+    modules: []
   });
-
-  const [contentDelivery, setContentDelivery] = useState({
-    deliveryFormat: '',
-    contentSchedule: '',
-    clientInteraction: '',
-    supportLevel: ''
-  });
-
-  const [deliveryOptimization, setDeliveryOptimization] = useState({
-    processOptimization: '',
-    qualityAssurance: '',
-    clientFeedback: '',
-    continuousImprovement: ''
-  });
-
-  // Added revenue items list
-  const [addedRevenueItems, setAddedRevenueItems] = useState([]);
-
-  // Manual form data
-  const [manualForm, setManualForm] = useState({
-    type: '',
+  
+  const [moduleForm, setModuleForm] = useState({
     title: '',
     description: '',
-    details: ''
+    duration: '',
+    deliverables: ''
   });
+  
+  const [onboardingForm, setOnboardingForm] = useState({
+    welcomeMessage: '',
+    expectations: '',
+    timeline: '',
+    resources: ''
+  });
+  
+  // AI results
+  const [aiProgramSuggestion, setAiProgramSuggestion] = useState(null);
+  const [aiModuleSuggestions, setAiModuleSuggestions] = useState([]);
+  const [aiOnboardingSuggestion, setAiOnboardingSuggestion] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  
+  // UI states
+  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
 
-  // AI suggestions
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [aiResult, setAiResult] = useState(null);
+  // Sub-steps configuration (3 steps total)
+  const subSteps = [
+    { id: 0, title: 'System Design', completed: false },
+    { id: 1, title: 'Implementation & Scaling', completed: false },
+    { id: 2, title: 'Milestone Reflection', completed: false }
+  ];
 
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
+  // Check completion status
+  const hasSignatureProgram = signatureProgram !== null;
+  const hasOnboardingProcess = onboardingProcess !== null;
+  const isStepComplete = hasSignatureProgram && hasOnboardingProcess;
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Load saved data
-  useEffect(() => {
-    const savedService = storageOptimizer.safeGet('step6_service_structure');
-    const savedContent = storageOptimizer.safeGet('step6_content_delivery');
-    const savedOptimization = storageOptimizer.safeGet('step6_delivery_optimization');
-    const savedItems = storageOptimizer.safeGet('step6_added_revenue_items');
-    
-    if (savedService && typeof savedService === 'object') {
-      setServiceStructure(savedService);
-    }
-    if (savedContent && typeof savedContent === 'object') {
-      setContentDelivery(savedContent);
-    }
-    if (savedOptimization && typeof savedOptimization === 'object') {
-      setDeliveryOptimization(savedOptimization);
-    }
-    if (savedItems && Array.isArray(savedItems)) {
-      setAddedRevenueItems(savedItems);
-    }
-  }, []);
-
-  // Check completion status and auto-progression
-  useEffect(() => {
-    const serviceComplete = Object.values(serviceStructure).every(value => value && value.trim().length > 0);
-    const contentComplete = Object.values(contentDelivery).every(value => value && value.trim().length > 0);
-    const optimizationComplete = Object.values(deliveryOptimization).every(value => value && value.trim().length > 0);
-    
-    const wasComplete = isStepComplete;
-    const nowComplete = serviceComplete && contentComplete && optimizationComplete;
-    
-    setIsStepComplete(nowComplete);
-    
-    // Show confetti when step becomes complete
-    if (!wasComplete && nowComplete) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-    }
-  }, [serviceStructure, contentDelivery, deliveryOptimization, isStepComplete]);
-
-  // Auto-progression logic for sub-steps - ONLY on user actions
-  const triggerAutoProgression = () => {
-    const hasServiceStructure = Object.values(serviceStructure).every(value => value && value.trim().length > 0) ||
-                               addedRevenueItems.some(item => item.type === 'Service Structure');
-    const hasContentDelivery = Object.values(contentDelivery).every(value => value && value.trim().length > 0) ||
-                              addedRevenueItems.some(item => item.type === 'Content Delivery');
-    const hasDeliveryOptimization = Object.values(deliveryOptimization).every(value => value && value.trim().length > 0) ||
-                                   addedRevenueItems.some(item => item.type === 'Delivery Optimization');
-    
-    console.log('Step 6 Auto-progression Trigger:', {
-      activeSubStep,
-      hasServiceStructure,
-      hasContentDelivery,
-      hasDeliveryOptimization
-    });
-    
-    // Auto-progress to next sub-step when current one is complete
-    if (activeSubStep === 1 && hasServiceStructure) {
-      console.log('Auto-progressing from Service Structure to Content Delivery');
-      setTimeout(() => setActiveSubStep(2), 500);
-    } else if (activeSubStep === 2 && hasContentDelivery) {
-      console.log('Auto-progressing from Content Delivery to Delivery Optimization');
-      setTimeout(() => setActiveSubStep(3), 500);
-    } else if (activeSubStep === 3 && hasDeliveryOptimization) {
-      console.log('Auto-progressing from Delivery Optimization to Milestone');
-      setTimeout(() => setActiveSubStep(4), 500);
+  // Sub-step unlock logic
+  const isSubStepUnlocked = (stepId) => {
+    switch (stepId) {
+      case 0: return true; // System Design always unlocked
+      case 1: return hasSignatureProgram; // Implementation unlocked when program exists
+      case 2: return hasOnboardingProcess; // Milestone unlocked when onboarding exists
+      default: return false;
     }
   };
 
-  const handleSaveApiKey = (apiKey) => {
-    aiService.setApiKey(apiKey);
+  const isSubStepCompleted = (stepId) => {
+    switch (stepId) {
+      case 0: return hasSignatureProgram; // System Design completed when program exists
+      case 1: return hasOnboardingProcess; // Implementation completed when onboarding exists
+      case 2: return isStepComplete; // Milestone completed when everything is done
+      default: return false;
+    }
   };
 
-  // Handle form changes
-  const handleServiceChange = (field, value) => {
-    const updated = { ...serviceStructure, [field]: value };
-    setServiceStructure(updated);
-    storageOptimizer.safeSet('step6_service_structure', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
+  // Generate AI Signature Program
+  const handleAISignatureProgram = () => {
+    setIsAiLoading(true);
+    setAiProgramModalOpen(true);
 
-  const handleContentChange = (field, value) => {
-    const updated = { ...contentDelivery, [field]: value };
-    setContentDelivery(updated);
-    storageOptimizer.safeSet('step6_content_delivery', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  const handleOptimizationChange = (field, value) => {
-    const updated = { ...deliveryOptimization, [field]: value };
-    setDeliveryOptimization(updated);
-    storageOptimizer.safeSet('step6_delivery_optimization', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  // Manual entry functions
-  const openManualModal = (type) => {
-    setCurrentModalType(type);
-    setManualForm({
-      type: type,
-      title: '',
-      description: '',
-      details: ''
-    });
-    setManualModalOpen(true);
-  };
-
-  const handleManualSubmit = () => {
-    if (manualForm.title && manualForm.description) {
-      const newItem = {
-        id: Date.now(),
-        type: manualForm.type,
-        title: manualForm.title,
-        description: manualForm.description,
-        details: manualForm.details,
-        source: 'manual'
+    // Simulate AI signature program generation
+    setTimeout(() => {
+      const program = {
+        name: 'Authority Revenue Accelerator',
+        description: 'A comprehensive 90-day program that transforms service providers into recognized authorities in their field while building predictable revenue systems.',
+        duration: '90 days',
+        deliveryMethod: 'Weekly group calls + self-paced modules + 1-on-1 support',
+        modules: [
+          {
+            id: 1,
+            title: 'Foundation & Positioning',
+            description: 'Establish your unique market position and authority foundation',
+            duration: 'Week 1-2',
+            deliverables: 'Authority positioning statement, competitor analysis, unique value proposition'
+          },
+          {
+            id: 2,
+            title: 'Content Strategy & Creation',
+            description: 'Build your content engine for consistent authority building',
+            duration: 'Week 3-4',
+            deliverables: 'Content calendar, 30 content ideas, content creation templates'
+          },
+          {
+            id: 3,
+            title: 'Lead Generation Systems',
+            description: 'Create predictable lead generation that attracts ideal clients',
+            duration: 'Week 5-6',
+            deliverables: 'Lead magnet, landing pages, lead scoring system'
+          },
+          {
+            id: 4,
+            title: 'Sales Process Optimization',
+            description: 'Build a sales process that converts prospects into clients',
+            duration: 'Week 7-8',
+            deliverables: 'Discovery script, objection handling, closing framework'
+          },
+          {
+            id: 5,
+            title: 'Service Delivery Excellence',
+            description: 'Design a delivery system that creates raving fans',
+            duration: 'Week 9-10',
+            deliverables: 'Service blueprint, client onboarding, feedback systems'
+          },
+          {
+            id: 6,
+            title: 'Revenue Optimization',
+            description: 'Maximize revenue through pricing, packaging, and upsells',
+            duration: 'Week 11-12',
+            deliverables: 'Pricing strategy, service packages, upsell framework'
+          }
+        ]
       };
-      
-      const updated = [...addedRevenueItems, newItem];
-      setAddedRevenueItems(updated);
-      storageOptimizer.safeSet('step6_added_revenue_items', updated);
-      setManualModalOpen(false);
-      
-      // Trigger auto-progression check after adding manual entry
-      setTimeout(() => triggerAutoProgression(), 100);
-    }
+
+      setAiProgramSuggestion(program);
+      setIsAiLoading(false);
+    }, 3000);
   };
 
-  // AI suggestions functions
-  const openAiSuggestionsModal = async (type) => {
-    setCurrentModalType(type);
-    setAiSuggestionsModalOpen(true);
+  // Use AI Program Suggestion
+  const useAIProgramSuggestion = () => {
+    if (!aiProgramSuggestion) return;
     
-    // Generate AI suggestions based on type
-    const suggestions = generateAiSuggestions(type);
-    setAiSuggestions(suggestions);
-  };
-
-  const generateAiSuggestions = (type) => {
-    const suggestionsByType = {
-      'Service Structure': [
-        { id: 1, title: 'Signature Program Framework', description: 'Comprehensive program with modules and milestones', details: '8-12 week program with weekly modules, assignments, and group calls' },
-        { id: 2, title: 'VIP Day Intensive', description: 'High-value single-day transformation experience', details: 'Full-day strategic session with implementation roadmap' },
-        { id: 3, title: 'Mastermind Program', description: 'Group coaching with peer learning and accountability', details: '6-month program with monthly group calls and peer partnerships' },
-        { id: 4, title: 'Done-With-You Service', description: 'Collaborative implementation with hands-on support', details: 'Work alongside clients to implement strategies together' },
-        { id: 5, title: 'Certification Program', description: 'Train others to deliver your methodology', details: 'Comprehensive training to certify others in your approach' }
-      ],
-      'Content Delivery': [
-        { id: 1, title: 'Video Training Modules', description: 'Professional video content with workbooks', details: 'Weekly video lessons with downloadable resources and action steps' },
-        { id: 2, title: 'Live Group Coaching', description: 'Interactive group sessions with Q&A', details: 'Bi-weekly live calls with hot seat coaching and community support' },
-        { id: 3, title: 'Private Client Portal', description: 'Exclusive member area with resources', details: 'Branded portal with content, community, and progress tracking' },
-        { id: 4, title: 'One-on-One Sessions', description: 'Personalized coaching and strategy sessions', details: 'Monthly private calls for individualized guidance and support' },
-        { id: 5, title: 'Implementation Workshops', description: 'Hands-on workshops for skill building', details: 'Interactive sessions focused on specific skills and implementation' }
-      ],
-      'Delivery Optimization': [
-        { id: 1, title: 'Automated Onboarding', description: 'Streamlined client welcome and setup process', details: 'Email sequences, welcome packets, and system access automation' },
-        { id: 2, title: 'Progress Tracking System', description: 'Monitor client advancement and engagement', details: 'Dashboard to track completion rates, engagement, and outcomes' },
-        { id: 3, title: 'Quality Assurance Process', description: 'Consistent delivery standards and feedback loops', details: 'Regular check-ins, feedback collection, and service improvements' },
-        { id: 4, title: 'Client Success Metrics', description: 'Measure and optimize client outcomes', details: 'KPIs, success stories, and continuous improvement processes' },
-        { id: 5, title: 'Scalable Delivery Model', description: 'Systems to serve more clients efficiently', details: 'Templates, automation, and team processes for growth' }
-      ]
-    };
-    
-    return suggestionsByType[type] || [];
-  };
-
-  const addAiSuggestion = (suggestion) => {
-    const newItem = {
+    setSignatureProgram({
       id: Date.now(),
-      type: currentModalType,
+      name: aiProgramSuggestion.name,
+      description: aiProgramSuggestion.description,
+      duration: aiProgramSuggestion.duration,
+      deliveryMethod: aiProgramSuggestion.deliveryMethod,
+      modules: aiProgramSuggestion.modules
+    });
+    
+    setAiProgramModalOpen(false);
+  };
+
+  // Add Module
+  const handleAddModule = () => {
+    if (!moduleForm.title) {
+      alert('Please enter module title');
+      return;
+    }
+
+    const newModule = {
+      id: Date.now(),
+      title: moduleForm.title,
+      description: moduleForm.description,
+      duration: moduleForm.duration,
+      deliverables: moduleForm.deliverables
+    };
+
+    if (signatureProgram) {
+      setSignatureProgram({
+        ...signatureProgram,
+        modules: [...signatureProgram.modules, newModule]
+      });
+    }
+
+    setModuleForm({ title: '', description: '', duration: '', deliverables: '' });
+    setAddModuleModalOpen(false);
+  };
+
+  // Generate AI Module Suggestions
+  const handleAIModuleSuggestions = () => {
+    setIsAiLoading(true);
+    setAiModulesModalOpen(true);
+
+    // Simulate AI module suggestions
+    setTimeout(() => {
+      const suggestions = [
+        {
+          title: 'Authority Mindset Mastery',
+          description: 'Develop the confidence and mindset required to position yourself as an authority',
+          duration: 'Week 1',
+          deliverables: 'Mindset assessment, confidence building exercises, authority affirmations'
+        },
+        {
+          title: 'Signature Story Development',
+          description: 'Craft your compelling signature story that resonates with ideal clients',
+          duration: 'Week 2',
+          deliverables: 'Personal story framework, signature story script, story variations'
+        },
+        {
+          title: 'Expert Positioning Strategy',
+          description: 'Position yourself as the go-to expert in your specific niche',
+          duration: 'Week 3',
+          deliverables: 'Positioning statement, expert bio, credibility builders'
+        },
+        {
+          title: 'Content Authority System',
+          description: 'Create content that establishes and reinforces your authority',
+          duration: 'Week 4',
+          deliverables: 'Content pillars, authority content templates, publishing schedule'
+        },
+        {
+          title: 'Relationship Building Framework',
+          description: 'Build strategic relationships that amplify your authority',
+          duration: 'Week 5',
+          deliverables: 'Networking strategy, partnership templates, collaboration framework'
+        }
+      ];
+
+      setAiModuleSuggestions(suggestions);
+      setIsAiLoading(false);
+    }, 2000);
+  };
+
+  // Add AI Module Suggestion
+  const addAIModuleSuggestion = (suggestion) => {
+    const newModule = {
+      id: Date.now(),
       title: suggestion.title,
       description: suggestion.description,
-      details: suggestion.details,
-      source: 'ai'
+      duration: suggestion.duration,
+      deliverables: suggestion.deliverables
     };
-    
-    const updated = [...addedRevenueItems, newItem];
-    setAddedRevenueItems(updated);
-    storageOptimizer.safeSet('step6_added_revenue_items', updated);
-    
-    // Remove suggestion from list
-    setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
-    
-    // Trigger auto-progression check after adding AI suggestion
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
 
-  // Edit/Delete functions
-  const editRevenueItem = (id) => {
-    const item = addedRevenueItems.find(i => i.id === id);
-    if (item) {
-      setManualForm({
-        type: item.type,
-        title: item.title,
-        description: item.description,
-        details: item.details
+    if (signatureProgram) {
+      setSignatureProgram({
+        ...signatureProgram,
+        modules: [...signatureProgram.modules, newModule]
       });
-      setCurrentModalType(item.type);
-      deleteRevenueItem(id); // Remove original
-      setManualModalOpen(true);
     }
   };
 
-  const deleteRevenueItem = (id) => {
-    const updated = addedRevenueItems.filter(i => i.id !== id);
-    setAddedRevenueItems(updated);
-    storageOptimizer.safeSet('step6_added_revenue_items', updated);
+  // Delete Module
+  const deleteModule = (moduleId) => {
+    if (signatureProgram) {
+      setSignatureProgram({
+        ...signatureProgram,
+        modules: signatureProgram.modules.filter(module => module.id !== moduleId)
+      });
+    }
   };
 
-  // AI content generation
-  const handleAIContentGeneration = async () => {
-    setAiModalOpen(true);
-    setAiLoading(true);
+  // Generate AI Onboarding
+  const handleAIOnboarding = () => {
+    setIsAiLoading(true);
+    setAiOnboardingModalOpen(true);
+
+    // Simulate AI onboarding generation
+    setTimeout(() => {
+      const onboarding = {
+        welcomeMessage: `Welcome to ${signatureProgram?.name || 'Your Signature Program'}!
+
+I'm thrilled you've decided to join us on this transformational journey. Over the next ${signatureProgram?.duration || '90 days'}, you're going to experience significant growth in your business and authority.
+
+Here's what you can expect:
+
+🎯 **Your Transformation Journey**
+You'll go from where you are now to becoming a recognized authority in your field with a predictable revenue system.
+
+📚 **Program Structure**
+• ${signatureProgram?.modules?.length || 6} comprehensive modules
+• Weekly group coaching calls
+• Private community access
+• 1-on-1 support when needed
+
+🚀 **Getting Started**
+1. Complete your welcome survey (link below)
+2. Join our private community
+3. Schedule your onboarding call
+4. Access Module 1 materials
+
+**Welcome Survey:** [Link]
+**Community Access:** [Link]
+**Calendar Link:** [Link]
+
+I can't wait to see your transformation unfold!
+
+[Your Name]`,
+        expectations: `# PROGRAM EXPECTATIONS
+
+## What You Can Expect From Us:
+✅ **Weekly Group Calls** - Every Tuesday at 2pm EST
+✅ **Module Release Schedule** - New module every 2 weeks
+✅ **Community Support** - 24/7 access to our private group
+✅ **Response Time** - All questions answered within 24 hours
+✅ **1-on-1 Support** - Monthly 30-minute strategy sessions
+✅ **Resource Library** - Templates, worksheets, and tools
+✅ **Lifetime Access** - Keep all materials forever
+
+## What We Expect From You:
+🎯 **Active Participation** - Attend weekly calls when possible
+🎯 **Implementation** - Complete assignments and take action
+🎯 **Community Engagement** - Share wins and ask questions
+🎯 **Feedback** - Help us improve the program with your input
+🎯 **Commitment** - Stay engaged for the full program duration
+
+## Success Metrics:
+By the end of this program, you will have:
+• Established authority positioning in your market
+• Created a predictable lead generation system
+• Built a sales process that converts consistently
+• Developed a signature program/service offering
+• Implemented systems for sustainable growth`,
+        timeline: `# PROGRAM TIMELINE
+
+## Phase 1: Foundation (Weeks 1-4)
+**Focus:** Positioning & Strategy
+- Week 1: Authority positioning and mindset
+- Week 2: Signature story development
+- Week 3: Market analysis and positioning
+- Week 4: Content strategy foundation
+
+**Deliverables:**
+✅ Authority positioning statement
+✅ Signature story script
+✅ Content calendar template
+✅ Ideal client avatar refinement
+
+## Phase 2: Systems (Weeks 5-8)
+**Focus:** Lead Generation & Sales
+- Week 5: Lead magnet creation
+- Week 6: Landing page optimization
+- Week 7: Sales process development
+- Week 8: Objection handling mastery
+
+**Deliverables:**
+✅ High-converting lead magnet
+✅ Landing page copy and design
+✅ Discovery call framework
+✅ Sales script and objection responses
+
+## Phase 3: Delivery (Weeks 9-12)
+**Focus:** Service Excellence & Growth
+- Week 9: Service delivery optimization
+- Week 10: Client onboarding system
+- Week 11: Revenue optimization
+- Week 12: Scaling and automation
+
+**Deliverables:**
+✅ Service delivery blueprint
+✅ Client onboarding sequence
+✅ Pricing and packaging strategy
+✅ Growth and scaling plan
+
+## Ongoing Support:
+• **Weekly Group Calls** - Every Tuesday
+• **Monthly 1-on-1 Sessions** - 30 minutes each
+• **Community Access** - 24/7 support and networking
+• **Resource Updates** - New templates and tools added monthly`,
+        resources: `# PROGRAM RESOURCES
+
+## Core Materials:
+📚 **Program Workbook** - 150+ page comprehensive guide
+📋 **Implementation Worksheets** - Step-by-step action templates
+🎥 **Video Training Library** - 20+ hours of training content
+🎧 **Audio Modules** - Listen on-the-go versions of all content
+
+## Templates & Tools:
+📝 **Content Templates** - 50+ proven content templates
+📊 **Tracking Spreadsheets** - Monitor your progress and metrics
+📧 **Email Templates** - Nurture sequences and follow-up scripts
+🎨 **Design Templates** - Social media and marketing materials
+
+## Technology Stack:
+🔧 **CRM Setup Guide** - Recommended tools and configuration
+📱 **Social Media Scheduler** - Content planning and automation
+📈 **Analytics Dashboard** - Track your authority and revenue growth
+💬 **Community Platform** - Private group for networking and support
+
+## Bonus Resources:
+🎁 **Authority Toolkit** - Additional resources worth $500
+🎁 **Revenue Calculator** - Project your growth potential
+🎁 **Partnership Templates** - Collaboration and JV agreements
+🎁 **Scaling Checklist** - When and how to scale your business
+
+## Support Channels:
+📞 **Weekly Group Calls** - Live Q&A and hot seat coaching
+💬 **Private Community** - Peer support and networking
+📧 **Email Support** - Direct access for urgent questions
+📅 **Monthly 1-on-1** - Personalized strategy and troubleshooting`
+      };
+
+      setAiOnboardingSuggestion(onboarding);
+      setIsAiLoading(false);
+    }, 3000);
+  };
+
+  // Use AI Onboarding Suggestion
+  const useAIOnboardingSuggestion = () => {
+    if (!aiOnboardingSuggestion) return;
     
-    try {
-      const result = await aiService.generateRevenueStructure();
-      setAiResult(result);
-    } catch (error) {
-      console.error('Error generating revenue structure:', error);
-    } finally {
-      setAiLoading(false);
-    }
+    setOnboardingProcess({
+      id: Date.now(),
+      welcomeMessage: aiOnboardingSuggestion.welcomeMessage,
+      expectations: aiOnboardingSuggestion.expectations,
+      timeline: aiOnboardingSuggestion.timeline,
+      resources: aiOnboardingSuggestion.resources
+    });
+    
+    setAiOnboardingModalOpen(false);
   };
 
-  const handleUseAIContent = (content) => {
-    // Apply AI suggestions to current sub-step
-    if (activeSubStep === 1) {
-      setServiceStructure(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step6_service_structure', { ...serviceStructure, ...content });
-    } else if (activeSubStep === 2) {
-      setContentDelivery(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step6_content_delivery', { ...contentDelivery, ...content });
-    } else if (activeSubStep === 3) {
-      setDeliveryOptimization(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step6_delivery_optimization', { ...deliveryOptimization, ...content });
-    }
-    setAiModalOpen(false);
-  };
-
+  // How This Works content
   const howThisWorksContent = {
-    title: "How This Step Works",
-    description: "Follow these Action Steps to design and optimize your service delivery structure for maximum client value and satisfaction.",
+    description: "Design your signature program delivery system with modules, onboarding, and client success frameworks.",
     steps: [
       {
-        title: "Service Structure",
-        description: "Define your core service offerings, pricing models, and delivery framework for optimal client outcomes.",
-        color: "bg-[#fbae42]"
-      },
-      {
-        title: "Content Delivery", 
-        description: "Plan how you'll deliver value through training, coaching, resources, and ongoing support systems.",
+        title: "System Design",
+        description: "Create your signature program structure",
         color: "bg-[#0e9246]"
       },
       {
-        title: "Delivery Optimization",
-        description: "Optimize your processes for efficiency, quality, and scalability while maintaining high client satisfaction.",
+        title: "Implementation", 
+        description: "Build onboarding and delivery processes",
+        color: "bg-[#d7df21]"
+      },
+      {
+        title: "Milestone",
+        description: "Complete your delivery system",
         color: "bg-[#467a8f]"
       }
     ]
   };
 
-  // Check section completion for tab progression
-  const hasServiceStructure = Object.values(serviceStructure).every(value => value && value.trim().length > 0);
-  const hasContentDelivery = Object.values(contentDelivery).every(value => value && value.trim().length > 0);
-  const hasDeliveryOptimization = Object.values(deliveryOptimization).every(value => value && value.trim().length > 0);
-
-  // Tab progression logic
-  const isSubStepUnlocked = (stepNumber) => {
-    switch (stepNumber) {
-      case 1: return true; // Always unlocked
-      case 2: return hasServiceStructure; // Unlocked when service structure complete
-      case 3: return hasServiceStructure && hasContentDelivery; // Unlocked when first two complete
-      case 4: return hasServiceStructure && hasContentDelivery && hasDeliveryOptimization; // Milestone - all complete
-      default: return false;
-    }
-  };
-
-  const subSteps = [
-    { id: 1, title: 'Service Structure', icon: Package },
-    { id: 2, title: 'Content Delivery', icon: Layers },
-    { id: 3, title: 'Delivery Optimization', icon: BarChart3 },
-    { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
-  ];
-
-  const renderSubStepContent = () => {
-    switch (activeSubStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Service Structure</h3>
-              <p className="text-gray-600 mb-6">
-                Define your core services, packages, and delivery framework to create clear value propositions for your clients.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Core Services
-                  </label>
-                  <textarea
-                    value={serviceStructure.coreServices}
-                    onChange={(e) => handleServiceChange('coreServices', e.target.value)}
-                    placeholder="Define your main service offerings: coaching programs, consulting, done-for-you services..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Service Packages
-                  </label>
-                  <textarea
-                    value={serviceStructure.servicePackages}
-                    onChange={(e) => handleServiceChange('servicePackages', e.target.value)}
-                    placeholder="How will you package your services? Tiers, bundles, different levels of support..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Delivery Method
-                  </label>
-                  <textarea
-                    value={serviceStructure.deliveryMethod}
-                    onChange={(e) => handleServiceChange('deliveryMethod', e.target.value)}
-                    placeholder="How will you deliver your services? Online, in-person, hybrid, group, individual..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Service Timeline
-                  </label>
-                  <textarea
-                    value={serviceStructure.serviceTimeline}
-                    onChange={(e) => handleServiceChange('serviceTimeline', e.target.value)}
-                    placeholder="What's the timeline for each service? Duration, milestones, completion criteria..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Service Structure')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Service Structure')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Service Structure Items */}
-                {addedRevenueItems.filter(i => i.type === 'Service Structure').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editRevenueItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteRevenueItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasServiceStructure && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Service Structure Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Great! You can now move to content delivery planning.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Delivery</h3>
-              <p className="text-gray-600 mb-6">
-                Plan how you'll deliver value to your clients through various content formats and interaction methods.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Delivery Format
-                  </label>
-                  <textarea
-                    value={contentDelivery.deliveryFormat}
-                    onChange={(e) => handleContentChange('deliveryFormat', e.target.value)}
-                    placeholder="How will you deliver content? Videos, live calls, workbooks, templates, workshops..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Content Schedule
-                  </label>
-                  <textarea
-                    value={contentDelivery.contentSchedule}
-                    onChange={(e) => handleContentChange('contentSchedule', e.target.value)}
-                    placeholder="What's your content delivery schedule? Weekly modules, daily lessons, monthly themes..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Client Interaction
-                  </label>
-                  <textarea
-                    value={contentDelivery.clientInteraction}
-                    onChange={(e) => handleContentChange('clientInteraction', e.target.value)}
-                    placeholder="How will you interact with clients? Group calls, 1:1 sessions, community, office hours..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Support Level
-                  </label>
-                  <textarea
-                    value={contentDelivery.supportLevel}
-                    onChange={(e) => handleContentChange('supportLevel', e.target.value)}
-                    placeholder="What level of support will you provide? Email support, community access, direct messaging..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Content Delivery')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Content Delivery')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Content Delivery Items */}
-                {addedRevenueItems.filter(i => i.type === 'Content Delivery').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editRevenueItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteRevenueItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasContentDelivery && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Content Delivery Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to delivery optimization.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Delivery Optimization</h3>
-              <p className="text-gray-600 mb-6">
-                Optimize your service delivery processes for maximum efficiency, quality, and client satisfaction.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Process Optimization
-                  </label>
-                  <textarea
-                    value={deliveryOptimization.processOptimization}
-                    onChange={(e) => handleOptimizationChange('processOptimization', e.target.value)}
-                    placeholder="How will you streamline your delivery processes? Automation, templates, systems..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quality Assurance
-                  </label>
-                  <textarea
-                    value={deliveryOptimization.qualityAssurance}
-                    onChange={(e) => handleOptimizationChange('qualityAssurance', e.target.value)}
-                    placeholder="How will you ensure consistent quality? Standards, checklists, review processes..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Client Feedback System
-                  </label>
-                  <textarea
-                    value={deliveryOptimization.clientFeedback}
-                    onChange={(e) => handleOptimizationChange('clientFeedback', e.target.value)}
-                    placeholder="How will you collect and use client feedback? Surveys, check-ins, testimonials..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Continuous Improvement
-                  </label>
-                  <textarea
-                    value={deliveryOptimization.continuousImprovement}
-                    onChange={(e) => handleOptimizationChange('continuousImprovement', e.target.value)}
-                    placeholder="How will you continuously improve your services? Regular reviews, updates, innovation..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Delivery Optimization')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Delivery Optimization')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Delivery Optimization Items */}
-                {addedRevenueItems.filter(i => i.type === 'Delivery Optimization').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editRevenueItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteRevenueItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasDeliveryOptimization && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Delivery Optimization Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your service delivery structure is now optimized. Check out the milestone reflection!
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* AI Enhancement Section */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-[#d7df21]" />
-                <h3 className="text-xl font-semibold text-gray-900">AI Enhancement</h3>
-              </div>
-              
-              <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to optimize your complete service delivery structure.
-              </p>
-
-              <button
-                onClick={handleAIContentGeneration}
-                className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-              >
-                <Sparkles className="w-4 h-4" />
-                🤖 Generate AI Revenue Strategy
-              </button>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            {showConfetti && (
-              <Confetti
-                width={windowDimensions.width}
-                height={windowDimensions.height}
-                recycle={false}
-                numberOfPieces={200}
-                gravity={0.3}
-              />
-            )}
-            
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-8 h-8 text-white" />
-                </div>
-                
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  🎉 Milestone Achieved!
-                </h2>
-                
-                <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've designed an optimized service delivery structure that maximizes value for both you and your clients.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-8 text-left">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Structured your core service offerings</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Planned comprehensive content delivery</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Optimized delivery processes for efficiency</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created scalable revenue structure</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What This Means</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <DollarSign className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your services will deliver consistent value</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <DollarSign className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Client satisfaction will increase significantly</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <DollarSign className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your delivery will be efficient and scalable</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <DollarSign className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Revenue potential will be maximized</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
-                  <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
-                  <p className="text-gray-700">
-                    Great service delivery isn't just about what you deliver—it's about how you deliver it. Your optimized structure ensures every client receives exceptional value while allowing you to scale efficiently and profitably.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Component 1: Step Progress Indicator */}
-        <div className="text-sm text-gray-500 mb-2">
-          STEP 6 OF 9
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-sm text-gray-500 mb-2">STEP 6 OF 9</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Build Your Delivery System
+          </h1>
+          <p className="text-base lg:text-lg text-gray-600">
+            Design your signature program structure and client onboarding process.
+          </p>
         </div>
 
-        {/* Component 2: Step Name */}
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Service Delivery Structure
-        </h1>
-
-        {/* Component 3: Step Objective */}
-        <p className="text-lg text-gray-600 mb-6">
-          Design and optimize your service delivery structure to maximize client value, satisfaction, and your revenue potential.
-        </p>
-
-        {/* Step Completion Indicator */}
-        {isStepComplete && (
-          <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
-            <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
-            <div>
-              <p className="font-semibold">🎉 Step 6 Complete! Your service delivery is optimized.</p>
-              <p className="text-sm text-green-700 mt-1">
-                You now have a structured approach to deliver maximum value to clients.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Component 4: How This Works Section */}
+        {/* How This Works Section */}
         <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
@@ -906,7 +464,9 @@ const Step6 = () => {
               <span className="text-lg font-semibold text-gray-900">How This Step Works</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-[#0e9246] font-medium">Expand</span>
+              <span className="text-sm text-[#0e9246] font-medium">
+                {isHowThisWorksOpen ? 'Collapse' : 'Expand'}
+              </span>
               {isHowThisWorksOpen ? (
                 <ChevronUp className="w-5 h-5 text-[#0e9246]" />
               ) : (
@@ -941,17 +501,12 @@ const Step6 = () => {
           <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
         </div>
         
-        {/* Sub-step Navigation */}
-        <div className="bg-[#d5e6ed] rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
-            {subSteps.map((step, index) => {
+            {subSteps.map((step) => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
-              const isCompleted = step.id < 4 ? (
-                step.id === 1 ? hasServiceStructure :
-                step.id === 2 ? hasContentDelivery :
-                step.id === 3 ? hasDeliveryOptimization : false
-              ) : isStepComplete;
+              const isCompleted = isSubStepCompleted(step.id);
 
               return (
                 <button
@@ -962,8 +517,8 @@ const Step6 = () => {
                     isActive
                       ? 'border-[#fbae42] bg-orange-50'
                       : isUnlocked
-                      ? 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-                      : 'border-transparent bg-gray-50'
+                      ? 'border-transparent hover:border-gray-300 hover:bg-white hover:bg-opacity-50'
+                      : 'border-transparent bg-transparent'
                   } ${
                     !isUnlocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                   }`}
@@ -981,9 +536,9 @@ const Step6 = () => {
                       {isCompleted ? (
                         <CheckCircle2 className="w-4 h-4" />
                       ) : !isUnlocked ? (
-                        <span className="text-sm">🔒</span>
+                        <span className="text-xs">🔒</span>
                       ) : (
-                        <span className="text-sm font-bold">{step.id}</span>
+                        <span className="text-sm font-bold">{step.id + 1}</span>
                       )}
                     </div>
                     <span className={`text-sm font-medium ${
@@ -1003,165 +558,516 @@ const Step6 = () => {
         </div>
 
         {/* Sub-step Content */}
-        <div className="mb-8">
-          {renderSubStepContent()}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Current Sub-step */}
+          <div className="space-y-6">
+            {activeSubStep === 0 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">System Design</h3>
+                <p className="text-gray-600 mb-6">Design your signature program structure and modules.</p>
+                
+                {/* AI Program Generation */}
+                <div className="mb-8">
+                  <button
+                    onClick={handleAISignatureProgram}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Generate Signature Program with AI</span>
+                  </button>
+                </div>
+
+                {/* Program Display */}
+                {!signatureProgram ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No signature program created yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Program Overview */}
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-2">{signatureProgram.name}</h4>
+                      <p className="text-sm text-gray-600 mb-2">{signatureProgram.description}</p>
+                      <div className="flex space-x-4 text-sm text-gray-500">
+                        <span>Duration: {signatureProgram.duration}</span>
+                        <span>Modules: {signatureProgram.modules.length}</span>
+                      </div>
+                    </div>
+
+                    {/* Modules Section */}
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-medium text-gray-900">Program Lessons ({signatureProgram.modules.length})</h4>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => setAddModuleModalOpen(true)}
+                            className="px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
+                          >
+                            Add Lesson
+                          </button>
+                          <button
+                            onClick={handleAIModuleSuggestions}
+                            className="px-3 py-1 bg-[#d7df21] text-black text-sm rounded hover:bg-[#c5cd1e]"
+                          >
+                            AI Ideas
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {signatureProgram.modules.map((module, index) => (
+                          <div key={module.id} className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h5 className="font-medium text-gray-900">Lesson {index + 1}: {module.title}</h5>
+                                <p className="text-sm text-gray-600 mt-1">{module.description}</p>
+                                <div className="flex space-x-4 text-xs text-gray-500 mt-2">
+                                  <span>Duration: {module.duration}</span>
+                                </div>
+                                {module.deliverables && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    <span className="font-medium">Deliverables:</span> {module.deliverables}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex space-x-1 ml-4">
+                                <button className="p-1 text-gray-400 hover:text-gray-600">
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => deleteModule(module.id)}
+                                  className="p-1 text-gray-400 hover:text-red-600"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 1 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Implementation & Scaling</h3>
+                <p className="text-gray-600 mb-6">Create your client onboarding process and delivery framework.</p>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={handleAIOnboarding}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Generate Onboarding with AI</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setOnboardingModalOpen(true)}
+                    className="w-full px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Add Manual Onboarding</span>
+                  </button>
+                </div>
+
+                {onboardingProcess && (
+                  <div className="mt-6 border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">Onboarding Process Created</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>• Welcome message and expectations</p>
+                      <p>• Program timeline and milestones</p>
+                      <p>• Resource library and tools</p>
+                      <p>• Support channels and communication</p>
+                    </div>
+                    <button
+                      onClick={() => setAiOnboardingModalOpen(true)}
+                      className="mt-3 text-[#0e9246] hover:text-green-700 text-sm font-medium"
+                    >
+                      View Full Onboarding Process →
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 2 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
+                <p className="text-gray-600 mb-6">Congratulations! You've built your complete delivery system.</p>
+                
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-900 mb-2">What You've Accomplished:</h4>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li>✅ Designed signature program: "{signatureProgram?.name}"</li>
+                      <li>✅ Created {signatureProgram?.modules?.length || 0} program lessons</li>
+                      <li>✅ Built comprehensive onboarding process</li>
+                      <li>✅ Established client delivery framework</li>
+                      <li>✅ Created scalable service delivery system</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
+                    <p className="text-sm text-blue-800">
+                      Move on to Step 7: Metrics & Monitoring to track your business performance and growth.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Program Overview */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Delivery System Overview</h3>
+            
+            {/* Signature Program Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Signature Program</h4>
+              {!signatureProgram ? (
+                <p className="text-gray-500 text-sm">No signature program created yet</p>
+              ) : (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <Package className="w-4 h-4 text-blue-600 mr-2" />
+                    <span className="font-medium text-blue-900">{signatureProgram.name}</span>
+                  </div>
+                  <p className="text-sm text-blue-700">{signatureProgram.duration}</p>
+                  <p className="text-sm text-blue-700">{signatureProgram.modules.length} lessons</p>
+                </div>
+              )}
+            </div>
+
+            {/* Onboarding Process Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Onboarding Process</h4>
+              {!onboardingProcess ? (
+                <p className="text-gray-500 text-sm">No onboarding process created yet</p>
+              ) : (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <BookOpen className="w-4 h-4 text-green-600 mr-2" />
+                    <span className="font-medium text-green-900">Complete Onboarding</span>
+                  </div>
+                  <p className="text-sm text-green-700">Welcome, expectations, timeline, resources</p>
+                </div>
+              )}
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-3">System Progress</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Signature Program</span>
+                  <span className={`text-sm font-medium ${hasSignatureProgram ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasSignatureProgram ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Onboarding Process</span>
+                  <span className={`text-sm font-medium ${hasOnboardingProcess ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasOnboardingProcess ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Manual Entry Modal */}
-        {manualModalOpen && (
+        {/* AI Program Modal */}
+        {aiProgramModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
-                <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">AI Signature Program</h3>
+                  <button
+                    onClick={() => setAiProgramModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <p className="text-gray-600 mt-2">AI-generated signature program structure</p>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating signature program...</span>
+                  </div>
+                ) : aiProgramSuggestion && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">{aiProgramSuggestion.name}</h4>
+                      <p className="text-gray-600 mb-4">{aiProgramSuggestion.description}</p>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">Duration:</span>
+                          <p className="text-gray-600">{aiProgramSuggestion.duration}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Delivery:</span>
+                          <p className="text-gray-600">{aiProgramSuggestion.deliveryMethod}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Program Lessons ({aiProgramSuggestion.modules.length})</h4>
+                      <div className="space-y-3">
+                        {aiProgramSuggestion.modules.map((module, index) => (
+                          <div key={index} className="border border-gray-200 rounded-lg p-4">
+                            <h5 className="font-medium text-gray-900">Lesson {index + 1}: {module.title}</h5>
+                            <p className="text-sm text-gray-600 mt-1">{module.description}</p>
+                            <div className="flex space-x-4 text-xs text-gray-500 mt-2">
+                              <span>Duration: {module.duration}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              <span className="font-medium">Deliverables:</span> {module.deliverables}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => setAiProgramModalOpen(false)}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={useAIProgramSuggestion}
+                    className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                  >
+                    Use This Program
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Module Modal */}
+        {addModuleModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Add Program Lesson</h3>
+                  <button
+                    onClick={() => setAddModuleModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
               
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                  <select
-                    value={manualForm.type}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                  >
-                    <option value="">Select type...</option>
-                    <option value="Service Structure">Service Structure</option>
-                    <option value="Content Delivery">Content Delivery</option>
-                    <option value="Delivery Optimization">Delivery Optimization</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Lesson Title *</label>
                   <input
                     type="text"
-                    value={manualForm.title}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Signature Program Framework"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    value={moduleForm.title}
+                    onChange={(e) => setModuleForm({...moduleForm, title: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="Enter lesson title"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                   <textarea
-                    value={manualForm.description}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Brief description..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
+                    value={moduleForm.description}
+                    onChange={(e) => setModuleForm({...moduleForm, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    rows="3"
+                    placeholder="What will students learn in this lesson?"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+                  <input
+                    type="text"
+                    value={moduleForm.duration}
+                    onChange={(e) => setModuleForm({...moduleForm, duration: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="e.g., Week 1, 2 hours, 3 days"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Deliverables</label>
                   <textarea
-                    value={manualForm.details}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
-                    placeholder="Additional details (optional)..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
+                    value={moduleForm.deliverables}
+                    onChange={(e) => setModuleForm({...moduleForm, deliverables: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    rows="2"
+                    placeholder="What will students receive or complete?"
                   />
                 </div>
               </div>
               
-              <div className="flex gap-3 p-6 border-t">
+              <div className="p-6 border-t border-gray-200 flex space-x-3">
                 <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  onClick={() => setAddModuleModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleManualSubmit}
-                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
+                  onClick={handleAddModule}
+                  className="flex-1 px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
                 >
-                  Add Entry
+                  Add Lesson
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* AI Suggestions Modal */}
-        {aiSuggestionsModalOpen && (
+        {/* AI Module Suggestions Modal */}
+        {aiModulesModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
-                <button
-                  onClick={() => setAiSuggestionsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">AI Lesson Ideas</h3>
+                  <button
+                    onClick={() => setAiModulesModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <p className="text-gray-600 mt-2">AI-generated lesson ideas for your signature program</p>
               </div>
               
               <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
-                </p>
-                
-                <div className="space-y-4">
-                  {aiSuggestions.map((suggestion) => (
-                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
-                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
-                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating lesson ideas...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Recommended Lessons ({aiModuleSuggestions.length} ideas)</h4>
+                    {aiModuleSuggestions.map((suggestion, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <h5 className="font-medium text-gray-900 mb-2">{suggestion.title}</h5>
+                        <p className="text-sm text-gray-600 mb-2">{suggestion.description}</p>
+                        <div className="text-xs text-gray-500 mb-3">
+                          <span className="font-medium">Duration:</span> {suggestion.duration} | 
+                          <span className="font-medium"> Deliverables:</span> {suggestion.deliverables}
                         </div>
-                        <button
-                          onClick={() => addAiSuggestion(suggestion)}
-                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add
-                        </button>
+                        
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => addAIModuleSuggestion(suggestion)}
+                            className="px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
+                          >
+                            Add Lesson
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Onboarding Modal */}
+        {aiOnboardingModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Complete Onboarding Process</h3>
+                  <button
+                    onClick={() => setAiOnboardingModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating onboarding process...</span>
+                  </div>
+                ) : aiOnboardingSuggestion && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Welcome Message</h4>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{aiOnboardingSuggestion.welcomeMessage}</pre>
                       </div>
                     </div>
-                  ))}
-                  
-                  {aiSuggestions.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      All suggestions have been added! Close this modal to continue.
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Program Expectations</h4>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{aiOnboardingSuggestion.expectations}</pre>
+                      </div>
                     </div>
-                  )}
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Program Timeline</h4>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{aiOnboardingSuggestion.timeline}</pre>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Resources & Support</h4>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{aiOnboardingSuggestion.resources}</pre>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      const content = Object.values(aiOnboardingSuggestion || {}).join('\n\n');
+                      navigator.clipboard.writeText(content);
+                      alert('Onboarding process copied to clipboard!');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  >
+                    Copy to Clipboard
+                  </button>
+                  <button
+                    onClick={useAIOnboardingSuggestion}
+                    className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                  >
+                    Use This Onboarding
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         )}
-
-        {/* AI Modal */}
-        <AIModal
-          isOpen={aiModalOpen}
-          onClose={() => setAiModalOpen(false)}
-          title="AI Revenue Structure"
-          content={aiResult}
-          isLoading={aiLoading}
-          onUseContent={handleUseAIContent}
-        />
-
-        {/* API Key Modal */}
-        <APIKeyModal
-          isOpen={apiKeyModalOpen}
-          onClose={() => setApiKeyModalOpen(false)}
-          onSave={handleSaveApiKey}
-        />
-
-        {/* Footer */}
-        <StepFooter 
-          currentStep={6}
-          isStepComplete={isStepComplete}
-          onPrevious={() => {}}
-          onNext={() => {}}
-        />
       </div>
     </div>
   );
