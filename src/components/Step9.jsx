@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle2, ChevronDown, ChevronUp, Plus, Sparkles, X, Mic, Users, RefreshCw, Calendar, MapPin, Edit, Trash2, Target, Award } from 'lucide-react';
 
 const Step9 = () => {
-  // Sub-step management (2 steps total)
+  // Sub-step management (3 steps total)
   const [activeSubStep, setActiveSubStep] = useState(0);
+  
+  // Data states
   const [speakingEngagements, setSpeakingEngagements] = useState([]);
   const [partnerships, setPartnerships] = useState([]);
   const [contentPieces, setContentPieces] = useState([]);
-  const [repurposingPlans, setRepurposingPlans] = useState([]);
   
   // Modal states
   const [addSpeakingModalOpen, setAddSpeakingModalOpen] = useState(false);
@@ -22,7 +23,7 @@ const Step9 = () => {
     date: '',
     audience: '',
     topic: '',
-    status: 'Planned'
+    status: 'Confirmed'
   });
   
   const [partnershipForm, setPartnershipForm] = useState({
@@ -31,15 +32,17 @@ const Step9 = () => {
     collaborationType: '',
     expectedReach: '',
     timeline: '',
-    status: 'Planned'
+    status: 'Active'
   });
   
   const [contentForm, setContentForm] = useState({
     title: '',
     type: '',
-    originalPlatform: '',
-    description: '',
-    url: ''
+    status: 'In Progress',
+    repurposingPlan: '',
+    platforms: '',
+    reach: '',
+    conversions: ''
   });
   
   // AI results
@@ -49,22 +52,24 @@ const Step9 = () => {
   // UI states
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
 
-  // Sub-steps configuration (2 steps total)
+  // Sub-steps configuration (3 steps total)
   const subSteps = [
     { id: 0, title: 'Strategy Hub', completed: false },
-    { id: 1, title: 'Authority Scaling', completed: false }
+    { id: 1, title: 'Authority Scaling', completed: false },
+    { id: 2, title: 'Milestone Reflection', completed: false }
   ];
 
   // Check completion status
-  const hasStrategies = speakingEngagements.length > 0 || partnerships.length > 0 || contentPieces.length > 0;
-  const hasRepurposingPlans = repurposingPlans.length > 0;
-  const isStepComplete = hasStrategies && hasRepurposingPlans;
+  const hasStrategies = speakingEngagements.length > 0 || partnerships.length > 0;
+  const hasContent = contentPieces.length > 0;
+  const isStepComplete = hasStrategies && hasContent;
 
   // Sub-step unlock logic
   const isSubStepUnlocked = (stepId) => {
     switch (stepId) {
       case 0: return true; // Strategy Hub always unlocked
       case 1: return hasStrategies; // Authority Scaling unlocked when strategies exist
+      case 2: return hasStrategies && hasContent; // Milestone unlocked when both exist
       default: return false;
     }
   };
@@ -72,53 +77,63 @@ const Step9 = () => {
   const isSubStepCompleted = (stepId) => {
     switch (stepId) {
       case 0: return hasStrategies; // Strategy completed when any strategy exists
-      case 1: return hasRepurposingPlans; // Scaling completed when repurposing plans exist
+      case 1: return hasContent; // Scaling completed when content exists
+      case 2: return isStepComplete; // Milestone completed when everything done
       default: return false;
     }
   };
 
   // Event type options
   const eventTypes = [
-    'Conference Keynote',
-    'Industry Panel',
-    'Workshop',
+    'Conference',
+    'Trade Show',
+    'Podcast',
     'Webinar',
-    'Podcast Interview',
-    'Virtual Summit',
-    'Networking Event',
+    'Workshop',
+    'Panel Discussion',
+    'Keynote',
     'Masterclass',
-    'Training Session',
-    'Expert Panel'
+    'Virtual Summit',
+    'Industry Event'
   ];
 
   // Partnership types
   const partnershipTypes = [
-    'Joint Venture',
-    'Affiliate Partnership',
-    'Content Collaboration',
-    'Cross-Promotion',
+    'Industry Expert',
+    'Media Partner',
+    'Business Consultant',
+    'Content Creator',
+    'Technology Partner',
     'Strategic Alliance',
-    'Referral Partnership',
-    'Co-Marketing',
-    'Guest Expert',
-    'Advisory Role',
-    'Mentorship Exchange'
+    'Joint Venture',
+    'Affiliate Partner',
+    'Referral Partner',
+    'Cross-Promotion'
   ];
 
-  // Content types for repurposing
+  // Content types
   const contentTypes = [
-    'Blog Post',
-    'Video',
-    'Podcast Episode',
     'Webinar',
-    'Social Media Post',
-    'Email Newsletter',
-    'Case Study',
     'White Paper',
-    'Infographic',
+    'Case Study',
+    'Blog Post',
+    'Video Series',
+    'Podcast Episode',
+    'E-book',
     'Course Module',
     'Workshop',
-    'Interview'
+    'Masterclass'
+  ];
+
+  // Status options
+  const statusOptions = [
+    'Planning',
+    'In Progress', 
+    'Completed',
+    'Scheduled',
+    'Confirmed',
+    'Negotiating',
+    'Prospecting'
   ];
 
   // Add Speaking Engagement
@@ -141,7 +156,7 @@ const Step9 = () => {
       date: '',
       audience: '',
       topic: '',
-      status: 'Planned'
+      status: 'Confirmed'
     });
     setAddSpeakingModalOpen(false);
   };
@@ -166,7 +181,7 @@ const Step9 = () => {
       collaborationType: '',
       expectedReach: '',
       timeline: '',
-      status: 'Planned'
+      status: 'Active'
     });
     setAddPartnershipModalOpen(false);
   };
@@ -188,97 +203,49 @@ const Step9 = () => {
     setContentForm({
       title: '',
       type: '',
-      originalPlatform: '',
-      description: '',
-      url: ''
+      status: 'In Progress',
+      repurposingPlan: '',
+      platforms: '',
+      reach: '',
+      conversions: ''
     });
     setAddContentModalOpen(false);
   };
 
   // Generate AI Repurposing Ideas
   const handleAIRepurposing = () => {
-    if (contentPieces.length === 0) {
-      alert('Please add at least one content piece first');
-      return;
-    }
-    
     setIsAiLoading(true);
     setAiRepurposingModalOpen(true);
 
     // Simulate AI repurposing generation
     setTimeout(() => {
-      const repurposingSuggestions = contentPieces.map(content => ({
-        originalContent: content,
-        repurposingIdeas: [
-          {
-            platform: 'LinkedIn',
-            format: 'Carousel Post',
-            description: `Transform "${content.title}" into a 5-slide carousel highlighting key insights`,
-            timeline: '1 week',
-            effort: 'Low'
-          },
-          {
-            platform: 'Twitter/X',
-            format: 'Thread',
-            description: `Create a 10-tweet thread breaking down the main points from "${content.title}"`,
-            timeline: '2 days',
-            effort: 'Low'
-          },
-          {
-            platform: 'YouTube',
-            format: 'Short Video',
-            description: `Create a 60-second video summary of "${content.title}" key takeaways`,
-            timeline: '3 days',
-            effort: 'Medium'
-          },
-          {
-            platform: 'Instagram',
-            format: 'Story Series',
-            description: `Break "${content.title}" into 5 Instagram stories with key quotes and insights`,
-            timeline: '1 day',
-            effort: 'Low'
-          },
-          {
-            platform: 'Email Newsletter',
-            format: 'Feature Article',
-            description: `Adapt "${content.title}" into a newsletter feature with actionable tips`,
-            timeline: '2 days',
-            effort: 'Medium'
-          },
-          {
-            platform: 'Podcast',
-            format: 'Episode Topic',
-            description: `Use "${content.title}" as the foundation for a 30-minute podcast episode`,
-            timeline: '1 week',
-            effort: 'High'
-          }
-        ]
-      }));
+      const suggestions = [
+        {
+          title: "LinkedIn Authority Building Strategy",
+          description: "Develop a comprehensive LinkedIn strategy to establish thought leadership",
+          platforms: "LinkedIn, Blog, Email Newsletter",
+          timeline: "3 months",
+          expectedReach: "50,000+ professionals"
+        },
+        {
+          title: "Podcast Guest Appearance Campaign", 
+          description: "Secure 10 podcast appearances on industry-relevant shows",
+          platforms: "Podcasts, Social Media, Website",
+          timeline: "6 months",
+          expectedReach: "100,000+ listeners"
+        },
+        {
+          title: "Content Collaboration Network",
+          description: "Build relationships with 5 complementary service providers",
+          platforms: "Cross-promotion, Joint Content, Referrals",
+          timeline: "4 months",
+          expectedReach: "25,000+ combined audiences"
+        }
+      ];
 
-      setAiRepurposingSuggestions(repurposingSuggestions);
+      setAiRepurposingSuggestions(suggestions);
       setIsAiLoading(false);
-    }, 3000);
-  };
-
-  // Use AI Repurposing Suggestions
-  const useAIRepurposingSuggestions = () => {
-    if (!aiRepurposingSuggestions.length) return;
-    
-    const newPlans = aiRepurposingSuggestions.flatMap(suggestion => 
-      suggestion.repurposingIdeas.map(idea => ({
-        id: Date.now() + Math.random(),
-        originalContent: suggestion.originalContent.title,
-        platform: idea.platform,
-        format: idea.format,
-        description: idea.description,
-        timeline: idea.timeline,
-        effort: idea.effort,
-        status: 'Planned'
-      }))
-    );
-    
-    setRepurposingPlans([...repurposingPlans, ...newPlans]);
-    setAiRepurposingModalOpen(false);
+    }, 2000);
   };
 
   // Delete functions
@@ -294,23 +261,24 @@ const Step9 = () => {
     setContentPieces(contentPieces.filter(item => item.id !== id));
   };
 
-  const deleteRepurposingPlan = (id) => {
-    setRepurposingPlans(repurposingPlans.filter(item => item.id !== id));
-  };
-
   // How This Works content
   const howThisWorksContent = {
-    description: "Develop and manage strategic initiatives to amplify your authority across multiple channels.",
+    description: "Scale your authority and influence through strategic partnerships, thought leadership, and systematic expansion of your market presence.",
     steps: [
       {
         title: "Strategy Hub",
-        description: "Plan speaking, partnerships, and content",
+        description: "Plan speaking engagements and partnerships",
         color: "bg-[#0e9246]"
       },
       {
         title: "Authority Scaling", 
-        description: "Scale authority across multiple channels",
+        description: "Execute content repurposing and scaling",
         color: "bg-[#d7df21]"
+      },
+      {
+        title: "Milestone Reflection",
+        description: "Celebrate authority amplification success",
+        color: "bg-[#0e9246]"
       }
     ]
   };
@@ -325,7 +293,7 @@ const Step9 = () => {
             Authority Amplification
           </h1>
           <p className="text-base lg:text-lg text-gray-600">
-            Develop and manage strategic initiatives to amplify your authority across multiple channels.
+            Scale your authority and influence through strategic partnerships, thought leadership, and systematic expansion of your market presence.
           </p>
         </div>
 
@@ -356,7 +324,7 @@ const Step9 = () => {
           {isHowThisWorksOpen && (
             <div className="px-6 pb-6 bg-white border-t border-[#0e9246]">
               <p className="text-gray-600 mb-6">{howThisWorksContent.description}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {howThisWorksContent.steps.map((step, index) => (
                   <div key={index} className="text-center">
                     <div 
@@ -439,212 +407,142 @@ const Step9 = () => {
         <div className="space-y-8">
           {activeSubStep === 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column - Strategy Components */}
-              <div className="space-y-6">
-                {/* Speaking Engagement Tracker */}
-                <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Speaking Engagement Tracker</h3>
-                  <p className="text-gray-600 mb-6">Manage speaking opportunities and events.</p>
-                  
+              {/* Speaking Engagement Tracker */}
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Speaking Engagement Tracker</h3>
                   <button
-                    onClick={() => setAddSpeakingModalOpen(true)}
-                    className="w-full px-6 py-3 bg-[#fbae42] text-white rounded-lg hover:bg-[#e09d3a] flex items-center justify-center space-x-2 mb-4"
+                    className="px-4 py-2 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center space-x-2"
                   >
-                    <Plus className="w-5 h-5" />
-                    <span>Add Speaking Opportunity</span>
+                    <Sparkles className="w-4 h-4" />
+                    <span>AI Ideas</span>
                   </button>
-
-                  {speakingEngagements.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <Mic className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p>No speaking engagements yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {speakingEngagements.map((engagement) => (
-                        <div key={engagement.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-900">{engagement.eventName}</h4>
-                              <p className="text-sm text-gray-600">{engagement.eventType}</p>
-                              {engagement.date && <p className="text-xs text-gray-500">Date: {engagement.date}</p>}
-                              {engagement.audience && <p className="text-xs text-gray-500">Audience: {engagement.audience}</p>}
-                              <span className={`inline-block px-2 py-1 rounded text-xs mt-2 ${
-                                engagement.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                                engagement.status === 'Confirmed' ? 'bg-blue-100 text-blue-800' :
-                                'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {engagement.status}
-                              </span>
-                            </div>
-                            <button 
-                              onClick={() => deleteSpeakingEngagement(engagement.id)}
-                              className="p-1 text-gray-400 hover:text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
+                <p className="text-gray-600 mb-6">Manage speaking opportunities and thought leadership events.</p>
+                
+                <button
+                  onClick={() => setAddSpeakingModalOpen(true)}
+                  className="w-full px-6 py-3 bg-[#fbae42] text-white rounded-lg hover:bg-[#e09d3a] flex items-center justify-center space-x-2 mb-6"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Add Speaking Opportunity</span>
+                </button>
 
-                {/* Strategic Partnership Finder */}
-                <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Strategic Partnership Finder</h3>
-                  <p className="text-gray-600 mb-6">Identify and manage strategic partnerships.</p>
-                  
-                  <button
-                    onClick={() => setAddPartnershipModalOpen(true)}
-                    className="w-full px-6 py-3 bg-[#fbae42] text-white rounded-lg hover:bg-[#e09d3a] flex items-center justify-center space-x-2 mb-4"
-                  >
-                    <Plus className="w-5 h-5" />
-                    <span>Add Partnership</span>
-                  </button>
-
-                  {partnerships.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p>No partnerships yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {partnerships.map((partnership) => (
-                        <div key={partnership.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-900">{partnership.partnerName}</h4>
-                              <p className="text-sm text-gray-600">{partnership.partnerType}</p>
-                              {partnership.collaborationType && <p className="text-xs text-gray-500">Type: {partnership.collaborationType}</p>}
-                              {partnership.expectedReach && <p className="text-xs text-gray-500">Reach: {partnership.expectedReach}</p>}
-                              <span className={`inline-block px-2 py-1 rounded text-xs mt-2 ${
-                                partnership.status === 'Active' ? 'bg-green-100 text-green-800' :
-                                partnership.status === 'Confirmed' ? 'bg-blue-100 text-blue-800' :
-                                'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {partnership.status}
-                              </span>
-                            </div>
-                            <button 
-                              onClick={() => deletePartnership(partnership.id)}
-                              className="p-1 text-gray-400 hover:text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                {/* Speaking Engagements List */}
+                <div className="space-y-4">
+                  {speakingEngagements.map((engagement) => (
+                    <div key={engagement.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium text-gray-900">{engagement.eventName}</h4>
+                        <div className="flex space-x-2">
+                          <button className="p-1 text-gray-400 hover:text-blue-600">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => deleteSpeakingEngagement(engagement.id)}
+                            className="p-1 text-gray-400 hover:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                      ))}
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">Type:</span>
+                          <p className="font-medium">{engagement.eventType}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Status:</span>
+                          <p className="font-medium">{engagement.status}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Date:</span>
+                          <p className="font-medium">{engagement.date || 'TBD'}</p>
+                        </div>
+                      </div>
+                      
+                      {engagement.topic && (
+                        <div className="mt-3">
+                          <span className="text-gray-500 text-sm">Topic:</span>
+                          <p className="text-sm text-gray-700">{engagement.topic}</p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
 
-              {/* Right Column - Authority Overview */}
+              {/* Strategic Partnership Finder */}
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Authority Strategy Overview</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Strategic Partnership Finder</h3>
+                  <button
+                    className="px-4 py-2 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center space-x-2"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>AI Ideas</span>
+                  </button>
+                </div>
+                <p className="text-gray-600 mb-6">Identify and manage strategic partnership opportunities.</p>
                 
-                {/* Speaking Summary */}
-                <div className="mb-6">
-                  <h4 className="font-medium text-gray-900 mb-3">Speaking Engagements</h4>
-                  {speakingEngagements.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No speaking engagements planned</p>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600">{speakingEngagements.length} engagements planned</p>
-                      <div className="space-y-1">
-                        {speakingEngagements.slice(0, 3).map((engagement, index) => (
-                          <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-                            <div className="flex items-center">
-                              <Mic className="w-3 h-3 text-blue-600 mr-2" />
-                              <span className="font-medium text-blue-900 text-xs">{engagement.eventName}</span>
-                            </div>
-                            <p className="text-xs text-blue-700">{engagement.eventType}</p>
-                          </div>
-                        ))}
-                        {speakingEngagements.length > 3 && (
-                          <p className="text-xs text-gray-500">+ {speakingEngagements.length - 3} more</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <button
+                  onClick={() => setAddPartnershipModalOpen(true)}
+                  className="w-full px-6 py-3 bg-[#fbae42] text-white rounded-lg hover:bg-[#e09d3a] flex items-center justify-center space-x-2 mb-6"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Add Partnership</span>
+                </button>
 
-                {/* Partnership Summary */}
-                <div className="mb-6">
-                  <h4 className="font-medium text-gray-900 mb-3">Strategic Partnerships</h4>
-                  {partnerships.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No partnerships established</p>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600">{partnerships.length} partnerships planned</p>
-                      <div className="space-y-1">
-                        {partnerships.slice(0, 3).map((partnership, index) => (
-                          <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-2">
-                            <div className="flex items-center">
-                              <Users className="w-3 h-3 text-green-600 mr-2" />
-                              <span className="font-medium text-green-900 text-xs">{partnership.partnerName}</span>
-                            </div>
-                            <p className="text-xs text-green-700">{partnership.partnerType}</p>
-                          </div>
-                        ))}
-                        {partnerships.length > 3 && (
-                          <p className="text-xs text-gray-500">+ {partnerships.length - 3} more</p>
-                        )}
+                {/* Partnerships List */}
+                <div className="space-y-4">
+                  {partnerships.map((partnership) => (
+                    <div key={partnership.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium text-gray-900">{partnership.partnerName}</h4>
+                        <div className="flex space-x-2">
+                          <button className="p-1 text-gray-400 hover:text-blue-600">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => deletePartnership(partnership.id)}
+                            className="p-1 text-gray-400 hover:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Content Summary */}
-                <div className="mb-6">
-                  <h4 className="font-medium text-gray-900 mb-3">Content for Repurposing</h4>
-                  {contentPieces.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No content pieces added</p>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600">{contentPieces.length} content pieces</p>
-                      <div className="space-y-1">
-                        {contentPieces.slice(0, 3).map((content, index) => (
-                          <div key={index} className="bg-orange-50 border border-orange-200 rounded-lg p-2">
-                            <div className="flex items-center">
-                              <RefreshCw className="w-3 h-3 text-orange-600 mr-2" />
-                              <span className="font-medium text-orange-900 text-xs">{content.title}</span>
-                            </div>
-                            <p className="text-xs text-orange-700">{content.type}</p>
-                          </div>
-                        ))}
-                        {contentPieces.length > 3 && (
-                          <p className="text-xs text-gray-500">+ {contentPieces.length - 3} more</p>
-                        )}
+                      
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">Type:</span>
+                          <p className="font-medium">{partnership.partnerType}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Status:</span>
+                          <p className="font-medium">{partnership.status}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Timeline:</span>
+                          <p className="font-medium">{partnership.timeline || 'TBD'}</p>
+                        </div>
                       </div>
+                      
+                      {partnership.collaborationType && (
+                        <div className="mt-3">
+                          <span className="text-gray-500 text-sm">Collaboration:</span>
+                          <p className="text-sm text-gray-700">{partnership.collaborationType}</p>
+                        </div>
+                      )}
+                      
+                      {partnership.expectedReach && (
+                        <div className="mt-2">
+                          <span className="text-gray-500 text-sm">Expected Reach:</span>
+                          <p className="text-sm text-gray-700">{partnership.expectedReach}</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-
-                {/* Progress Indicator */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-3">Strategy Progress</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Speaking Engagements</span>
-                      <span className={`text-sm font-medium ${speakingEngagements.length > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                        {speakingEngagements.length > 0 ? '✅ Added' : '⏳ Pending'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Strategic Partnerships</span>
-                      <span className={`text-sm font-medium ${partnerships.length > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                        {partnerships.length > 0 ? '✅ Added' : '⏳ Pending'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Content for Repurposing</span>
-                      <span className={`text-sm font-medium ${contentPieces.length > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                        {contentPieces.length > 0 ? '✅ Added' : '⏳ Pending'}
-                      </span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -654,50 +552,36 @@ const Step9 = () => {
             <div className="space-y-6">
               {/* Content Repurposing Engine */}
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Repurposing Engine</h3>
-                <p className="text-gray-600 mb-6">Maximize content reach across multiple channels and formats.</p>
-                
-                <div className="space-y-4 mb-6">
-                  <button
-                    onClick={() => setAddContentModalOpen(true)}
-                    className="w-full px-6 py-3 bg-[#fbae42] text-white rounded-lg hover:bg-[#e09d3a] flex items-center justify-center space-x-2"
-                  >
-                    <Plus className="w-5 h-5" />
-                    <span>Add Content Piece</span>
-                  </button>
-                  
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Content Repurposing Engine</h3>
                   <button
                     onClick={handleAIRepurposing}
-                    disabled={contentPieces.length === 0}
-                    className={`w-full px-6 py-3 rounded-lg flex items-center justify-center space-x-2 ${
-                      contentPieces.length === 0 
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-[#d7df21] text-black hover:bg-[#c5cd1e]'
-                    }`}
+                    className="px-4 py-2 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center space-x-2"
                   >
-                    <Sparkles className="w-5 h-5" />
+                    <Sparkles className="w-4 h-4" />
                     <span>AI Repurposing Ideas</span>
                   </button>
                 </div>
+                <p className="text-gray-600 mb-6">Maximize content value by repurposing across multiple channels and formats.</p>
+                
+                <button
+                  onClick={() => setAddContentModalOpen(true)}
+                  className="w-full px-6 py-3 bg-[#fbae42] text-white rounded-lg hover:bg-[#e09d3a] flex items-center justify-center space-x-2 mb-6"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Add Content Piece</span>
+                </button>
 
-                {/* Content Pieces Display */}
-                {contentPieces.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <RefreshCw className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>No Content Repurposing Plans Yet</p>
-                    <p className="text-sm">Add content pieces to get AI repurposing suggestions</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900">Content for Repurposing ({contentPieces.length})</h4>
-                    {contentPieces.map((content) => (
-                      <div key={content.id} className="border border-gray-200 rounded-lg p-3">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h5 className="font-medium text-gray-900">{content.title}</h5>
-                            <p className="text-sm text-gray-600">{content.type}</p>
-                            {content.originalPlatform && <p className="text-xs text-gray-500">Platform: {content.originalPlatform}</p>}
-                          </div>
+                {/* Content Pieces List */}
+                <div className="space-y-4">
+                  {contentPieces.map((content) => (
+                    <div key={content.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium text-gray-900">{content.title}</h4>
+                        <div className="flex space-x-2">
+                          <button className="p-1 text-gray-400 hover:text-blue-600">
+                            <Edit className="w-4 h-4" />
+                          </button>
                           <button 
                             onClick={() => deleteContentPiece(content.id)}
                             className="p-1 text-gray-400 hover:text-red-600"
@@ -706,47 +590,93 @@ const Step9 = () => {
                           </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Repurposing Plans Display */}
-                {repurposingPlans.length > 0 && (
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <h4 className="font-medium text-gray-900 mb-3">Repurposing Plans ({repurposingPlans.length})</h4>
-                    <div className="space-y-2">
-                      {repurposingPlans.slice(0, 5).map((plan) => (
-                        <div key={plan.id} className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h5 className="font-medium text-purple-900 text-sm">{plan.platform} - {plan.format}</h5>
-                              <p className="text-xs text-purple-700">{plan.description}</p>
-                              <div className="flex space-x-2 mt-1">
-                                <span className="text-xs text-purple-600">Timeline: {plan.timeline}</span>
-                                <span className={`text-xs ${
-                                  plan.effort === 'Low' ? 'text-green-600' :
-                                  plan.effort === 'Medium' ? 'text-yellow-600' :
-                                  'text-red-600'
-                                }`}>
-                                  Effort: {plan.effort}
-                                </span>
-                              </div>
-                            </div>
-                            <button 
-                              onClick={() => deleteRepurposingPlan(plan.id)}
-                              className="p-1 text-gray-400 hover:text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 text-sm mb-3">
+                        <div>
+                          <span className="text-gray-500">Type:</span>
+                          <p className="font-medium">{content.type}</p>
                         </div>
-                      ))}
-                      {repurposingPlans.length > 5 && (
-                        <p className="text-xs text-gray-500">+ {repurposingPlans.length - 5} more plans</p>
+                        <div>
+                          <span className="text-gray-500">Status:</span>
+                          <p className="font-medium">{content.status}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Platforms:</span>
+                          <p className="font-medium">{content.platforms || 'TBD'}</p>
+                        </div>
+                      </div>
+                      
+                      {content.repurposingPlan && (
+                        <div className="mt-3">
+                          <span className="text-gray-500 text-sm">Repurposing Plan:</span>
+                          <p className="text-sm text-gray-700">{content.repurposingPlan}</p>
+                        </div>
                       )}
+                      
+                      <div className="grid grid-cols-2 gap-4 text-sm mt-3">
+                        <div>
+                          <span className="text-gray-500">Reach:</span>
+                          <p className="font-medium">{content.reach || 'TBD'}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Conversions:</span>
+                          <p className="font-medium">{content.conversions || 'TBD'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSubStep === 2 && (
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Award className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">🎉 Authority Amplification Complete!</h2>
+                <p className="text-lg text-gray-600 mb-8">
+                  Congratulations! You've successfully built your authority amplification strategy.
+                </p>
+
+                <div className="bg-gray-50 rounded-lg p-6 mb-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                    <div>
+                      <h4 className="font-medium text-[#0e9246] mb-2">Speaking Strategy</h4>
+                      <p className="text-sm text-gray-600">
+                        {speakingEngagements.length} speaking engagements planned to establish thought leadership
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-[#0e9246] mb-2">Strategic Partnerships</h4>
+                      <p className="text-sm text-gray-600">
+                        {partnerships.length} partnerships identified to expand your reach and influence
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-[#0e9246] mb-2">Content Amplification</h4>
+                      <p className="text-sm text-gray-600">
+                        {contentPieces.length} content pieces ready for multi-platform repurposing
+                      </p>
                     </div>
                   </div>
-                )}
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-4">🚀 You're Ready to Amplify Your Authority!</h3>
+                  <p className="text-blue-800 mb-4">
+                    Your authority amplification strategy is now complete. You have the speaking opportunities, 
+                    strategic partnerships, and content repurposing plan needed to scale your influence across 
+                    multiple channels and establish yourself as the go-to expert in your industry.
+                  </p>
+                  <p className="text-blue-700 text-sm">
+                    <strong>Next:</strong> Execute your speaking engagements, activate partnerships, and implement 
+                    your content repurposing strategy to maximize your authority and market presence.
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -776,7 +706,7 @@ const Step9 = () => {
                     value={speakingForm.eventName}
                     onChange={(e) => setSpeakingForm({...speakingForm, eventName: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="e.g., Digital Marketing Summit 2025"
+                    placeholder="e.g., Authority Marketing Summit 2024"
                   />
                 </div>
                 
@@ -811,7 +741,7 @@ const Step9 = () => {
                     value={speakingForm.audience}
                     onChange={(e) => setSpeakingForm({...speakingForm, audience: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="e.g., Marketing professionals, Business owners"
+                    placeholder="e.g., 100,000+ industry professionals"
                   />
                 </div>
                 
@@ -822,7 +752,7 @@ const Step9 = () => {
                     onChange={(e) => setSpeakingForm({...speakingForm, topic: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
                     rows="2"
-                    placeholder="Brief description of your speaking topic"
+                    placeholder="e.g., Building Authentic Authority in the Digital Age"
                   />
                 </div>
                 
@@ -833,10 +763,9 @@ const Step9 = () => {
                     onChange={(e) => setSpeakingForm({...speakingForm, status: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
                   >
-                    <option value="Planned">Planned</option>
-                    <option value="Applied">Applied</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Completed">Completed</option>
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -883,7 +812,7 @@ const Step9 = () => {
                     value={partnershipForm.partnerName}
                     onChange={(e) => setPartnershipForm({...partnershipForm, partnerName: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="e.g., Industry Expert, Company Name"
+                    placeholder="e.g., Strategic Business Consultants Inc."
                   />
                 </div>
                 
@@ -908,7 +837,7 @@ const Step9 = () => {
                     value={partnershipForm.collaborationType}
                     onChange={(e) => setPartnershipForm({...partnershipForm, collaborationType: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="e.g., Joint webinar, Cross-promotion, Content exchange"
+                    placeholder="e.g., Cross-Referral Program"
                   />
                 </div>
                 
@@ -919,7 +848,7 @@ const Step9 = () => {
                     value={partnershipForm.expectedReach}
                     onChange={(e) => setPartnershipForm({...partnershipForm, expectedReach: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="e.g., 10,000+ professionals, 5,000 email subscribers"
+                    placeholder="e.g., 50,000+ target participants"
                   />
                 </div>
                 
@@ -931,11 +860,24 @@ const Step9 = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
                   >
                     <option value="">Select timeline</option>
-                    <option value="1 month">1 month</option>
                     <option value="3 months">3 months</option>
                     <option value="6 months">6 months</option>
                     <option value="12 months">12 months</option>
+                    <option value="18 months">18 months</option>
                     <option value="Ongoing">Ongoing</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    value={partnershipForm.status}
+                    onChange={(e) => setPartnershipForm({...partnershipForm, status: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                  >
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -982,7 +924,7 @@ const Step9 = () => {
                     value={contentForm.title}
                     onChange={(e) => setContentForm({...contentForm, title: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="e.g., How to Build Authority in Your Industry"
+                    placeholder="e.g., Authority Building Master"
                   />
                 </div>
                 
@@ -1001,36 +943,62 @@ const Step9 = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Original Platform</label>
-                  <input
-                    type="text"
-                    value={contentForm.originalPlatform}
-                    onChange={(e) => setContentForm({...contentForm, originalPlatform: e.target.value})}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    value={contentForm.status}
+                    onChange={(e) => setContentForm({...contentForm, status: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="e.g., LinkedIn, YouTube, Blog"
-                  />
+                  >
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Repurposing Plan</label>
                   <textarea
-                    value={contentForm.description}
-                    onChange={(e) => setContentForm({...contentForm, description: e.target.value})}
+                    value={contentForm.repurposingPlan}
+                    onChange={(e) => setContentForm({...contentForm, repurposingPlan: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
                     rows="3"
-                    placeholder="Brief description of the content"
+                    placeholder="e.g., Extract 5 key insights for LinkedIn posts, Create podcast episode from audio, Develop blog post series (3 parts)"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">URL (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Platforms</label>
                   <input
-                    type="url"
-                    value={contentForm.url}
-                    onChange={(e) => setContentForm({...contentForm, url: e.target.value})}
+                    type="text"
+                    value={contentForm.platforms}
+                    onChange={(e) => setContentForm({...contentForm, platforms: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="https://..."
+                    placeholder="e.g., LinkedIn, Blog, YouTube, Podcast, Email Newsletter"
                   />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Reach</label>
+                    <input
+                      type="text"
+                      value={contentForm.reach}
+                      onChange={(e) => setContentForm({...contentForm, reach: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                      placeholder="e.g., 15,000+ views"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Conversions</label>
+                    <input
+                      type="text"
+                      value={contentForm.conversions}
+                      onChange={(e) => setContentForm({...contentForm, conversions: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                      placeholder="e.g., 125 new leads"
+                    />
+                  </div>
                 </div>
               </div>
               
@@ -1055,10 +1023,10 @@ const Step9 = () => {
         {/* AI Repurposing Modal */}
         {aiRepurposingModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-gray-900">AI Content Repurposing Ideas</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">AI Authority Amplification Ideas</h3>
                   <button
                     onClick={() => setAiRepurposingModalOpen(false)}
                     className="text-gray-400 hover:text-gray-600"
@@ -1066,51 +1034,56 @@ const Step9 = () => {
                     <X className="w-6 h-6" />
                   </button>
                 </div>
-                <p className="text-gray-600 mt-2">AI-generated ideas to maximize your content reach across multiple platforms</p>
+                <p className="text-gray-600 mt-2">AI-generated strategies to amplify your authority and expand your influence</p>
               </div>
               
               <div className="p-6">
                 {isAiLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
-                    <span className="ml-3 text-gray-600">Generating repurposing ideas...</span>
+                    <span className="ml-3 text-gray-600">Generating authority amplification ideas...</span>
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-semibold text-gray-900">Repurposing Suggestions for {contentPieces.length} Content Pieces</h4>
-                      <button
-                        onClick={useAIRepurposingSuggestions}
-                        className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
-                      >
-                        Use All Suggestions
-                      </button>
-                    </div>
-                    
                     {aiRepurposingSuggestions.map((suggestion, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <h5 className="font-medium text-gray-900 mb-3">
-                          📄 {suggestion.originalContent.title} ({suggestion.originalContent.type})
-                        </h5>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {suggestion.repurposingIdeas.map((idea, ideaIndex) => (
-                            <div key={ideaIndex} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
-                              <div className="flex justify-between items-start mb-2">
-                                <h6 className="font-medium text-sm text-gray-900">{idea.platform}</h6>
-                                <span className={`text-xs px-2 py-1 rounded ${
-                                  idea.effort === 'Low' ? 'bg-green-100 text-green-800' :
-                                  idea.effort === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-red-100 text-red-800'
-                                }`}>
-                                  {idea.effort}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">{idea.format}</p>
-                              <p className="text-xs text-gray-500 mb-2">{idea.description}</p>
-                              <p className="text-xs text-gray-400">Timeline: {idea.timeline}</p>
-                            </div>
-                          ))}
+                      <div key={index} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                        <h4 className="font-semibold text-gray-900 mb-3">{suggestion.title}</h4>
+                        <p className="text-gray-700 mb-4">{suggestion.description}</p>
+                        
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">Platforms:</span>
+                            <p className="font-medium">{suggestion.platforms}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Timeline:</span>
+                            <p className="font-medium">{suggestion.timeline}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Expected Reach:</span>
+                            <p className="font-medium">{suggestion.expectedReach}</p>
+                          </div>
                         </div>
+                        
+                        <button
+                          onClick={() => {
+                            // Add suggestion as content piece
+                            const newContent = {
+                              id: Date.now() + index,
+                              title: suggestion.title,
+                              type: 'Strategy',
+                              status: 'Planning',
+                              repurposingPlan: suggestion.description,
+                              platforms: suggestion.platforms,
+                              reach: suggestion.expectedReach,
+                              conversions: 'TBD'
+                            };
+                            setContentPieces([...contentPieces, newContent]);
+                          }}
+                          className="mt-4 px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                        >
+                          Add Strategy
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -1121,7 +1094,7 @@ const Step9 = () => {
                     onClick={() => {
                       const content = JSON.stringify(aiRepurposingSuggestions, null, 2);
                       navigator.clipboard.writeText(content);
-                      alert('Repurposing ideas copied to clipboard!');
+                      alert('Authority amplification ideas copied to clipboard!');
                     }}
                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                   >
@@ -1132,6 +1105,21 @@ const Step9 = () => {
             </div>
           </div>
         )}
+
+        {/* Footer */}
+        <div className="mt-12 flex justify-between items-center">
+          <button className="px-6 py-3 bg-[#467a8f] text-white rounded-lg hover:bg-[#3a6b7d] flex items-center space-x-2">
+            <span>← Previous Step</span>
+          </button>
+          
+          <div className="text-center">
+            <p className="text-sm text-gray-500">Progress saved automatically</p>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-sm text-gray-500">© 2025 Cultivating Sales, LLC. All rights reserved.</p>
+        </div>
       </div>
     </div>
   );
