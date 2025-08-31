@@ -48,35 +48,35 @@ const Step2 = () => {
     { 
       id: 'discover', 
       title: 'Discover the Possibility', 
-      color: 'bg-blue-50 border-blue-200', 
+      color: 'bg-blue-100 border-blue-300', 
       textColor: 'text-blue-800',
       description: 'They become aware that a better way exists.'
     },
     { 
       id: 'resonate', 
       title: 'Resonate with the Mission', 
-      color: 'bg-green-50 border-green-200', 
+      color: 'bg-green-100 border-green-300', 
       textColor: 'text-green-800',
       description: 'They connect emotionally with your message and positioning.'
     },
     { 
       id: 'envision', 
       title: 'Envision Their Transformation', 
-      color: 'bg-yellow-50 border-yellow-200', 
+      color: 'bg-yellow-100 border-yellow-300', 
       textColor: 'text-yellow-800',
       description: 'They see the tangible results of working with you.'
     },
     { 
       id: 'trust', 
       title: 'Trust the Process', 
-      color: 'bg-orange-50 border-orange-200', 
+      color: 'bg-orange-100 border-orange-300', 
       textColor: 'text-orange-800',
       description: 'They gain confidence in your ability to deliver.'
     },
     { 
       id: 'authority', 
       title: 'Step Into Authority', 
-      color: 'bg-purple-50 border-purple-200', 
+      color: 'bg-purple-100 border-purple-300', 
       textColor: 'text-purple-800',
       description: 'They are ready to take action and invest.'
     }
@@ -684,6 +684,12 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                 {/* Gap Analysis Button */}
                 {hasPlacedContent && (
                   <div className="mt-8 pt-6 border-t border-gray-200">
+                    <div className="flex items-center mb-4">
+                      <div className="w-8 h-8 bg-[#d7df21] rounded-full flex items-center justify-center mr-3">
+                        <span className="text-black text-sm font-bold">3</span>
+                      </div>
+                      <h4 className="text-lg font-semibold text-gray-900">AI Gap Analysis</h4>
+                    </div>
                     <button
                       onClick={handleGapAnalysis}
                       className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
