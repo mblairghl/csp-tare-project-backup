@@ -1,899 +1,412 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, TestTube, BarChart, Target, Plus, Sparkles, X, Edit, Trash2, Zap, TrendingUp, Activity } from 'lucide-react';
-import Confetti from 'react-confetti';
-import StepFooter from './StepFooter';
-import AIModal from './AIModal';
-import APIKeyModal from './APIKeyModal';
-import aiService from '../services/aiService';
-import storageOptimizer from '../utils/storageOptimizer';
+import { CheckCircle2, ChevronDown, ChevronUp, Plus, Sparkles, X, TestTube, BarChart, Target, TrendingUp, Activity, Edit, Trash2, Zap } from 'lucide-react';
 
 const Step8 = () => {
-  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [windowDimensions, setWindowDimensions] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight
-  });
-
-  // Tab management
-  const [activeSubStep, setActiveSubStep] = useState(1);
-
-  // Step completion tracking
-  const [isStepComplete, setIsStepComplete] = useState(false);
-
+  // Sub-step management (4 steps total)
+  const [activeSubStep, setActiveSubStep] = useState(0);
+  const [abTestingStrategy, setAbTestingStrategy] = useState(null);
+  const [conversionTracking, setConversionTracking] = useState(null);
+  const [optimizationPlan, setOptimizationPlan] = useState(null);
+  
   // Modal states
-  const [manualModalOpen, setManualModalOpen] = useState(false);
-  const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
-  const [currentModalType, setCurrentModalType] = useState('');
-
-  // Conversion optimization data
-  const [abTestingStrategy, setAbTestingStrategy] = useState({
-    testingGoals: '',
-    testingMethods: '',
-    testingTools: '',
-    testingSchedule: ''
+  const [aiTestingModalOpen, setAiTestingModalOpen] = useState(false);
+  const [addTestModalOpen, setAddTestModalOpen] = useState(false);
+  const [aiTrackingModalOpen, setAiTrackingModalOpen] = useState(false);
+  const [aiOptimizationModalOpen, setAiOptimizationModalOpen] = useState(false);
+  
+  // Form states
+  const [testForm, setTestForm] = useState({
+    name: '',
+    hypothesis: '',
+    element: '',
+    variation: '',
+    metric: '',
+    duration: ''
   });
+  
+  // AI results
+  const [aiTestingSuggestions, setAiTestingSuggestions] = useState([]);
+  const [aiTrackingSuggestion, setAiTrackingSuggestion] = useState(null);
+  const [aiOptimizationSuggestion, setAiOptimizationSuggestion] = useState(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  
+  // UI states
+  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
 
-  const [conversionTracking, setConversionTracking] = useState({
-    trackingSetup: '',
-    conversionEvents: '',
-    analyticsIntegration: '',
-    reportingDashboard: ''
-  });
+  // Sub-steps configuration (4 steps total)
+  const subSteps = [
+    { id: 0, title: 'A/B Testing Strategy', completed: false },
+    { id: 1, title: 'Conversion Tracking Setup', completed: false },
+    { id: 2, title: 'Optimization Action Plan', completed: false },
+    { id: 3, title: 'Milestone Reflection', completed: false }
+  ];
 
-  const [optimizationPlan, setOptimizationPlan] = useState({
-    optimizationAreas: '',
-    actionPlan: '',
-    implementationTimeline: '',
-    successMetrics: ''
-  });
+  // Check completion status
+  const hasTestingStrategy = abTestingStrategy !== null && abTestingStrategy.tests && abTestingStrategy.tests.length > 0;
+  const hasConversionTracking = conversionTracking !== null;
+  const hasOptimizationPlan = optimizationPlan !== null;
+  const isStepComplete = hasTestingStrategy && hasConversionTracking && hasOptimizationPlan;
 
-  // Added optimization items list
-  const [addedOptimizationItems, setAddedOptimizationItems] = useState([]);
-
-  // Manual form data
-  const [manualForm, setManualForm] = useState({
-    type: '',
-    title: '',
-    description: '',
-    details: ''
-  });
-
-  // AI suggestions
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [aiResult, setAiResult] = useState(null);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Load saved data
-  useEffect(() => {
-    const savedAbTesting = storageOptimizer.safeGet('step8_ab_testing_strategy');
-    const savedTracking = storageOptimizer.safeGet('step8_conversion_tracking');
-    const savedOptimization = storageOptimizer.safeGet('step8_optimization_plan');
-    const savedItems = storageOptimizer.safeGet('step8_added_optimization_items');
-    
-    if (savedAbTesting && typeof savedAbTesting === 'object') {
-      setAbTestingStrategy(savedAbTesting);
-    }
-    if (savedTracking && typeof savedTracking === 'object') {
-      setConversionTracking(savedTracking);
-    }
-    if (savedOptimization && typeof savedOptimization === 'object') {
-      setOptimizationPlan(savedOptimization);
-    }
-    if (savedItems && Array.isArray(savedItems)) {
-      setAddedOptimizationItems(savedItems);
-    }
-  }, []);
-
-  // Check completion status and auto-progression
-  useEffect(() => {
-    const abTestingComplete = Object.values(abTestingStrategy).every(value => value && value.trim().length > 0);
-    const trackingComplete = Object.values(conversionTracking).every(value => value && value.trim().length > 0);
-    const optimizationComplete = Object.values(optimizationPlan).every(value => value && value.trim().length > 0);
-    
-    const wasComplete = isStepComplete;
-    const nowComplete = abTestingComplete && trackingComplete && optimizationComplete;
-    
-    setIsStepComplete(nowComplete);
-    
-    // Show confetti when step becomes complete
-    if (!wasComplete && nowComplete) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-    }
-  }, [abTestingStrategy, conversionTracking, optimizationPlan, isStepComplete]);
-
-  // Auto-progression logic for sub-steps - ONLY on user actions
-  const triggerAutoProgression = () => {
-    const hasAbTestingStrategy = Object.values(abTestingStrategy).every(value => value && value.trim().length > 0) ||
-                                addedOptimizationItems.some(item => item.type === 'A/B Testing Strategy');
-    const hasConversionTracking = Object.values(conversionTracking).every(value => value && value.trim().length > 0) ||
-                                 addedOptimizationItems.some(item => item.type === 'Conversion Tracking Setup');
-    const hasOptimizationPlan = Object.values(optimizationPlan).every(value => value && value.trim().length > 0) ||
-                               addedOptimizationItems.some(item => item.type === 'Optimization Action Plan');
-    
-    console.log('Step 8 Auto-progression Trigger:', {
-      activeSubStep,
-      hasAbTestingStrategy,
-      hasConversionTracking,
-      hasOptimizationPlan
-    });
-    
-    // Auto-progress to next sub-step when current one is complete
-    if (activeSubStep === 1 && hasAbTestingStrategy) {
-      console.log('Auto-progressing from A/B Testing Strategy to Conversion Tracking Setup');
-      setTimeout(() => setActiveSubStep(2), 500);
-    } else if (activeSubStep === 2 && hasConversionTracking) {
-      console.log('Auto-progressing from Conversion Tracking Setup to Optimization Action Plan');
-      setTimeout(() => setActiveSubStep(3), 500);
-    } else if (activeSubStep === 3 && hasOptimizationPlan) {
-      console.log('Auto-progressing from Optimization Action Plan to Milestone');
-      setTimeout(() => setActiveSubStep(4), 500);
+  // Sub-step unlock logic
+  const isSubStepUnlocked = (stepId) => {
+    switch (stepId) {
+      case 0: return true; // A/B Testing Strategy always unlocked
+      case 1: return hasTestingStrategy; // Conversion Tracking unlocked when strategy exists
+      case 2: return hasConversionTracking; // Optimization Plan unlocked when tracking exists
+      case 3: return hasOptimizationPlan; // Milestone unlocked when plan exists
+      default: return false;
     }
   };
 
-  const handleSaveApiKey = (apiKey) => {
-    aiService.setApiKey(apiKey);
-  };
-
-  // Handle form changes
-  const handleAbTestingChange = (field, value) => {
-    const updated = { ...abTestingStrategy, [field]: value };
-    setAbTestingStrategy(updated);
-    storageOptimizer.safeSet('step8_ab_testing_strategy', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  const handleConversionChange = (field, value) => {
-    const updated = { ...conversionTracking, [field]: value };
-    setConversionTracking(updated);
-    storageOptimizer.safeSet('step8_conversion_tracking', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  const handleOptimizationChange = (field, value) => {
-    const updated = { ...optimizationPlan, [field]: value };
-    setOptimizationPlan(updated);
-    storageOptimizer.safeSet('step8_optimization_plan', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  // Manual entry functions
-  const openManualModal = (type) => {
-    setCurrentModalType(type);
-    setManualForm({
-      type: type,
-      title: '',
-      description: '',
-      details: ''
-    });
-    setManualModalOpen(true);
-  };
-
-  const handleManualSubmit = () => {
-    if (manualForm.title && manualForm.description) {
-      const newItem = {
-        id: Date.now(),
-        type: manualForm.type,
-        title: manualForm.title,
-        description: manualForm.description,
-        details: manualForm.details,
-        source: 'manual'
-      };
-      
-      const updated = [...addedOptimizationItems, newItem];
-      setAddedOptimizationItems(updated);
-      storageOptimizer.safeSet('step8_added_optimization_items', updated);
-      setManualModalOpen(false);
-      
-      // Trigger auto-progression check after adding manual entry
-      setTimeout(() => triggerAutoProgression(), 100);
+  const isSubStepCompleted = (stepId) => {
+    switch (stepId) {
+      case 0: return hasTestingStrategy; // Testing completed when strategy exists
+      case 1: return hasConversionTracking; // Tracking completed when setup exists
+      case 2: return hasOptimizationPlan; // Optimization completed when plan exists
+      case 3: return isStepComplete; // Milestone completed when everything is done
+      default: return false;
     }
   };
 
-  // AI suggestions functions
-  const openAiSuggestionsModal = async (type) => {
-    setCurrentModalType(type);
-    setAiSuggestionsModalOpen(true);
-    
-    // Generate AI suggestions based on type
-    const suggestions = generateAiSuggestions(type);
-    setAiSuggestions(suggestions);
+  // Generate AI A/B Testing Strategy
+  const handleAITestingStrategy = () => {
+    setIsAiLoading(true);
+    setAiTestingModalOpen(true);
+
+    // Simulate AI testing strategy generation
+    setTimeout(() => {
+      const testingSuggestions = [
+        {
+          name: 'Landing Page Headline Test',
+          hypothesis: 'A more specific, benefit-focused headline will increase conversion rates',
+          element: 'Main headline on landing page',
+          variation: 'Change from "Transform Your Business" to "Generate $10K+ Monthly Revenue in 90 Days"',
+          metric: 'Landing page conversion rate',
+          duration: '2 weeks',
+          priority: 'High',
+          reasoning: 'Headlines are the first thing visitors see and have the highest impact on conversions'
+        },
+        {
+          name: 'Call-to-Action Button Test',
+          hypothesis: 'A more action-oriented CTA will increase click-through rates',
+          element: 'Primary CTA button',
+          variation: 'Change from "Learn More" to "Get My Free Strategy Session"',
+          metric: 'Button click-through rate',
+          duration: '1 week',
+          priority: 'High',
+          reasoning: 'CTA buttons are critical conversion points and easy to test'
+        },
+        {
+          name: 'Social Proof Placement Test',
+          hypothesis: 'Testimonials above the fold will increase trust and conversions',
+          element: 'Testimonial section placement',
+          variation: 'Move testimonials from bottom to directly under headline',
+          metric: 'Time on page and conversion rate',
+          duration: '2 weeks',
+          priority: 'Medium',
+          reasoning: 'Social proof early in the page can build immediate trust'
+        },
+        {
+          name: 'Lead Magnet Offer Test',
+          hypothesis: 'A more specific lead magnet will attract higher quality leads',
+          element: 'Lead magnet description',
+          variation: 'Change from "Free Guide" to "The 7-Figure Authority Blueprint"',
+          metric: 'Lead quality score and conversion rate',
+          duration: '3 weeks',
+          priority: 'Medium',
+          reasoning: 'Specific offers tend to attract more qualified prospects'
+        },
+        {
+          name: 'Email Subject Line Test',
+          hypothesis: 'Personalized subject lines will increase email open rates',
+          element: 'Email subject lines',
+          variation: 'Add recipient name and specific benefit to subject lines',
+          metric: 'Email open rate',
+          duration: '1 week',
+          priority: 'Medium',
+          reasoning: 'Email open rates directly impact nurture sequence effectiveness'
+        },
+        {
+          name: 'Pricing Display Test',
+          hypothesis: 'Showing value comparison will increase perceived value',
+          element: 'Pricing section',
+          variation: 'Add "Value: $50,000" above "$5,000" price',
+          metric: 'Pricing page conversion rate',
+          duration: '2 weeks',
+          priority: 'High',
+          reasoning: 'Value anchoring can significantly impact pricing perception'
+        }
+      ];
+
+      setAiTestingSuggestions(testingSuggestions);
+      setIsAiLoading(false);
+    }, 3000);
   };
 
-  const generateAiSuggestions = (type) => {
-    const suggestionsByType = {
-      'A/B Testing Strategy': [
-        { id: 1, title: 'Landing Page A/B Tests', description: 'Test different landing page elements for better conversion', details: 'Headlines, CTAs, images, forms, value propositions, and page layouts' },
-        { id: 2, title: 'Email Campaign Testing', description: 'Optimize email marketing performance', details: 'Subject lines, send times, content formats, personalization, and call-to-actions' },
-        { id: 3, title: 'Sales Funnel Optimization', description: 'Test different funnel steps and flows', details: 'Funnel length, step order, form fields, pricing presentation, and checkout process' },
-        { id: 4, title: 'Content Performance Tests', description: 'Test different content formats and messaging', details: 'Blog post formats, video vs text, content length, and messaging angles' },
-        { id: 5, title: 'Pricing Strategy Tests', description: 'Test different pricing models and presentations', details: 'Price points, payment plans, bundling options, and pricing page layouts' }
-      ],
-      'Conversion Tracking Setup': [
-        { id: 1, title: 'Google Analytics 4 Setup', description: 'Comprehensive GA4 tracking implementation', details: 'Enhanced ecommerce, custom events, conversion goals, and attribution modeling' },
-        { id: 2, title: 'Facebook Pixel Integration', description: 'Track social media campaign performance', details: 'Pixel installation, custom conversions, audience building, and campaign optimization' },
-        { id: 3, title: 'CRM Conversion Tracking', description: 'Track leads through your sales pipeline', details: 'Lead scoring, pipeline stages, conversion rates, and sales attribution' },
-        { id: 4, title: 'Email Marketing Analytics', description: 'Track email campaign effectiveness', details: 'Open rates, click rates, conversion tracking, and subscriber behavior analysis' },
-        { id: 5, title: 'Heat Map and User Behavior', description: 'Understand how users interact with your site', details: 'Click tracking, scroll maps, session recordings, and user journey analysis' }
-      ],
-      'Optimization Action Plan': [
-        { id: 1, title: 'Conversion Rate Optimization', description: 'Systematic approach to improving conversions', details: 'Landing page optimization, form optimization, checkout improvements, and UX enhancements' },
-        { id: 2, title: 'Lead Quality Improvement', description: 'Attract and convert higher-quality leads', details: 'Lead scoring refinement, qualification processes, and targeting optimization' },
-        { id: 3, title: 'Customer Journey Optimization', description: 'Improve the entire customer experience', details: 'Touchpoint optimization, friction reduction, personalization, and retention strategies' },
-        { id: 4, title: 'Content Performance Enhancement', description: 'Optimize content for better engagement and conversion', details: 'Content audits, performance analysis, SEO optimization, and content strategy refinement' },
-        { id: 5, title: 'Sales Process Optimization', description: 'Streamline and improve sales effectiveness', details: 'Sales script optimization, objection handling, follow-up sequences, and closing techniques' }
-      ]
-    };
+  // Use AI Testing Strategy
+  const useAITestingStrategy = () => {
+    if (!aiTestingSuggestions.length) return;
     
-    return suggestionsByType[type] || [];
-  };
-
-  const addAiSuggestion = (suggestion) => {
-    const newItem = {
+    setAbTestingStrategy({
       id: Date.now(),
-      type: currentModalType,
-      title: suggestion.title,
-      description: suggestion.description,
-      details: suggestion.details,
-      source: 'ai'
-    };
+      tests: aiTestingSuggestions,
+      methodology: 'One test at a time with statistical significance',
+      tools: ['Google Optimize', 'Hotjar', 'Google Analytics', 'Unbounce'],
+      schedule: 'Run tests for minimum 1-2 weeks or until statistical significance'
+    });
     
-    const updated = [...addedOptimizationItems, newItem];
-    setAddedOptimizationItems(updated);
-    storageOptimizer.safeSet('step8_added_optimization_items', updated);
-    
-    // Remove suggestion from list
-    setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
-    
-    // Trigger auto-progression check after adding AI suggestion
-    setTimeout(() => triggerAutoProgression(), 100);
+    setAiTestingModalOpen(false);
   };
 
-  // Edit/Delete functions
-  const editOptimizationItem = (id) => {
-    const item = addedOptimizationItems.find(i => i.id === id);
-    if (item) {
-      setManualForm({
-        type: item.type,
-        title: item.title,
-        description: item.description,
-        details: item.details
+  // Add Individual Test
+  const addIndividualTest = (test) => {
+    const currentTests = abTestingStrategy?.tests || [];
+    const newTest = { ...test, id: Date.now() };
+    
+    setAbTestingStrategy({
+      id: abTestingStrategy?.id || Date.now(),
+      tests: [...currentTests, newTest],
+      methodology: abTestingStrategy?.methodology || 'One test at a time with statistical significance',
+      tools: abTestingStrategy?.tools || ['Google Optimize', 'Hotjar', 'Google Analytics'],
+      schedule: abTestingStrategy?.schedule || 'Run tests for minimum 1-2 weeks'
+    });
+  };
+
+  // Generate AI Conversion Tracking
+  const handleAIConversionTracking = () => {
+    setIsAiLoading(true);
+    setAiTrackingModalOpen(true);
+
+    // Simulate AI tracking setup generation
+    setTimeout(() => {
+      const tracking = {
+        setup: 'Comprehensive Conversion Tracking System',
+        description: 'Complete tracking setup for measuring and optimizing conversion performance',
+        trackingEvents: [
+          {
+            event: 'Landing Page View',
+            tool: 'Google Analytics',
+            setup: 'Page view tracking with UTM parameters',
+            purpose: 'Measure traffic sources and page performance'
+          },
+          {
+            event: 'Lead Magnet Download',
+            tool: 'Google Analytics + CRM',
+            setup: 'Goal conversion tracking with form submissions',
+            purpose: 'Track lead generation effectiveness'
+          },
+          {
+            event: 'Email Open & Click',
+            tool: 'Email platform + Google Analytics',
+            setup: 'UTM tracking on all email links',
+            purpose: 'Measure email engagement and nurture effectiveness'
+          },
+          {
+            event: 'Discovery Call Booking',
+            tool: 'Calendly + Google Analytics',
+            setup: 'Goal tracking for calendar bookings',
+            purpose: 'Track sales funnel progression'
+          },
+          {
+            event: 'Proposal Sent',
+            tool: 'CRM + Google Analytics',
+            setup: 'Custom event tracking for proposal delivery',
+            purpose: 'Monitor sales process efficiency'
+          },
+          {
+            event: 'Client Conversion',
+            tool: 'CRM + Google Analytics',
+            setup: 'Revenue goal tracking with transaction values',
+            purpose: 'Measure final conversion and revenue attribution'
+          }
+        ],
+        tools: [
+          'Google Analytics 4 for comprehensive tracking',
+          'Google Tag Manager for event management',
+          'Hotjar for user behavior analysis',
+          'CRM integration (HubSpot, Pipedrive, etc.)',
+          'Email platform tracking (Mailchimp, ConvertKit)',
+          'Calendar booking tracking (Calendly, Acuity)'
+        ],
+        implementation: [
+          'Install Google Analytics 4 and Google Tag Manager',
+          'Set up conversion goals for each funnel stage',
+          'Configure UTM parameters for all traffic sources',
+          'Integrate CRM with analytics for complete attribution',
+          'Set up custom events for key user actions',
+          'Create conversion tracking dashboard'
+        ]
+      };
+
+      setAiTrackingSuggestion(tracking);
+      setIsAiLoading(false);
+    }, 3000);
+  };
+
+  // Use AI Tracking Suggestion
+  const useAITrackingSuggestion = () => {
+    if (!aiTrackingSuggestion) return;
+    
+    setConversionTracking({
+      id: Date.now(),
+      setup: aiTrackingSuggestion.setup,
+      description: aiTrackingSuggestion.description,
+      trackingEvents: aiTrackingSuggestion.trackingEvents,
+      tools: aiTrackingSuggestion.tools,
+      implementation: aiTrackingSuggestion.implementation
+    });
+    
+    setAiTrackingModalOpen(false);
+  };
+
+  // Generate AI Optimization Plan
+  const handleAIOptimizationPlan = () => {
+    setIsAiLoading(true);
+    setAiOptimizationModalOpen(true);
+
+    // Simulate AI optimization plan generation
+    setTimeout(() => {
+      const optimization = {
+        plan: '90-Day Conversion Optimization Action Plan',
+        description: 'Systematic approach to testing and optimizing your conversion funnel',
+        phases: [
+          {
+            phase: 'Phase 1: Foundation Testing (Days 1-30)',
+            focus: 'High-impact, easy-to-implement tests',
+            tests: [
+              'Landing page headline optimization',
+              'Call-to-action button text and color',
+              'Lead magnet offer and positioning',
+              'Email subject line variations'
+            ],
+            expectedImpact: '15-25% improvement in conversion rates',
+            timeline: 'Run 2 tests simultaneously, 2 weeks each'
+          },
+          {
+            phase: 'Phase 2: Content Testing (Days 31-60)',
+            focus: 'Content and messaging optimization',
+            tests: [
+              'Social proof placement and format',
+              'Value proposition clarity',
+              'Objection handling content',
+              'Testimonial selection and display'
+            ],
+            expectedImpact: '10-20% improvement in engagement',
+            timeline: 'Run 1-2 tests per week, measure for 2 weeks each'
+          },
+          {
+            phase: 'Phase 3: Advanced Testing (Days 61-90)',
+            focus: 'Advanced funnel and process optimization',
+            tests: [
+              'Multi-step vs single-step forms',
+              'Pricing presentation and anchoring',
+              'Discovery call scheduling flow',
+              'Follow-up sequence timing'
+            ],
+            expectedImpact: '5-15% improvement in qualified leads',
+            timeline: 'Run complex tests for 3-4 weeks each'
+          }
+        ],
+        methodology: [
+          'Test only ONE element at a time',
+          'Run tests until statistical significance (minimum 100 conversions per variation)',
+          'Document all test results and learnings',
+          'Implement winning variations before starting new tests',
+          'Focus on high-traffic, high-impact areas first',
+          'Use 95% confidence level for decision making'
+        ],
+        tools: [
+          'Google Optimize for A/B testing',
+          'Hotjar for user behavior analysis',
+          'Google Analytics for conversion tracking',
+          'Unbounce for landing page testing',
+          'Mailchimp for email testing',
+          'Calendly for booking flow optimization'
+        ],
+        successMetrics: [
+          'Overall conversion rate improvement',
+          'Cost per acquisition reduction',
+          'Lead quality score increase',
+          'Customer lifetime value growth',
+          'Email engagement improvement',
+          'Sales cycle reduction'
+        ]
+      };
+
+      setAiOptimizationSuggestion(optimization);
+      setIsAiLoading(false);
+    }, 3000);
+  };
+
+  // Use AI Optimization Suggestion
+  const useAIOptimizationSuggestion = () => {
+    if (!aiOptimizationSuggestion) return;
+    
+    setOptimizationPlan({
+      id: Date.now(),
+      plan: aiOptimizationSuggestion.plan,
+      description: aiOptimizationSuggestion.description,
+      phases: aiOptimizationSuggestion.phases,
+      methodology: aiOptimizationSuggestion.methodology,
+      tools: aiOptimizationSuggestion.tools,
+      successMetrics: aiOptimizationSuggestion.successMetrics
+    });
+    
+    setAiOptimizationModalOpen(false);
+  };
+
+  // Delete Test
+  const deleteTest = (testId) => {
+    if (abTestingStrategy) {
+      setAbTestingStrategy({
+        ...abTestingStrategy,
+        tests: abTestingStrategy.tests.filter(test => test.id !== testId)
       });
-      setCurrentModalType(item.type);
-      deleteOptimizationItem(id); // Remove original
-      setManualModalOpen(true);
     }
   };
 
-  const deleteOptimizationItem = (id) => {
-    const updated = addedOptimizationItems.filter(i => i.id !== id);
-    setAddedOptimizationItems(updated);
-    storageOptimizer.safeSet('step8_added_optimization_items', updated);
-  };
-
-  // AI content generation
-  const handleAIContentGeneration = async () => {
-    setAiModalOpen(true);
-    setAiLoading(true);
-    
-    try {
-      const result = await aiService.generateConversionOptimization();
-      setAiResult(result);
-    } catch (error) {
-      console.error('Error generating conversion optimization:', error);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const handleUseAIContent = (content) => {
-    // Apply AI suggestions to current sub-step
-    if (activeSubStep === 1) {
-      setAbTestingStrategy(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step8_ab_testing_strategy', { ...abTestingStrategy, ...content });
-    } else if (activeSubStep === 2) {
-      setConversionTracking(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step8_conversion_tracking', { ...conversionTracking, ...content });
-    } else if (activeSubStep === 3) {
-      setOptimizationPlan(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step8_optimization_plan', { ...optimizationPlan, ...content });
-    }
-    setAiModalOpen(false);
-  };
-
+  // How This Works content
   const howThisWorksContent = {
-    title: "How This Step Works",
-    description: "Follow these Action Steps to systematically test and optimize your customer journey for maximum conversions.",
+    description: "Set up systematic A/B testing to optimize your conversion funnel one change at a time.",
     steps: [
       {
         title: "A/B Testing Strategy",
-        description: "Plan and execute systematic tests on key elements of your funnel to identify what drives better results.",
-        color: "bg-[#fbae42]"
-      },
-      {
-        title: "Conversion Tracking Setup", 
-        description: "Implement comprehensive tracking systems to measure and analyze conversion performance across all touchpoints.",
+        description: "Plan your testing approach",
         color: "bg-[#0e9246]"
       },
       {
-        title: "Optimization Action Plan",
-        description: "Create data-driven action plans to continuously improve performance based on testing insights.",
+        title: "Conversion Tracking", 
+        description: "Set up tracking systems",
+        color: "bg-[#d7df21]"
+      },
+      {
+        title: "Optimization Plan",
+        description: "Create action plan for testing",
+        color: "bg-[#fbae42]"
+      },
+      {
+        title: "Milestone",
+        description: "Complete optimization setup",
         color: "bg-[#467a8f]"
       }
     ]
   };
 
-  // Check section completion for tab progression
-  const hasAbTestingStrategy = Object.values(abTestingStrategy).every(value => value && value.trim().length > 0);
-  const hasConversionTracking = Object.values(conversionTracking).every(value => value && value.trim().length > 0);
-  const hasOptimizationPlan = Object.values(optimizationPlan).every(value => value && value.trim().length > 0);
-
-  // Tab progression logic
-  const isSubStepUnlocked = (stepNumber) => {
-    switch (stepNumber) {
-      case 1: return true; // Always unlocked
-      case 2: return hasAbTestingStrategy; // Unlocked when A/B testing strategy complete
-      case 3: return hasAbTestingStrategy && hasConversionTracking; // Unlocked when first two complete
-      case 4: return hasAbTestingStrategy && hasConversionTracking && hasOptimizationPlan; // Milestone - all complete
-      default: return false;
-    }
-  };
-
-  const subSteps = [
-    { id: 1, title: 'A/B Testing Strategy', icon: TestTube },
-    { id: 2, title: 'Conversion Tracking Setup', icon: BarChart },
-    { id: 3, title: 'Optimization Action Plan', icon: Target },
-    { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
-  ];
-
-  const renderSubStepContent = () => {
-    switch (activeSubStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">A/B Testing Strategy</h3>
-              <p className="text-gray-600 mb-6">
-                Plan and execute systematic tests to improve performance across your marketing and sales funnel.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Testing Goals
-                  </label>
-                  <textarea
-                    value={abTestingStrategy.testingGoals}
-                    onChange={(e) => handleAbTestingChange('testingGoals', e.target.value)}
-                    placeholder="What specific goals do you want to achieve with A/B testing? Increase conversions, improve engagement, reduce bounce rate..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Testing Methods
-                  </label>
-                  <textarea
-                    value={abTestingStrategy.testingMethods}
-                    onChange={(e) => handleAbTestingChange('testingMethods', e.target.value)}
-                    placeholder="What testing methods will you use? Split testing, multivariate testing, sequential testing..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Testing Tools
-                  </label>
-                  <textarea
-                    value={abTestingStrategy.testingTools}
-                    onChange={(e) => handleAbTestingChange('testingTools', e.target.value)}
-                    placeholder="What tools will you use for testing? Google Optimize, Optimizely, VWO, Unbounce..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Testing Schedule
-                  </label>
-                  <textarea
-                    value={abTestingStrategy.testingSchedule}
-                    onChange={(e) => handleAbTestingChange('testingSchedule', e.target.value)}
-                    placeholder="How often will you run tests? Weekly, monthly, quarterly testing schedule and priorities..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('A/B Testing Strategy')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('A/B Testing Strategy')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added A/B Testing Strategy Items */}
-                {addedOptimizationItems.filter(i => i.type === 'A/B Testing Strategy').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editOptimizationItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteOptimizationItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasAbTestingStrategy && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">A/B Testing Strategy Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Great! You can now move to conversion tracking setup.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Conversion Tracking Setup</h3>
-              <p className="text-gray-600 mb-6">
-                Implement comprehensive tracking systems to measure and analyze conversion performance across all channels.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tracking Setup
-                  </label>
-                  <textarea
-                    value={conversionTracking.trackingSetup}
-                    onChange={(e) => handleTrackingChange('trackingSetup', e.target.value)}
-                    placeholder="What tracking systems will you implement? Google Analytics, Facebook Pixel, CRM tracking..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Conversion Events
-                  </label>
-                  <textarea
-                    value={conversionTracking.conversionEvents}
-                    onChange={(e) => handleTrackingChange('conversionEvents', e.target.value)}
-                    placeholder="What conversion events will you track? Form submissions, purchases, downloads, sign-ups..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Analytics Integration
-                  </label>
-                  <textarea
-                    value={conversionTracking.analyticsIntegration}
-                    onChange={(e) => handleTrackingChange('analyticsIntegration', e.target.value)}
-                    placeholder="How will you integrate analytics? UTM parameters, custom dimensions, cross-platform tracking..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reporting Dashboard
-                  </label>
-                  <textarea
-                    value={conversionTracking.reportingDashboard}
-                    onChange={(e) => handleTrackingChange('reportingDashboard', e.target.value)}
-                    placeholder="How will you visualize tracking data? Dashboard tools, automated reports, key metrics display..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Conversion Tracking Setup')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Conversion Tracking Setup')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Conversion Tracking Setup Items */}
-                {addedOptimizationItems.filter(i => i.type === 'Conversion Tracking Setup').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editOptimizationItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteOptimizationItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasConversionTracking && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Conversion Tracking Setup Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to optimization action planning.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Optimization Action Plan</h3>
-              <p className="text-gray-600 mb-6">
-                Create actionable optimization plans based on data insights to systematically improve performance.
-              </p>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Optimization Areas
-                  </label>
-                  <textarea
-                    value={optimizationPlan.optimizationAreas}
-                    onChange={(e) => handleOptimizationChange('optimizationAreas', e.target.value)}
-                    placeholder="What areas will you focus on optimizing? Landing pages, email campaigns, sales funnel, checkout process..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Action Plan
-                  </label>
-                  <textarea
-                    value={optimizationPlan.actionPlan}
-                    onChange={(e) => handleOptimizationChange('actionPlan', e.target.value)}
-                    placeholder="What specific actions will you take? Test variations, implement changes, analyze results..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Implementation Timeline
-                  </label>
-                  <textarea
-                    value={optimizationPlan.implementationTimeline}
-                    onChange={(e) => handleOptimizationChange('implementationTimeline', e.target.value)}
-                    placeholder="What's your implementation timeline? Weekly tests, monthly reviews, quarterly optimizations..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Success Metrics
-                  </label>
-                  <textarea
-                    value={optimizationPlan.successMetrics}
-                    onChange={(e) => handleOptimizationChange('successMetrics', e.target.value)}
-                    placeholder="How will you measure success? Conversion rate improvements, ROI increases, engagement metrics..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={4}
-                  />
-                </div>
-
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Optimization Action Plan')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Optimization Action Plan')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Optimization Action Plan Items */}
-                {addedOptimizationItems.filter(i => i.type === 'Optimization Action Plan').map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.title}</h4>
-                        <p className="text-gray-600 mt-1">{item.description}</p>
-                        {item.details && (
-                          <p className="text-gray-500 text-sm mt-2">{item.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {item.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editOptimizationItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteOptimizationItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {hasOptimizationPlan && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Optimization Action Plan Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Perfect! Your conversion optimization system is now complete. Check out the milestone reflection!
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* AI Enhancement Section */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-[#d7df21]" />
-                <h3 className="text-xl font-semibold text-gray-900">AI Enhancement</h3>
-              </div>
-              
-              <p className="text-gray-600 mb-6">
-                Get AI-powered suggestions to optimize your complete conversion optimization strategy.
-              </p>
-
-              <button
-                onClick={handleAIContentGeneration}
-                className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-              >
-                <Sparkles className="w-4 h-4" />
-                🤖 Generate AI Optimization Strategy
-              </button>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            {showConfetti && (
-              <Confetti
-                width={windowDimensions.width}
-                height={windowDimensions.height}
-                recycle={false}
-                numberOfPieces={200}
-                gravity={0.3}
-              />
-            )}
-            
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-8 h-8 text-white" />
-                </div>
-                
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  🎉 Milestone Achieved!
-                </h2>
-                
-                <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've built a comprehensive conversion optimization system that will drive continuous improvement.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-8 text-left">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Developed systematic A/B testing strategy</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Implemented comprehensive conversion tracking</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Created actionable optimization plans</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Established continuous improvement processes</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What This Means</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Your conversions will continuously improve over time</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Decisions will be based on real performance data</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">You'll maximize ROI from existing traffic</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Zap className="w-5 h-5 text-[#fbae42] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Customer experience will be optimized</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="mt-8 p-6 bg-[#d7df21] bg-opacity-20 rounded-lg border border-[#d7df21]">
-                  <h4 className="font-semibold text-gray-900 mb-2">🔑 Key Insight</h4>
-                  <p className="text-gray-700">
-                    Optimization is not a one-time activity—it's a continuous process. Your systematic approach to testing and improving ensures that your business performance gets better over time, turning small improvements into significant competitive advantages.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Component 1: Step Progress Indicator */}
-        <div className="text-sm text-gray-500 mb-2">
-          STEP 8 OF 9
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-sm text-gray-500 mb-2">STEP 8 OF 9</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Conversion Optimization
+          </h1>
+          <p className="text-base lg:text-lg text-gray-600">
+            Set up systematic A/B testing to optimize your conversion funnel one change at a time.
+          </p>
         </div>
 
-        {/* Component 2: Step Name */}
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Conversion Optimization
-        </h1>
-
-        {/* Component 3: Step Objective */}
-        <p className="text-lg text-gray-600 mb-6">
-          Systematically test and optimize every aspect of your customer journey to maximize conversions and improve business performance.
-        </p>
-
-        {/* Step Completion Indicator */}
-        {isStepComplete && (
-          <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
-            <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
-            <div>
-              <p className="font-semibold">🎉 Step 8 Complete! Your conversion optimization system is ready.</p>
-              <p className="text-sm text-green-700 mt-1">
-                You now have a comprehensive system for continuous performance improvement.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Component 4: How This Works Section */}
+        {/* How This Works Section */}
         <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
@@ -906,7 +419,9 @@ const Step8 = () => {
               <span className="text-lg font-semibold text-gray-900">How This Step Works</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-[#0e9246] font-medium">Expand</span>
+              <span className="text-sm text-[#0e9246] font-medium">
+                {isHowThisWorksOpen ? 'Collapse' : 'Expand'}
+              </span>
               {isHowThisWorksOpen ? (
                 <ChevronUp className="w-5 h-5 text-[#0e9246]" />
               ) : (
@@ -918,7 +433,7 @@ const Step8 = () => {
           {isHowThisWorksOpen && (
             <div className="px-6 pb-6 bg-white border-t border-[#0e9246]">
               <p className="text-gray-600 mb-6">{howThisWorksContent.description}</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {howThisWorksContent.steps.map((step, index) => (
                   <div key={index} className="text-center">
                     <div 
@@ -941,17 +456,12 @@ const Step8 = () => {
           <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
         </div>
         
-        {/* Sub-step Navigation */}
-        <div className="bg-[#d5e6ed] rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
-            {subSteps.map((step, index) => {
+            {subSteps.map((step) => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
-              const isCompleted = step.id < 4 ? (
-                step.id === 1 ? hasAbTestingStrategy :
-                step.id === 2 ? hasConversionTracking :
-                step.id === 3 ? hasOptimizationPlan : false
-              ) : isStepComplete;
+              const isCompleted = isSubStepCompleted(step.id);
 
               return (
                 <button
@@ -962,8 +472,8 @@ const Step8 = () => {
                     isActive
                       ? 'border-[#fbae42] bg-orange-50'
                       : isUnlocked
-                      ? 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-                      : 'border-transparent bg-gray-50'
+                      ? 'border-transparent hover:border-gray-300 hover:bg-white hover:bg-opacity-50'
+                      : 'border-transparent bg-transparent'
                   } ${
                     !isUnlocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                   }`}
@@ -981,9 +491,9 @@ const Step8 = () => {
                       {isCompleted ? (
                         <CheckCircle2 className="w-4 h-4" />
                       ) : !isUnlocked ? (
-                        <span className="text-sm">🔒</span>
+                        <span className="text-xs">🔒</span>
                       ) : (
-                        <span className="text-sm font-bold">{step.id}</span>
+                        <span className="text-sm font-bold">{step.id + 1}</span>
                       )}
                     </div>
                     <span className={`text-sm font-medium ${
@@ -1003,165 +513,672 @@ const Step8 = () => {
         </div>
 
         {/* Sub-step Content */}
-        <div className="mb-8">
-          {renderSubStepContent()}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Current Sub-step */}
+          <div className="space-y-6">
+            {activeSubStep === 0 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">A/B Testing Strategy</h3>
+                <p className="text-gray-600 mb-6">Plan your systematic approach to testing one change at a time for better results.</p>
+                
+                <div className="space-y-4 mb-6">
+                  <button
+                    onClick={handleAITestingStrategy}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Generate Testing Strategy with AI</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setAddTestModalOpen(true)}
+                    className="w-full px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Add Manual Test</span>
+                  </button>
+                </div>
+
+                {/* Testing Strategy Display */}
+                {!abTestingStrategy || !abTestingStrategy.tests || abTestingStrategy.tests.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <TestTube className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No A/B tests planned yet</p>
+                    <p className="text-sm">Start by generating AI suggestions or adding manual tests</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-gray-900">Planned A/B Tests ({abTestingStrategy.tests.length})</h4>
+                    {abTestingStrategy.tests.map((test, index) => (
+                      <div key={test.id || index} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-900">{test.name}</h5>
+                            <p className="text-sm text-gray-600 mt-1">{test.hypothesis}</p>
+                            <div className="text-xs text-gray-500 mt-2 space-y-1">
+                              <p><span className="font-medium">Element:</span> {test.element}</p>
+                              <p><span className="font-medium">Variation:</span> {test.variation}</p>
+                              <p><span className="font-medium">Metric:</span> {test.metric}</p>
+                              <div className="flex space-x-4 mt-1">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  test.priority === 'High' ? 'bg-red-100 text-red-800' :
+                                  test.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {test.priority} Priority
+                                </span>
+                                <span>Duration: {test.duration}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-1 ml-4">
+                            <button className="p-1 text-gray-400 hover:text-gray-600">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => deleteTest(test.id)}
+                              className="p-1 text-gray-400 hover:text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 1 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Conversion Tracking Setup</h3>
+                <p className="text-gray-600 mb-6">Set up comprehensive tracking to measure the impact of your A/B tests.</p>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={handleAIConversionTracking}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Generate Tracking Setup with AI</span>
+                  </button>
+                </div>
+
+                {conversionTracking && (
+                  <div className="mt-6 border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">{conversionTracking.setup}</h4>
+                    <p className="text-sm text-gray-600 mb-3">{conversionTracking.description}</p>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>• {conversionTracking.trackingEvents?.length || 0} tracking events</p>
+                      <p>• {conversionTracking.tools?.length || 0} integrated tools</p>
+                      <p>• Complete implementation guide</p>
+                    </div>
+                    <button
+                      onClick={() => setAiTrackingModalOpen(true)}
+                      className="mt-3 text-[#0e9246] hover:text-green-700 text-sm font-medium"
+                    >
+                      View Full Tracking Setup →
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 2 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Optimization Action Plan</h3>
+                <p className="text-gray-600 mb-6">Create a 90-day systematic testing plan to optimize your conversions.</p>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={handleAIOptimizationPlan}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Generate Optimization Plan with AI</span>
+                  </button>
+                </div>
+
+                {optimizationPlan && (
+                  <div className="mt-6 border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">{optimizationPlan.plan}</h4>
+                    <p className="text-sm text-gray-600 mb-3">{optimizationPlan.description}</p>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>• {optimizationPlan.phases?.length || 0} testing phases over 90 days</p>
+                      <p>• Systematic one-change-at-a-time approach</p>
+                      <p>• Statistical significance requirements</p>
+                    </div>
+                    <button
+                      onClick={() => setAiOptimizationModalOpen(true)}
+                      className="mt-3 text-[#0e9246] hover:text-green-700 text-sm font-medium"
+                    >
+                      View Full Optimization Plan →
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 3 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
+                <p className="text-gray-600 mb-6">Congratulations! You've set up your complete conversion optimization system.</p>
+                
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-900 mb-2">What You've Accomplished:</h4>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li>✅ Created A/B testing strategy with {abTestingStrategy?.tests?.length || 0} planned tests</li>
+                      <li>✅ Set up comprehensive conversion tracking system</li>
+                      <li>✅ Built 90-day optimization action plan</li>
+                      <li>✅ Established systematic testing methodology</li>
+                      <li>✅ Ready to optimize conversions one change at a time</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
+                    <p className="text-sm text-blue-800">
+                      Move on to Step 9: Authority Amplification to maximize your market positioning and thought leadership.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Optimization Overview */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Optimization System Overview</h3>
+            
+            {/* Testing Strategy Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">A/B Testing Strategy</h4>
+              {!abTestingStrategy || !abTestingStrategy.tests || abTestingStrategy.tests.length === 0 ? (
+                <p className="text-gray-500 text-sm">No testing strategy created yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {abTestingStrategy.tests.slice(0, 3).map((test, index) => (
+                    <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-center mb-1">
+                        <TestTube className="w-4 h-4 text-blue-600 mr-2" />
+                        <span className="font-medium text-blue-900 text-sm">{test.name}</span>
+                      </div>
+                      <p className="text-xs text-blue-700">{test.element} | {test.duration}</p>
+                    </div>
+                  ))}
+                  {abTestingStrategy.tests.length > 3 && (
+                    <p className="text-xs text-gray-500">+ {abTestingStrategy.tests.length - 3} more tests</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Tracking Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Conversion Tracking</h4>
+              {!conversionTracking ? (
+                <p className="text-gray-500 text-sm">No tracking setup created yet</p>
+              ) : (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <BarChart className="w-4 h-4 text-green-600 mr-2" />
+                    <span className="font-medium text-green-900">{conversionTracking.setup}</span>
+                  </div>
+                  <p className="text-sm text-green-700">{conversionTracking.trackingEvents?.length || 0} tracking events</p>
+                  <p className="text-sm text-green-700">{conversionTracking.tools?.length || 0} integrated tools</p>
+                </div>
+              )}
+            </div>
+
+            {/* Optimization Plan Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Optimization Action Plan</h4>
+              {!optimizationPlan ? (
+                <p className="text-gray-500 text-sm">No optimization plan created yet</p>
+              ) : (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <Target className="w-4 h-4 text-orange-600 mr-2" />
+                    <span className="font-medium text-orange-900">{optimizationPlan.plan}</span>
+                  </div>
+                  <p className="text-sm text-orange-700">{optimizationPlan.phases?.length || 0} testing phases</p>
+                  <p className="text-sm text-orange-700">90-day systematic approach</p>
+                </div>
+              )}
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-3">Setup Progress</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Testing Strategy</span>
+                  <span className={`text-sm font-medium ${hasTestingStrategy ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasTestingStrategy ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Conversion Tracking</span>
+                  <span className={`text-sm font-medium ${hasConversionTracking ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasConversionTracking ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Optimization Plan</span>
+                  <span className={`text-sm font-medium ${hasOptimizationPlan ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasOptimizationPlan ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Testing Methodology */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h4 className="font-medium text-yellow-900 mb-2">🧪 Testing Best Practices</h4>
+              <ul className="text-sm text-yellow-800 space-y-1">
+                <li>• Test only ONE element at a time</li>
+                <li>• Run tests for minimum 1-2 weeks</li>
+                <li>• Wait for statistical significance</li>
+                <li>• Document all results and learnings</li>
+                <li>• Implement winners before new tests</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
-        {/* Manual Entry Modal */}
-        {manualModalOpen && (
+        {/* AI Testing Strategy Modal */}
+        {aiTestingModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
-                <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">AI A/B Testing Strategy</h3>
+                  <button
+                    onClick={() => setAiTestingModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <p className="text-gray-600 mt-2">AI-recommended A/B tests for conversion optimization</p>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating testing strategy...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-semibold text-gray-900">Recommended A/B Tests ({aiTestingSuggestions.length})</h4>
+                      <button
+                        onClick={useAITestingStrategy}
+                        className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                      >
+                        Use All Tests
+                      </button>
+                    </div>
+                    
+                    {aiTestingSuggestions.map((test, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-900">{test.name}</h5>
+                            <p className="text-sm text-gray-600 mt-1">{test.hypothesis}</p>
+                            <div className="text-xs text-gray-500 mt-2 space-y-1">
+                              <p><span className="font-medium">Element:</span> {test.element}</p>
+                              <p><span className="font-medium">Variation:</span> {test.variation}</p>
+                              <p><span className="font-medium">Metric:</span> {test.metric}</p>
+                              <p><span className="font-medium">Duration:</span> {test.duration}</p>
+                              <p className="italic mt-2">{test.reasoning}</p>
+                            </div>
+                            <span className={`inline-block px-2 py-1 rounded text-xs mt-2 ${
+                              test.priority === 'High' ? 'bg-red-100 text-red-800' :
+                              test.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {test.priority} Priority
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => addIndividualTest(test)}
+                            className="ml-4 px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
+                          >
+                            Add Test
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Tracking Modal */}
+        {aiTrackingModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Conversion Tracking Setup</h3>
+                  <button
+                    onClick={() => setAiTrackingModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating tracking setup...</span>
+                  </div>
+                ) : aiTrackingSuggestion && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">{aiTrackingSuggestion.setup}</h4>
+                      <p className="text-gray-600 mb-4">{aiTrackingSuggestion.description}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Tracking Events ({aiTrackingSuggestion.trackingEvents.length})</h4>
+                      <div className="space-y-3">
+                        {aiTrackingSuggestion.trackingEvents.map((event, index) => (
+                          <div key={index} className="border border-gray-200 rounded-lg p-4">
+                            <h5 className="font-medium text-gray-900">{event.event}</h5>
+                            <p className="text-sm text-gray-600 mt-1">{event.purpose}</p>
+                            <div className="text-xs text-gray-500 mt-2">
+                              <p><span className="font-medium">Tool:</span> {event.tool}</p>
+                              <p><span className="font-medium">Setup:</span> {event.setup}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Required Tools</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {aiTrackingSuggestion.tools.map((tool, index) => (
+                          <div key={index} className="text-sm text-gray-600 bg-gray-50 rounded p-2">
+                            • {tool}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Implementation Steps</h4>
+                      <div className="space-y-2">
+                        {aiTrackingSuggestion.implementation.map((step, index) => (
+                          <div key={index} className="flex items-start">
+                            <span className="bg-[#0e9246] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center mr-3 mt-0.5">
+                              {index + 1}
+                            </span>
+                            <span className="text-sm text-gray-600">{step}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      const content = JSON.stringify(aiTrackingSuggestion, null, 2);
+                      navigator.clipboard.writeText(content);
+                      alert('Tracking setup copied to clipboard!');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  >
+                    Copy to Clipboard
+                  </button>
+                  <button
+                    onClick={useAITrackingSuggestion}
+                    className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                  >
+                    Use This Setup
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Optimization Plan Modal */}
+        {aiOptimizationModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">90-Day Optimization Action Plan</h3>
+                  <button
+                    onClick={() => setAiOptimizationModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating optimization plan...</span>
+                  </div>
+                ) : aiOptimizationSuggestion && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">{aiOptimizationSuggestion.plan}</h4>
+                      <p className="text-gray-600 mb-4">{aiOptimizationSuggestion.description}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Testing Phases ({aiOptimizationSuggestion.phases.length})</h4>
+                      <div className="space-y-4">
+                        {aiOptimizationSuggestion.phases.map((phase, index) => (
+                          <div key={index} className="border border-gray-200 rounded-lg p-4">
+                            <h5 className="font-medium text-gray-900 mb-2">{phase.phase}</h5>
+                            <p className="text-sm text-gray-600 mb-2"><span className="font-medium">Focus:</span> {phase.focus}</p>
+                            <div className="text-sm text-gray-600 mb-2">
+                              <span className="font-medium">Tests:</span>
+                              <ul className="list-disc list-inside ml-4 mt-1">
+                                {phase.tests.map((test, testIndex) => (
+                                  <li key={testIndex}>{test}</li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              <p><span className="font-medium">Expected Impact:</span> {phase.expectedImpact}</p>
+                              <p><span className="font-medium">Timeline:</span> {phase.timeline}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Testing Methodology</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {aiOptimizationSuggestion.methodology.map((method, index) => (
+                          <div key={index} className="text-sm text-gray-600 bg-gray-50 rounded p-2">
+                            • {method}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Recommended Tools</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {aiOptimizationSuggestion.tools.map((tool, index) => (
+                          <div key={index} className="text-sm text-gray-600 bg-gray-50 rounded p-2">
+                            • {tool}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3">Success Metrics</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {aiOptimizationSuggestion.successMetrics.map((metric, index) => (
+                          <div key={index} className="text-sm text-gray-600 bg-blue-50 rounded p-2">
+                            📈 {metric}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      const content = JSON.stringify(aiOptimizationSuggestion, null, 2);
+                      navigator.clipboard.writeText(content);
+                      alert('Optimization plan copied to clipboard!');
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  >
+                    Copy to Clipboard
+                  </button>
+                  <button
+                    onClick={useAIOptimizationSuggestion}
+                    className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                  >
+                    Use This Plan
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Test Modal */}
+        {addTestModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Add A/B Test</h3>
+                  <button
+                    onClick={() => setAddTestModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
               
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                  <select
-                    value={manualForm.type}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                  >
-                    <option value="">Select type...</option>
-                    <option value="A/B Testing Strategy">A/B Testing Strategy</option>
-                    <option value="Conversion Tracking Setup">Conversion Tracking Setup</option>
-                    <option value="Optimization Action Plan">Optimization Action Plan</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Test Name *</label>
                   <input
                     type="text"
-                    value={manualForm.title}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Landing Page A/B Tests"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
+                    value={testForm.name}
+                    onChange={(e) => setTestForm({...testForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="e.g., Landing Page Headline Test"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Hypothesis</label>
                   <textarea
-                    value={manualForm.description}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Brief description..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
+                    value={testForm.hypothesis}
+                    onChange={(e) => setTestForm({...testForm, hypothesis: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    rows="2"
+                    placeholder="What do you think will happen and why?"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
-                  <textarea
-                    value={manualForm.details}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
-                    placeholder="Additional details (optional)..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Element to Test</label>
+                  <input
+                    type="text"
+                    value={testForm.element}
+                    onChange={(e) => setTestForm({...testForm, element: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="e.g., Main headline, CTA button, form fields"
                   />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Variation</label>
+                  <textarea
+                    value={testForm.variation}
+                    onChange={(e) => setTestForm({...testForm, variation: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    rows="2"
+                    placeholder="Describe the change you want to test"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Success Metric</label>
+                  <input
+                    type="text"
+                    value={testForm.metric}
+                    onChange={(e) => setTestForm({...testForm, metric: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="e.g., Conversion rate, click-through rate"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Test Duration</label>
+                  <select
+                    value={testForm.duration}
+                    onChange={(e) => setTestForm({...testForm, duration: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                  >
+                    <option value="">Select duration</option>
+                    <option value="1 week">1 week</option>
+                    <option value="2 weeks">2 weeks</option>
+                    <option value="3 weeks">3 weeks</option>
+                    <option value="4 weeks">4 weeks</option>
+                  </select>
                 </div>
               </div>
               
-              <div className="flex gap-3 p-6 border-t">
+              <div className="p-6 border-t border-gray-200 flex space-x-3">
                 <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  onClick={() => setAddTestModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleManualSubmit}
-                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
+                  onClick={() => {
+                    if (!testForm.name) {
+                      alert('Please enter test name');
+                      return;
+                    }
+                    addIndividualTest({...testForm, id: Date.now(), priority: 'Medium'});
+                    setTestForm({ name: '', hypothesis: '', element: '', variation: '', metric: '', duration: '' });
+                    setAddTestModalOpen(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
                 >
-                  Add Entry
+                  Add Test
                 </button>
               </div>
             </div>
           </div>
         )}
-
-        {/* AI Suggestions Modal */}
-        {aiSuggestionsModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
-                <button
-                  onClick={() => setAiSuggestionsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              
-              <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
-                </p>
-                
-                <div className="space-y-4">
-                  {aiSuggestions.map((suggestion) => (
-                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
-                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
-                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
-                        </div>
-                        <button
-                          onClick={() => addAiSuggestion(suggestion)}
-                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {aiSuggestions.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      All suggestions have been added! Close this modal to continue.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* AI Modal */}
-        <AIModal
-          isOpen={aiModalOpen}
-          onClose={() => setAiModalOpen(false)}
-          title="AI Conversion Optimization"
-          content={aiResult}
-          isLoading={aiLoading}
-          onUseContent={handleUseAIContent}
-        />
-
-        {/* API Key Modal */}
-        <APIKeyModal
-          isOpen={apiKeyModalOpen}
-          onClose={() => setApiKeyModalOpen(false)}
-          onSave={handleSaveApiKey}
-        />
-
-        {/* Footer */}
-        <StepFooter 
-          currentStep={8}
-          isStepComplete={isStepComplete}
-          onPrevious={() => {}}
-          onNext={() => {}}
-        />
       </div>
     </div>
   );
