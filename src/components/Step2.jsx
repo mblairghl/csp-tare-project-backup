@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle2, ChevronDown, ChevronUp, Plus, Sparkles, X, Target, FileText, Lightbulb } from 'lucide-react';
 
 const Step2 = () => {
-  // Sub-step management
-  const [activeSubStep, setActiveSubStep] = useState(1);
+  // Sub-step management (3 steps total)
+  const [activeSubStep, setActiveSubStep] = useState(0);
   const [contentLibrary, setContentLibrary] = useState([]);
   const [funnelContent, setFunnelContent] = useState({
     discover: [],
@@ -36,22 +36,50 @@ const Step2 = () => {
   // UI states
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
 
-  // Sub-steps configuration
+  // Sub-steps configuration (3 steps total)
   const subSteps = [
-    { id: 1, title: 'Content Library', icon: FileText },
-    { id: 2, title: 'AI Placement', icon: Sparkles },
-    { id: 3, title: 'Gap Analysis', icon: Target },
-    { id: 4, title: 'Marketing Copy & TARE', icon: FileText },
-    { id: 5, title: 'Milestone Reflection', icon: CheckCircle2 }
+    { id: 0, title: 'Content Library', completed: false },
+    { id: 1, title: 'Marketing Copy & TARE', completed: false },
+    { id: 2, title: 'Milestone Reflection', completed: false }
   ];
 
-  // Funnel stages
+  // Funnel stages with correct CSP brand colors
   const funnelStages = [
-    { id: 'discover', title: 'Discover the Possibility', color: 'bg-blue-100 border-blue-300', textColor: 'text-blue-800' },
-    { id: 'resonate', title: 'Resonate with the Mission', color: 'bg-green-100 border-green-300', textColor: 'text-green-800' },
-    { id: 'envision', title: 'Envision Their Transformation', color: 'bg-yellow-100 border-yellow-300', textColor: 'text-yellow-800' },
-    { id: 'trust', title: 'Trust the Process', color: 'bg-orange-100 border-orange-300', textColor: 'text-orange-800' },
-    { id: 'authority', title: 'Step Into Authority', color: 'bg-purple-100 border-purple-300', textColor: 'text-purple-800' }
+    { 
+      id: 'discover', 
+      title: 'Discover the Possibility', 
+      color: 'bg-blue-50 border-blue-200', 
+      textColor: 'text-blue-800',
+      description: 'They become aware that a better way exists.'
+    },
+    { 
+      id: 'resonate', 
+      title: 'Resonate with the Mission', 
+      color: 'bg-green-50 border-green-200', 
+      textColor: 'text-green-800',
+      description: 'They connect emotionally with your message and positioning.'
+    },
+    { 
+      id: 'envision', 
+      title: 'Envision Their Transformation', 
+      color: 'bg-yellow-50 border-yellow-200', 
+      textColor: 'text-yellow-800',
+      description: 'They see the tangible results of working with you.'
+    },
+    { 
+      id: 'trust', 
+      title: 'Trust the Process', 
+      color: 'bg-orange-50 border-orange-200', 
+      textColor: 'text-orange-800',
+      description: 'They gain confidence in your ability to deliver.'
+    },
+    { 
+      id: 'authority', 
+      title: 'Step Into Authority', 
+      color: 'bg-purple-50 border-purple-200', 
+      textColor: 'text-purple-800',
+      description: 'They are ready to take action and invest.'
+    }
   ];
 
   // Content types (alphabetized)
@@ -74,20 +102,21 @@ const Step2 = () => {
   // Sub-step unlock logic
   const isSubStepUnlocked = (stepId) => {
     switch (stepId) {
-      case 1: return true; // Content Library always unlocked
-      case 2: return hasContentLibrary; // AI Placement unlocked when content exists
-      case 3: return hasPlacedContent; // Gap Analysis unlocked when content is placed
-      case 4: return hasCompletedGapAnalysis; // Marketing Copy unlocked when gaps filled
-      case 5: return hasMarketingCopy; // Milestone unlocked when copy is done
+      case 0: return true; // Content Library always unlocked
+      case 1: return hasCompletedGapAnalysis; // Marketing Copy unlocked when gaps filled
+      case 2: return hasMarketingCopy; // Milestone unlocked when copy is done
       default: return false;
     }
   };
 
-  // Auto-progression logic - only progress when user explicitly moves forward
-  useEffect(() => {
-    // Don't auto-progress - let user control when to move to next step
-    // User should be able to add multiple content pieces before AI placement
-  }, [hasContentLibrary, hasPlacedContent, hasCompletedGapAnalysis, hasMarketingCopy, activeSubStep]);
+  const isSubStepCompleted = (stepId) => {
+    switch (stepId) {
+      case 0: return hasCompletedGapAnalysis; // Content Library completed when gaps filled
+      case 1: return hasMarketingCopy; // Marketing Copy completed when copy exists
+      case 2: return isStepComplete; // Milestone completed when everything is done
+      default: return false;
+    }
+  };
 
   // Add content to library
   const handleAddContent = () => {
@@ -273,29 +302,168 @@ const Step2 = () => {
     setIsAiLoading(true);
     setMarketingCopyModalOpen(true);
 
-    // Simulate marketing copy generation
+    // Simulate comprehensive marketing copy generation
     setTimeout(() => {
-      const copy = `# TARE Framework Marketing Copy
+      const copy = `# COMPREHENSIVE MARKETING COPY & TARE FRAMEWORK
 
-## TRUST
-Building confidence through proven expertise and transparent processes.
+## TRUST - Building Confidence Through Proven Expertise
 
-## AUTHORITY  
-Establishing credibility through thought leadership and industry recognition.
+### Trust-Building Headlines:
+• "Proven System Used by 500+ Business Owners"
+• "Backed by 10+ Years of Real-World Results"
+• "See Why Industry Leaders Choose Our Approach"
 
-## RAPPORT
-Creating connection through shared values and understanding.
+### Trust-Building Copy:
+Our methodology isn't just theory—it's battle-tested in the real world. Over the past decade, we've helped hundreds of business owners transform their operations, increase revenue, and build sustainable growth systems.
 
-## ENGAGEMENT
-Driving action through compelling calls-to-action and clear next steps.
+**Client Success Metrics:**
+- Average revenue increase: 147%
+- Client retention rate: 94%
+- Implementation success rate: 89%
+
+### Social Proof Elements:
+"This system completely transformed how we approach our business. In just 6 months, we saw a 200% increase in qualified leads." - Sarah Johnson, CEO
 
 ---
 
-*Generated based on your content audit and funnel mapping.*`;
+## AUTHORITY - Establishing Credibility and Thought Leadership
+
+### Authority-Building Headlines:
+• "The #1 Framework for Business Transformation"
+• "Featured in Forbes, Entrepreneur, and Inc. Magazine"
+• "Trusted by Fortune 500 Companies"
+
+### Authority-Building Copy:
+As a recognized leader in business transformation, our approach has been featured in major publications and adopted by companies ranging from startups to Fortune 500 enterprises.
+
+**Credentials & Recognition:**
+- Keynote speaker at 50+ industry conferences
+- Author of bestselling business transformation guide
+- Consultant to top-tier organizations worldwide
+
+### Thought Leadership Content:
+Our proprietary TARE framework represents years of research, testing, and refinement. It's not just another business methodology—it's a complete system for sustainable growth.
+
+---
+
+## RAPPORT - Creating Connection Through Shared Values
+
+### Rapport-Building Headlines:
+• "We Understand the Challenges You Face"
+• "Built by Entrepreneurs, for Entrepreneurs"
+• "Your Success Is Our Mission"
+
+### Rapport-Building Copy:
+We've been where you are. The late nights wondering if your business will succeed. The frustration of trying system after system without results. The dream of building something that truly makes a difference.
+
+**Our Story:**
+Founded by entrepreneurs who experienced the same struggles you face today, our company was born from a simple belief: every business owner deserves access to proven systems that actually work.
+
+### Value Alignment:
+- Integrity in every interaction
+- Transparency in our processes  
+- Commitment to your long-term success
+- Focus on sustainable, ethical growth
+
+---
+
+## ENGAGEMENT - Driving Action Through Compelling Calls-to-Action
+
+### High-Converting CTAs:
+• "Get Your Free Business Assessment"
+• "Schedule Your Strategy Session Today"
+• "Download the Complete Implementation Guide"
+• "Join 1000+ Successful Business Owners"
+
+### Engagement-Driving Copy:
+Don't let another year pass wondering "what if." The business transformation you've been seeking is within reach. Our proven system has helped hundreds of entrepreneurs just like you achieve breakthrough results.
+
+**Limited-Time Opportunity:**
+For the next 48 hours, we're offering complimentary strategy sessions to qualified business owners. This is your chance to get personalized insights and a custom roadmap for your business growth.
+
+### Urgency & Scarcity Elements:
+- Only 10 strategy sessions available this month
+- Bonus materials expire at midnight Friday
+- Early-bird pricing ends in 72 hours
+- Limited spots in our next cohort
+
+---
+
+## CONTENT MAPPING TO CUSTOMER JOURNEY
+
+### Discover Stage Content:
+${funnelContent.discover.map(content => `• ${content.name} (${content.type})`).join('\n')}
+
+### Resonate Stage Content:
+${funnelContent.resonate.map(content => `• ${content.name} (${content.type})`).join('\n')}
+
+### Envision Stage Content:
+${funnelContent.envision.map(content => `• ${content.name} (${content.type})`).join('\n')}
+
+### Trust Stage Content:
+${funnelContent.trust.map(content => `• ${content.name} (${content.type})`).join('\n')}
+
+### Authority Stage Content:
+${funnelContent.authority.map(content => `• ${content.name} (${content.type})`).join('\n')}
+
+---
+
+## EMAIL SEQUENCES
+
+### Welcome Series (5 emails):
+1. "Welcome to Your Transformation Journey"
+2. "The #1 Mistake Most Business Owners Make"
+3. "Case Study: How Sarah Doubled Her Revenue"
+4. "Your Personalized Action Plan"
+5. "Ready for the Next Step?"
+
+### Nurture Series (7 emails):
+1. "The Hidden Costs of Staying Where You Are"
+2. "3 Signs You're Ready for Change"
+3. "Behind the Scenes: Our Proven Process"
+4. "Client Spotlight: From Struggle to Success"
+5. "The Science Behind Our Methodology"
+6. "What Makes Us Different"
+7. "Your Invitation to Transform"
+
+---
+
+## SOCIAL MEDIA COPY
+
+### LinkedIn Posts:
+"The biggest mistake I see business owners make? Trying to do everything themselves. Here's why delegation is the key to scaling..."
+
+### Facebook Posts:
+"Just helped another client achieve a 150% revenue increase. Want to know the 3 strategies that made it possible?"
+
+### Instagram Captions:
+"Success isn't about working harder—it's about working smarter. Here's how we help business owners reclaim their time while growing their revenue..."
+
+---
+
+## LANDING PAGE COPY
+
+### Hero Section:
+**Headline:** "Transform Your Business in 90 Days or Less"
+**Subheadline:** "Join 500+ entrepreneurs who've used our proven system to double their revenue and reclaim their freedom"
+**CTA:** "Get Your Free Strategy Session"
+
+### Benefits Section:
+✓ Increase revenue by 50-200% in 90 days
+✓ Build systems that run without you
+✓ Attract high-quality clients consistently
+✓ Scale without burning out
+
+### Testimonials:
+"This program gave me my life back. I went from working 80-hour weeks to 40 hours while doubling my income." - Mike Chen, Business Owner
+
+---
+
+*Generated based on your ${Object.values(funnelContent).flat().length} content pieces and TARE framework analysis.*`;
 
       setMarketingCopy(copy);
       setIsAiLoading(false);
-    }, 2000);
+    }, 3000);
   };
 
   // How This Works content
@@ -304,18 +472,18 @@ Driving action through compelling calls-to-action and clear next steps.
     steps: [
       {
         title: "Content Library",
-        description: "Catalog your existing content assets",
-        color: "bg-blue-500"
+        description: "Add content and get AI placement suggestions",
+        color: "bg-[#0e9246]"
       },
       {
-        title: "AI Placement",
-        description: "Get AI suggestions for funnel placement",
-        color: "bg-green-500"
-      },
-      {
-        title: "Gap Analysis",
+        title: "Gap Analysis", 
         description: "Identify missing content opportunities",
-        color: "bg-orange-500"
+        color: "bg-[#d7df21]"
+      },
+      {
+        title: "Marketing Copy",
+        description: "Generate comprehensive TARE framework copy",
+        color: "bg-[#fbae42]"
       }
     ]
   };
@@ -334,19 +502,6 @@ Driving action through compelling calls-to-action and clear next steps.
           </p>
         </div>
 
-        {/* Step Completion Indicator */}
-        {isStepComplete && (
-          <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
-            <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
-            <div>
-              <p className="font-semibold">🎉 Step 2 Complete! Your content is mapped and optimized.</p>
-              <p className="text-sm text-green-700 mt-1">
-                You now have a clear content strategy aligned with your customer journey.
-              </p>
-            </div>
-          </div>
-        )}
-
         {/* How This Works Section */}
         <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
@@ -360,7 +515,9 @@ Driving action through compelling calls-to-action and clear next steps.
               <span className="text-lg font-semibold text-gray-900">How This Step Works</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-[#0e9246] font-medium">Expand</span>
+              <span className="text-sm text-[#0e9246] font-medium">
+                {isHowThisWorksOpen ? 'Collapse' : 'Expand'}
+              </span>
               {isHowThisWorksOpen ? (
                 <ChevronUp className="w-5 h-5 text-[#0e9246]" />
               ) : (
@@ -400,7 +557,7 @@ Driving action through compelling calls-to-action and clear next steps.
             {subSteps.map((step) => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
-              const isCompleted = step.id < activeSubStep || (step.id === 5 && isStepComplete);
+              const isCompleted = isSubStepCompleted(step.id);
 
               return (
                 <button
@@ -432,7 +589,7 @@ Driving action through compelling calls-to-action and clear next steps.
                       ) : !isUnlocked ? (
                         <span className="text-xs">🔒</span>
                       ) : (
-                        <span className="text-sm font-bold">{step.id}</span>
+                        <span className="text-sm font-bold">{step.id + 1}</span>
                       )}
                     </div>
                     <span className={`text-sm font-medium ${
@@ -455,12 +612,19 @@ Driving action through compelling calls-to-action and clear next steps.
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Current Sub-step */}
           <div className="space-y-6">
-            {activeSubStep === 1 && (
+            {activeSubStep === 0 && (
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Library</h3>
                 <p className="text-gray-600 mb-6">Drag items to the funnel or use AI to help.</p>
                 
-                <div className="space-y-3 mb-6">
+                {/* Section 1: Add New Content Asset */}
+                <div className="mb-8">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 bg-[#0e9246] rounded-full flex items-center justify-center mr-3">
+                      <span className="text-white text-sm font-bold">1</span>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900">Add New Content Asset</h4>
+                  </div>
                   <button
                     onClick={() => setAddContentModalOpen(true)}
                     className="w-full px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
@@ -468,7 +632,16 @@ Driving action through compelling calls-to-action and clear next steps.
                     <Plus className="w-5 h-5" />
                     <span>Add New Content Asset</span>
                   </button>
-                  
+                </div>
+
+                {/* Section 2: AI Placement Suggestions */}
+                <div className="mb-8">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 bg-[#d7df21] rounded-full flex items-center justify-center mr-3">
+                      <span className="text-black text-sm font-bold">2</span>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900">AI Placement Suggestions</h4>
+                  </div>
                   <button
                     onClick={handleAIPlacement}
                     disabled={contentLibrary.length === 0}
@@ -483,6 +656,7 @@ Driving action through compelling calls-to-action and clear next steps.
                   </button>
                 </div>
 
+                {/* Content Library Display */}
                 {contentLibrary.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -506,62 +680,26 @@ Driving action through compelling calls-to-action and clear next steps.
                     ))}
                   </div>
                 )}
-              </div>
-            )}
 
-            {activeSubStep === 2 && (
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Placement Suggestions</h3>
-                <p className="text-gray-600 mb-6">Get AI recommendations for where your content fits in the funnel.</p>
-                
-                <button
-                  onClick={handleAIPlacement}
-                  className="w-full mb-6 px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
-                >
-                  <Sparkles className="w-5 h-5" />
-                  <span>AI Placement Suggestions</span>
-                </button>
-
-                {contentLibrary.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <p>Add content to your library first</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {contentLibrary.map((content) => (
-                      <div key={content.id} className="border border-gray-200 rounded-lg p-4">
-                        <h4 className="font-medium text-gray-900">{content.name}</h4>
-                        <p className="text-sm text-gray-600">{content.type}</p>
-                      </div>
-                    ))}
+                {/* Gap Analysis Button */}
+                {hasPlacedContent && (
+                  <div className="mt-8 pt-6 border-t border-gray-200">
+                    <button
+                      onClick={handleGapAnalysis}
+                      className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                    >
+                      <Target className="w-5 h-5" />
+                      <span>AI Gap Analysis</span>
+                    </button>
                   </div>
                 )}
               </div>
             )}
 
-            {activeSubStep === 3 && (
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Gap Analysis</h3>
-                <p className="text-gray-600 mb-6">Identify missing content for your funnel stages.</p>
-                
-                <button
-                  onClick={handleGapAnalysis}
-                  className="w-full mb-6 px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
-                >
-                  <Target className="w-5 h-5" />
-                  <span>AI Gap Analysis</span>
-                </button>
-
-                <div className="text-center py-12 text-gray-500">
-                  <p>Goal: At least 2 content items per stage to start</p>
-                </div>
-              </div>
-            )}
-
-            {activeSubStep === 4 && (
+            {activeSubStep === 1 && (
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Marketing Copy & TARE</h3>
-                <p className="text-gray-600 mb-6">Generate marketing copy based on the TARE framework.</p>
+                <p className="text-gray-600 mb-6">Generate comprehensive marketing copy based on the TARE framework.</p>
                 
                 <button
                   onClick={handleGenerateMarketingCopy}
@@ -574,15 +712,21 @@ Driving action through compelling calls-to-action and clear next steps.
                 {marketingCopy && (
                   <div className="border border-gray-200 rounded-lg p-4">
                     <h4 className="font-medium text-gray-900 mb-2">Generated Marketing Copy</h4>
-                    <div className="text-sm text-gray-600 whitespace-pre-line">
-                      {marketingCopy.substring(0, 200)}...
+                    <div className="text-sm text-gray-600 whitespace-pre-line max-h-96 overflow-y-auto">
+                      {marketingCopy.substring(0, 500)}...
                     </div>
+                    <button
+                      onClick={() => setMarketingCopyModalOpen(true)}
+                      className="mt-3 text-[#0e9246] hover:text-green-700 text-sm font-medium"
+                    >
+                      View Full Copy →
+                    </button>
                   </div>
                 )}
               </div>
             )}
 
-            {activeSubStep === 5 && (
+            {activeSubStep === 2 && (
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
                 <p className="text-gray-600 mb-6">Congratulations! You've completed your content audit and mapping.</p>
@@ -591,10 +735,10 @@ Driving action through compelling calls-to-action and clear next steps.
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 className="font-medium text-green-900 mb-2">What You've Accomplished:</h4>
                     <ul className="text-sm text-green-800 space-y-1">
-                      <li>✅ Built your content library</li>
+                      <li>✅ Built your content library ({Object.values(funnelContent).flat().length} pieces)</li>
                       <li>✅ Mapped content to funnel stages</li>
-                      <li>✅ Identified content gaps</li>
-                      <li>✅ Generated marketing copy</li>
+                      <li>✅ Identified and filled content gaps</li>
+                      <li>✅ Generated comprehensive marketing copy</li>
                     </ul>
                   </div>
                   
@@ -613,7 +757,7 @@ Driving action through compelling calls-to-action and clear next steps.
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-gray-900">Funnel Content Goal</h3>
-              {activeSubStep >= 3 && (
+              {hasPlacedContent && (
                 <button
                   onClick={handleGapAnalysis}
                   className="px-4 py-2 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] text-sm"
@@ -635,11 +779,7 @@ Driving action through compelling calls-to-action and clear next steps.
                     </span>
                   </div>
                   <p className={`text-sm ${stage.textColor} mb-3`}>
-                    {stage.id === 'discover' && 'They become aware that a better way exists.'}
-                    {stage.id === 'resonate' && 'They connect emotionally with your message and positioning.'}
-                    {stage.id === 'envision' && 'They see the tangible results of working with you.'}
-                    {stage.id === 'trust' && 'They gain confidence in your ability to deliver.'}
-                    {stage.id === 'authority' && 'They are ready to take action and invest.'}
+                    {stage.description}
                   </p>
                   
                   {funnelContent[stage.id].length === 0 ? (
@@ -856,7 +996,17 @@ Driving action through compelling calls-to-action and clear next steps.
                             <div key={suggestionIndex} className="flex justify-between items-center bg-gray-50 rounded p-3">
                               <span className="text-sm text-gray-700">{suggestion}</span>
                               <button
-                                onClick={() => addGapSuggestion(gap.stageId, suggestion)}
+                                onClick={() => {
+                                  addGapSuggestion(gap.stageId, suggestion);
+                                  // Remove this suggestion from the list
+                                  setGapAnalysisResults(prev => 
+                                    prev.map(g => 
+                                      g.stageId === gap.stageId 
+                                        ? {...g, suggestions: g.suggestions.filter((_, i) => i !== suggestionIndex)}
+                                        : g
+                                    ).filter(g => g.suggestions.length > 0)
+                                  );
+                                }}
                                 className="px-3 py-1 bg-[#0e9246] text-white text-xs rounded hover:bg-green-700"
                               >
                                 Add
@@ -876,7 +1026,7 @@ Driving action through compelling calls-to-action and clear next steps.
         {/* Marketing Copy Modal */}
         {marketingCopyModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-semibold text-gray-900">Marketing Copy & TARE Framework</h3>
@@ -893,15 +1043,24 @@ Driving action through compelling calls-to-action and clear next steps.
                 {isAiLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
-                    <span className="ml-3 text-gray-600">Generating marketing copy...</span>
+                    <span className="ml-3 text-gray-600">Generating comprehensive marketing copy...</span>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-700">{marketingCopy}</pre>
+                    <div className="bg-gray-50 rounded-lg p-6">
+                      <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{marketingCopy}</pre>
                     </div>
                     
                     <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(marketingCopy);
+                          alert('Marketing copy copied to clipboard!');
+                        }}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                      >
+                        Copy to Clipboard
+                      </button>
                       <button
                         onClick={() => setMarketingCopyModalOpen(false)}
                         className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
