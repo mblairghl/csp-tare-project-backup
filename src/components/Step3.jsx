@@ -1,706 +1,260 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, Users, TrendingUp, Settings, Plus, Sparkles, X, Edit, Trash2 } from 'lucide-react';
-import Confetti from 'react-confetti';
-import StepFooter from './StepFooter';
-import AIModal from './AIModal';
-import APIKeyModal from './APIKeyModal';
-import aiService from '../services/aiService';
-import storageOptimizer from '../utils/storageOptimizer';
+import { CheckCircle2, ChevronDown, ChevronUp, Plus, Sparkles, X, Target, Users, TrendingUp } from 'lucide-react';
 
 const Step3 = () => {
-  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [windowDimensions, setWindowDimensions] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight
+  // Sub-step management (3 steps total)
+  const [activeSubStep, setActiveSubStep] = useState(0);
+  const [leadSources, setLeadSources] = useState([]);
+  const [leadScoringSetup, setLeadScoringSetup] = useState({
+    threshold: 75,
+    criteria: []
   });
-
-  // Tab management
-  const [activeSubStep, setActiveSubStep] = useState(1);
-
-  // Step completion tracking
-  const [isStepComplete, setIsStepComplete] = useState(false);
-
+  
   // Modal states
-  const [manualModalOpen, setManualModalOpen] = useState(false);
-  const [aiSuggestionsModalOpen, setAiSuggestionsModalOpen] = useState(false);
-  const [currentModalType, setCurrentModalType] = useState('');
-
-  // Lead source data
-  const [currentSources, setCurrentSources] = useState([]);
-  const [expansionOpportunities, setExpansionOpportunities] = useState([]);
-  const [cspSetup, setCspSetup] = useState({
-    leadScoring: '',
-    automationRules: '',
-    integrations: '',
-    reportingSetup: ''
-  });
-
-  // Added lead items list
-  const [addedLeadItems, setAddedLeadItems] = useState([]);
-
-  // Manual form data
-  const [manualForm, setManualForm] = useState({
+  const [addLeadSourceModalOpen, setAddLeadSourceModalOpen] = useState(false);
+  const [aiLeadSuggestionsModalOpen, setAiLeadSuggestionsModalOpen] = useState(false);
+  const [leadScoringModalOpen, setLeadScoringModalOpen] = useState(false);
+  
+  // Form states
+  const [newLeadSourceForm, setNewLeadSourceForm] = useState({
     type: '',
-    title: '',
+    name: '',
     description: '',
-    details: ''
+    notes: ''
   });
+  
+  // AI results
+  const [aiLeadSuggestions, setAiLeadSuggestions] = useState([]);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  
+  // UI states
+  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
 
-  // AI suggestions
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [aiResult, setAiResult] = useState(null);
+  // Sub-steps configuration (3 steps total)
+  const subSteps = [
+    { id: 0, title: 'Lead Sources', completed: false },
+    { id: 1, title: 'Lead Scoring', completed: false },
+    { id: 2, title: 'Milestone Reflection', completed: false }
+  ];
 
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
+  // Lead source types (expanded list)
+  const leadSourceTypes = [
+    'Blog Content', 'Case Studies', 'Cold Email', 'Cold Outreach', 'Community Forums',
+    'Content Marketing', 'Direct Mail', 'Email Marketing', 'Events & Conferences',
+    'Facebook Ads', 'Google Ads', 'Industry Publications', 'Instagram Marketing',
+    'Joint Ventures', 'Lead Magnets', 'LinkedIn Outreach', 'Networking Events',
+    'Organic Search (SEO)', 'Partnerships', 'Podcast Appearances', 'Referrals',
+    'Social Media Organic', 'Speaking Engagements', 'Trade Shows', 'Video Marketing',
+    'Webinars', 'Word of Mouth', 'YouTube Marketing'
+  ];
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Load saved data
-  useEffect(() => {
-    const savedSources = storageOptimizer.safeGet('step3_current_sources');
-    const savedOpportunities = storageOptimizer.safeGet('step3_expansion_opportunities');
-    const savedSetup = storageOptimizer.safeGet('step3_csp_setup');
-    const savedItems = storageOptimizer.safeGet('step3_added_lead_items');
-    
-    if (savedSources && Array.isArray(savedSources)) {
-      setCurrentSources(savedSources);
-    }
-    if (savedOpportunities && Array.isArray(savedOpportunities)) {
-      setExpansionOpportunities(savedOpportunities);
-    }
-    if (savedSetup && typeof savedSetup === 'object') {
-      setCspSetup(savedSetup);
-    }
-    if (savedItems && Array.isArray(savedItems)) {
-      setAddedLeadItems(savedItems);
-    }
-  }, []);
-
-  // Check completion status and auto-progression
-  useEffect(() => {
-    const hasCurrentSources = currentSources.length > 0;
-    const hasExpansionOpportunities = expansionOpportunities.length > 0;
-    const setupComplete = Object.values(cspSetup).every(value => value && value.trim().length > 0);
-    
-    const wasComplete = isStepComplete;
-    const nowComplete = hasCurrentSources && hasExpansionOpportunities && setupComplete;
-    
-    setIsStepComplete(nowComplete);
-    
-    // Show confetti when step becomes complete
-    if (!wasComplete && nowComplete) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-    }
-  }, [currentSources, expansionOpportunities, cspSetup, isStepComplete]);
-
-  // Auto-progression logic for sub-steps - ONLY on user actions
-  const triggerAutoProgression = () => {
-    const hasCurrentSources = currentSources.length > 0 || 
-                             addedLeadItems.some(item => item.type === 'Current Sources');
-    const hasExpansionOpportunities = expansionOpportunities.length > 0 || 
-                                     addedLeadItems.some(item => item.type === 'Expansion Opportunities');
-    const hasSetupComplete = Object.values(cspSetup).every(value => value && value.trim().length > 0) ||
-                            addedLeadItems.some(item => item.type === 'CSP Setup');
-    
-    console.log('Step 3 Auto-progression Trigger:', {
-      activeSubStep,
-      hasCurrentSources,
-      hasExpansionOpportunities,
-      hasSetupComplete
-    });
-    
-    // Auto-progress to next sub-step when current one is complete
-    if (activeSubStep === 1 && hasCurrentSources) {
-      console.log('Auto-progressing from Current Sources to Expansion Opportunities');
-      setTimeout(() => setActiveSubStep(2), 500);
-    } else if (activeSubStep === 2 && hasExpansionOpportunities) {
-      console.log('Auto-progressing from Expansion Opportunities to CSP Setup');
-      setTimeout(() => setActiveSubStep(3), 500);
-    } else if (activeSubStep === 3 && hasSetupComplete) {
-      console.log('Auto-progressing from CSP Setup to Milestone');
-      setTimeout(() => setActiveSubStep(4), 500);
-    }
-  };
-
-  const handleSaveApiKey = (apiKey) => {
-    aiService.setApiKey(apiKey);
-  };
-
-  // Handle form changes
-  const handleSetupChange = (field, value) => {
-    const updated = { ...cspSetup, [field]: value };
-    setCspSetup(updated);
-    storageOptimizer.safeSet('step3_csp_setup', updated);
-    
-    // Trigger auto-progression check after user input
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
-
-  // Manual entry functions
-  const openManualModal = (type) => {
-    setCurrentModalType(type);
-    setManualForm({
-      type: type,
-      title: '',
-      description: '',
-      details: ''
-    });
-    setManualModalOpen(true);
-  };
-
-  const handleManualSubmit = () => {
-    if (manualForm.title && manualForm.description) {
-      const newItem = {
-        id: Date.now(),
-        type: manualForm.type,
-        title: manualForm.title,
-        description: manualForm.description,
-        details: manualForm.details,
-        source: 'manual'
-      };
-      
-      const updated = [...addedLeadItems, newItem];
-      setAddedLeadItems(updated);
-      storageOptimizer.safeSet('step3_added_lead_items', updated);
-      
-      // Also add to appropriate arrays
-      if (manualForm.type === 'Current Sources') {
-        const updatedSources = [...currentSources, newItem];
-        setCurrentSources(updatedSources);
-        storageOptimizer.safeSet('step3_current_sources', updatedSources);
-      } else if (manualForm.type === 'Expansion Opportunities') {
-        const updatedOpportunities = [...expansionOpportunities, newItem];
-        setExpansionOpportunities(updatedOpportunities);
-        storageOptimizer.safeSet('step3_expansion_opportunities', updatedOpportunities);
-      }
-      
-      setManualModalOpen(false);
-      
-      // Trigger auto-progression check after adding manual entry
-      setTimeout(() => triggerAutoProgression(), 100);
-    }
-  };
-
-  // AI suggestions functions
-  const openAiSuggestionsModal = async (type) => {
-    setCurrentModalType(type);
-    setAiSuggestionsModalOpen(true);
-    
-    // Generate AI suggestions based on type
-    const suggestions = generateAiSuggestions(type);
-    setAiSuggestions(suggestions);
-  };
-
-  const generateAiSuggestions = (type) => {
-    const suggestionsByType = {
-      'Current Sources': [
-        { id: 1, title: 'Website Organic Traffic', description: 'Visitors finding you through search engines', details: 'SEO-driven traffic from Google, Bing, and other search engines' },
-        { id: 2, title: 'Social Media Followers', description: 'Leads from social media platforms', details: 'LinkedIn, Facebook, Instagram, Twitter engagement and followers' },
-        { id: 3, title: 'Email Newsletter Subscribers', description: 'People subscribed to your email list', details: 'Newsletter subscribers, email course participants, lead magnet downloads' },
-        { id: 4, title: 'Referral Network', description: 'Leads from business partners and clients', details: 'Word-of-mouth referrals, partner recommendations, client introductions' },
-        { id: 5, title: 'Content Marketing', description: 'Leads from blog posts and content', details: 'Blog readers, podcast listeners, video viewers, content downloads' }
-      ],
-      'Expansion Opportunities': [
-        { id: 1, title: 'Podcast Guest Appearances', description: 'Appear on industry podcasts as an expert', details: 'Target 10-20 relevant podcasts in your industry for guest appearances' },
-        { id: 2, title: 'Strategic Partnerships', description: 'Partner with complementary businesses', details: 'Joint ventures, affiliate partnerships, cross-promotional opportunities' },
-        { id: 3, title: 'Speaking Engagements', description: 'Speak at industry events and conferences', details: 'Virtual and in-person speaking opportunities, webinars, workshops' },
-        { id: 4, title: 'LinkedIn Content Strategy', description: 'Systematic LinkedIn content and networking', details: 'Daily posting, connection outreach, LinkedIn article publishing' },
-        { id: 5, title: 'YouTube Channel', description: 'Create educational video content', details: 'Weekly video uploads, tutorials, industry insights, behind-the-scenes' }
-      ],
-      'CSP Setup': [
-        { id: 1, title: 'Lead Scoring System', description: 'Automated lead qualification and scoring', details: 'Score leads based on engagement, demographics, and behavior' },
-        { id: 2, title: 'Email Automation Sequences', description: 'Nurture sequences for different lead types', details: 'Welcome series, educational sequences, sales funnels' },
-        { id: 3, title: 'CRM Integration', description: 'Connect with your existing CRM system', details: 'Sync with Salesforce, HubSpot, Pipedrive, or other CRM platforms' },
-        { id: 4, title: 'Analytics Dashboard', description: 'Track and measure lead generation performance', details: 'Monitor conversion rates, source performance, ROI tracking' },
-        { id: 5, title: 'Lead Magnet Automation', description: 'Automated delivery of lead magnets', details: 'Instant delivery, follow-up sequences, segmentation based on interests' }
+  // Preset scoring templates
+  const scoringTemplates = [
+    {
+      name: 'Standard B2B Template',
+      criteria: [
+        { action: 'Email Open', points: 5 },
+        { action: 'Website Visit', points: 10 },
+        { action: 'Contact Form Submit', points: 25 },
+        { action: 'Download Lead Magnet', points: 15 },
+        { action: 'Video Watch (>50%)', points: 20 },
+        { action: 'Pricing Page Visit', points: 30 },
+        { action: 'Demo Request', points: 50 }
       ]
-    };
-    
-    return suggestionsByType[type] || [];
-  };
-
-  const addAiSuggestion = (suggestion) => {
-    const newItem = {
-      id: Date.now(),
-      type: currentModalType,
-      title: suggestion.title,
-      description: suggestion.description,
-      details: suggestion.details,
-      source: 'ai'
-    };
-    
-    const updated = [...addedLeadItems, newItem];
-    setAddedLeadItems(updated);
-    storageOptimizer.safeSet('step3_added_lead_items', updated);
-    
-    // Also add to appropriate arrays
-    if (currentModalType === 'Current Sources') {
-      const updatedSources = [...currentSources, newItem];
-      setCurrentSources(updatedSources);
-      storageOptimizer.safeSet('step3_current_sources', updatedSources);
-    } else if (currentModalType === 'Expansion Opportunities') {
-      const updatedOpportunities = [...expansionOpportunities, newItem];
-      setExpansionOpportunities(updatedOpportunities);
-      storageOptimizer.safeSet('step3_expansion_opportunities', updatedOpportunities);
+    },
+    {
+      name: 'Service Provider Template',
+      criteria: [
+        { action: 'Email Open', points: 3 },
+        { action: 'Website Visit', points: 8 },
+        { action: 'Case Study View', points: 12 },
+        { action: 'Testimonial Page Visit', points: 15 },
+        { action: 'Contact Form Submit', points: 35 },
+        { action: 'Consultation Request', points: 60 }
+      ]
+    },
+    {
+      name: 'E-commerce Template',
+      criteria: [
+        { action: 'Product Page Visit', points: 5 },
+        { action: 'Add to Cart', points: 20 },
+        { action: 'Checkout Started', points: 40 },
+        { action: 'Email Signup', points: 10 },
+        { action: 'Review Read', points: 8 },
+        { action: 'Wishlist Add', points: 15 }
+      ]
     }
-    
-    // Remove suggestion from list
-    setAiSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
-    
-    // Trigger auto-progression check after adding AI suggestion
-    setTimeout(() => triggerAutoProgression(), 100);
-  };
+  ];
 
-  // Edit/Delete functions
-  const editLeadItem = (id) => {
-    const item = addedLeadItems.find(i => i.id === id);
-    if (item) {
-      setManualForm({
-        type: item.type,
-        title: item.title,
-        description: item.description,
-        details: item.details
-      });
-      setCurrentModalType(item.type);
-      deleteLeadItem(id); // Remove original
-      setManualModalOpen(true);
-    }
-  };
+  // Check completion status
+  const hasLeadSources = leadSources.length > 0;
+  const hasLeadScoring = leadScoringSetup.criteria.length > 0;
+  const isStepComplete = hasLeadSources && hasLeadScoring;
 
-  const deleteLeadItem = (id) => {
-    const updated = addedLeadItems.filter(i => i.id !== id);
-    setAddedLeadItems(updated);
-    storageOptimizer.safeSet('step3_added_lead_items', updated);
-    
-    // Also remove from appropriate arrays
-    const updatedSources = currentSources.filter(s => s.id !== id);
-    setCurrentSources(updatedSources);
-    storageOptimizer.safeSet('step3_current_sources', updatedSources);
-    
-    const updatedOpportunities = expansionOpportunities.filter(o => o.id !== id);
-    setExpansionOpportunities(updatedOpportunities);
-    storageOptimizer.safeSet('step3_expansion_opportunities', updatedOpportunities);
-  };
-
-  // AI content generation
-  const handleAIContentGeneration = async () => {
-    setAiModalOpen(true);
-    setAiLoading(true);
-    
-    try {
-      const result = await aiService.generateLeadIntelligence();
-      setAiResult(result);
-    } catch (error) {
-      console.error('Error generating lead intelligence:', error);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const handleUseAIContent = (content) => {
-    // Apply AI suggestions to current sub-step
-    if (activeSubStep === 3) {
-      setCspSetup(prev => ({ ...prev, ...content }));
-      storageOptimizer.safeSet('step3_csp_setup', { ...cspSetup, ...content });
-    }
-    setAiModalOpen(false);
-  };
-
-  const howThisWorksContent = {
-    title: "How This Step Works",
-    description: "Follow these Action Steps to analyze your lead sources, identify expansion opportunities, and set up intelligent systems.",
-    steps: [
-      {
-        title: "Current Sources",
-        description: "Audit and analyze your existing lead generation channels to understand what's working best.",
-        color: "bg-[#fbae42]"
-      },
-      {
-        title: "Expansion Opportunities", 
-        description: "Identify new channels and strategies to reach more of your ideal clients effectively.",
-        color: "bg-[#0e9246]"
-      },
-      {
-        title: "CSP Setup",
-        description: "Configure intelligent lead management systems and automation to scale your acquisition.",
-        color: "bg-[#467a8f]"
-      }
-    ]
-  };
-
-  // Check section completion for tab progression
-  const hasCurrentSources = currentSources.length > 0;
-  const hasExpansionOpportunities = expansionOpportunities.length > 0;
-  const hasCSPSetup = Object.values(cspSetup).every(value => value && value.trim().length > 0);
-
-  // Tab progression logic
-  const isSubStepUnlocked = (stepNumber) => {
-    switch (stepNumber) {
-      case 1: return true; // Always unlocked
-      case 2: return hasCurrentSources; // Unlocked when current sources complete
-      case 3: return hasCurrentSources && hasExpansionOpportunities; // Unlocked when first two complete
-      case 4: return hasCurrentSources && hasExpansionOpportunities && hasCSPSetup; // Milestone - all complete
+  // Sub-step unlock logic
+  const isSubStepUnlocked = (stepId) => {
+    switch (stepId) {
+      case 0: return true; // Lead Sources always unlocked
+      case 1: return hasLeadSources; // Lead Scoring unlocked when sources exist
+      case 2: return hasLeadScoring; // Milestone unlocked when scoring is set
       default: return false;
     }
   };
 
-  const subSteps = [
-    { id: 1, title: 'Current Sources', icon: Users },
-    { id: 2, title: 'Expansion Opportunities', icon: TrendingUp },
-    { id: 3, title: 'CSP Setup', icon: Settings },
-    { id: 4, title: 'Milestone Reflection', icon: CheckCircle2 }
-  ];
-
-  const renderSubStepContent = () => {
-    switch (activeSubStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Current Lead Sources</h3>
-              <p className="text-gray-600 mb-6">
-                Identify and analyze your existing lead generation channels to understand what's working and what needs improvement.
-              </p>
-
-              <div className="space-y-6">
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Current Sources')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Current Sources')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Current Sources */}
-                {currentSources.map((source) => (
-                  <div key={source.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{source.title}</h4>
-                        <p className="text-gray-600 mt-1">{source.description}</p>
-                        {source.details && (
-                          <p className="text-gray-500 text-sm mt-2">{source.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {source.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editLeadItem(source.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteLeadItem(source.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {currentSources.length === 0 && (
-                  <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
-                    <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p>No lead sources added yet. Use the buttons above to get started!</p>
-                  </div>
-                )}
-              </div>
-
-              {hasCurrentSources && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Current Sources Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Great! You can now move to expansion opportunities.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Expansion Opportunities</h3>
-              <p className="text-gray-600 mb-6">
-                Identify new channels and strategies to expand your lead generation and reach more of your ideal clients.
-              </p>
-
-              <div className="space-y-6">
-                {/* Manual/AI Buttons */}
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => openManualModal('Expansion Opportunities')}
-                    className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Manual Entry
-                  </button>
-                  <button
-                    onClick={() => openAiSuggestionsModal('Expansion Opportunities')}
-                    className="px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    🤖 Get AI Ideas
-                  </button>
-                </div>
-
-                {/* Added Expansion Opportunities */}
-                {expansionOpportunities.map((opportunity) => (
-                  <div key={opportunity.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{opportunity.title}</h4>
-                        <p className="text-gray-600 mt-1">{opportunity.description}</p>
-                        {opportunity.details && (
-                          <p className="text-gray-500 text-sm mt-2">{opportunity.details}</p>
-                        )}
-                        <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                          {opportunity.source === 'ai' ? '🤖 AI Generated' : '✏️ Manual Entry'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => editLeadItem(opportunity.id)}
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteLeadItem(opportunity.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {expansionOpportunities.length === 0 && (
-                  <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
-                    <TrendingUp className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p>No expansion opportunities added yet. Use the buttons above to get started!</p>
-                  </div>
-                )}
-              </div>
-
-              {hasExpansionOpportunities && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Expansion Opportunities Complete!</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Excellent! You can now move to CSP setup.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case 3:
-        // Trigger confetti when Sub Step 3 opens
-        React.useEffect(() => {
-          if (activeSubStep === 3) {
-            setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 5000);
-          }
-        }, [activeSubStep]);
-
-        return (
-          <div className="space-y-6">
-            {showConfetti && activeSubStep === 3 && (
-              <Confetti
-                width={windowDimensions.width}
-                height={windowDimensions.height}
-                recycle={false}
-                numberOfPieces={200}
-                gravity={0.3}
-              />
-            )}
-            
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Step 3 Milestone Celebration!</h3>
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 mb-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-[#0e9246] rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-gray-900">Congratulations! 🎊</h4>
-                    <p className="text-gray-600">You've completed your Lead Generation & Conversion System!</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <h5 className="font-semibold text-gray-900 mb-2">🎯 What You've Accomplished:</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>✅ Identified current lead generation sources</li>
-                      <li>✅ Discovered new expansion opportunities</li>
-                      <li>✅ Configured CSP lead scoring system</li>
-                      <li>✅ Set up intelligent automation rules</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <h5 className="font-semibold text-gray-900 mb-2">🚀 How This Impacts Your Success:</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>📈 <strong>Step 4:</strong> Lead sources inform sales funnel design</li>
-                      <li>🎯 <strong>Step 5:</strong> Scoring criteria enhance email targeting</li>
-                      <li>📧 <strong>Step 6:</strong> Automation rules trigger follow-up sequences</li>
-                      <li>🏗️ <strong>CSP Setup:</strong> Complete lead management system ready</li>
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h5 className="font-semibold text-blue-900 mb-2">🔗 Building Your Lead Generation Empire:</h5>
-                  <p className="text-blue-800 text-sm">
-                    Your lead generation strategy from this step combines with your personas (Step 1) and content strategy (Step 2) to create a powerful conversion machine. Your Project Setup data ensures every lead is properly scored and nurtured through intelligent automation, turning prospects into loyal customers.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            {showConfetti && (
-              <Confetti
-                width={windowDimensions.width}
-                height={windowDimensions.height}
-                recycle={false}
-                numberOfPieces={200}
-                gravity={0.3}
-              />
-            )}
-            
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow duration-300">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-[#0e9246] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-8 h-8 text-white" />
-                </div>
-                
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  🎉 Milestone Achieved!
-                </h2>
-                
-                <p className="text-lg text-gray-600 mb-8">
-                  Congratulations! You've built a comprehensive lead intelligence and conversion system.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-8 text-left">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">What You've Accomplished</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Mapped current lead generation sources</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Identified expansion opportunities</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Configured intelligent lead scoring</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-[#0e9246] mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Set up automation workflows</span>
-                      </li>
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Next Steps</h3>
-                    <p className="text-gray-600">
-                      Your lead intelligence system is now ready to power your sales funnel and email automation in the upcoming steps.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Please complete the previous steps to unlock this section.</p>
-          </div>
-        );
+  const isSubStepCompleted = (stepId) => {
+    switch (stepId) {
+      case 0: return hasLeadSources; // Lead Sources completed when sources exist
+      case 1: return hasLeadScoring; // Lead Scoring completed when criteria set
+      case 2: return isStepComplete; // Milestone completed when everything is done
+      default: return false;
     }
+  };
+
+  // Add lead source to list
+  const handleAddLeadSource = () => {
+    if (!newLeadSourceForm.type || !newLeadSourceForm.name) {
+      alert('Please fill in lead source type and name');
+      return;
+    }
+
+    const newLeadSource = {
+      id: Date.now(),
+      type: newLeadSourceForm.type,
+      name: newLeadSourceForm.name,
+      description: newLeadSourceForm.description,
+      notes: newLeadSourceForm.notes
+    };
+
+    setLeadSources([...leadSources, newLeadSource]);
+    setNewLeadSourceForm({ type: '', name: '', description: '', notes: '' });
+    setAddLeadSourceModalOpen(false);
+  };
+
+  // AI Lead Source Suggestions
+  const handleAILeadSuggestions = () => {
+    setIsAiLoading(true);
+    setAiLeadSuggestionsModalOpen(true);
+
+    // Simulate AI analysis for additional lead sources
+    setTimeout(() => {
+      const suggestions = [
+        {
+          type: 'Content Marketing',
+          name: 'Industry-Specific Blog Content',
+          description: 'Create targeted blog posts addressing specific pain points in your industry',
+          reasoning: 'Blog content establishes authority and attracts organic traffic from prospects searching for solutions.'
+        },
+        {
+          type: 'LinkedIn Outreach',
+          name: 'Personalized LinkedIn Connection Strategy',
+          description: 'Systematic approach to connecting with ideal prospects on LinkedIn',
+          reasoning: 'LinkedIn is the top platform for B2B lead generation with high-quality professional connections.'
+        },
+        {
+          type: 'Webinars',
+          name: 'Educational Webinar Series',
+          description: 'Monthly webinars teaching valuable skills related to your expertise',
+          reasoning: 'Webinars allow you to demonstrate expertise while capturing qualified leads who invest time to attend.'
+        },
+        {
+          type: 'Partnerships',
+          name: 'Strategic Referral Partnerships',
+          description: 'Partner with complementary service providers for mutual referrals',
+          reasoning: 'Referral partnerships provide warm leads with higher conversion rates and lower acquisition costs.'
+        },
+        {
+          type: 'Lead Magnets',
+          name: 'High-Value Resource Downloads',
+          description: 'Create downloadable guides, templates, or tools in exchange for contact information',
+          reasoning: 'Lead magnets attract prospects actively seeking solutions and provide immediate value exchange.'
+        }
+      ];
+
+      setAiLeadSuggestions(suggestions);
+      setIsAiLoading(false);
+    }, 2000);
+  };
+
+  // Add AI suggestion to lead sources
+  const addAISuggestion = (suggestion) => {
+    const newLeadSource = {
+      id: Date.now(),
+      type: suggestion.type,
+      name: suggestion.name,
+      description: suggestion.description,
+      notes: 'AI-generated suggestion'
+    };
+
+    setLeadSources([...leadSources, newLeadSource]);
+    
+    // Remove this suggestion from the list
+    setAiLeadSuggestions(prev => prev.filter(s => s.name !== suggestion.name));
+  };
+
+  // Apply scoring template
+  const applyTemplate = (template) => {
+    setLeadScoringSetup(prev => ({
+      ...prev,
+      criteria: template.criteria
+    }));
+  };
+
+  // Add custom scoring criteria
+  const addCustomCriteria = (action, points) => {
+    if (!action || !points) return;
+    
+    const newCriteria = { action, points: parseInt(points) };
+    setLeadScoringSetup(prev => ({
+      ...prev,
+      criteria: [...prev.criteria, newCriteria]
+    }));
+  };
+
+  // Remove scoring criteria
+  const removeCriteria = (index) => {
+    setLeadScoringSetup(prev => ({
+      ...prev,
+      criteria: prev.criteria.filter((_, i) => i !== index)
+    }));
+  };
+
+  // How This Works content
+  const howThisWorksContent = {
+    description: "Identify your lead sources and set up intelligent lead scoring to prioritize your best prospects.",
+    steps: [
+      {
+        title: "Lead Sources",
+        description: "Add current sources and get AI suggestions",
+        color: "bg-[#0e9246]"
+      },
+      {
+        title: "Lead Scoring", 
+        description: "Set point thresholds and scoring criteria",
+        color: "bg-[#d7df21]"
+      },
+      {
+        title: "Milestone",
+        description: "Complete your lead intelligence setup",
+        color: "bg-[#fbae42]"
+      }
+    ]
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Component 1: Step Progress Indicator */}
-        <div className="text-sm text-gray-500 mb-2">
-          STEP 3 OF 9
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-sm text-gray-500 mb-2">STEP 3 OF 9</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Lead Intelligence
+          </h1>
+          <p className="text-base lg:text-lg text-gray-600">
+            Identify your lead sources and set up intelligent scoring to prioritize prospects.
+          </p>
         </div>
 
-        {/* Component 2: Step Name */}
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Lead Generation Expansion
-        </h1>
-
-        {/* Component 3: Step Objective */}
-        <p className="text-lg text-gray-600 mb-6">
-          Analyze your current lead sources, identify expansion opportunities, and set up systems to scale your client acquisition.
-        </p>
-
-        {/* Step Completion Indicator */}
-        {isStepComplete && (
-          <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
-            <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
-            <div>
-              <p className="font-semibold">🎉 Step 3 Complete! Your lead intelligence is optimized.</p>
-              <p className="text-sm text-green-700 mt-1">
-                You now have intelligent lead management and clear growth opportunities.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Component 4: How This Works Section */}
+        {/* How This Works Section */}
         <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
@@ -713,7 +267,9 @@ const Step3 = () => {
               <span className="text-lg font-semibold text-gray-900">How This Step Works</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-[#0e9246] font-medium">Expand</span>
+              <span className="text-sm text-[#0e9246] font-medium">
+                {isHowThisWorksOpen ? 'Collapse' : 'Expand'}
+              </span>
               {isHowThisWorksOpen ? (
                 <ChevronUp className="w-5 h-5 text-[#0e9246]" />
               ) : (
@@ -748,26 +304,12 @@ const Step3 = () => {
           <p className="text-sm text-gray-600">Complete all Action Steps below before moving to the next Step page.</p>
         </div>
         
-        {/* Sub-step Navigation */}
-        <div className="bg-[#d5e6ed] rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
+        <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
-            {subSteps.map((step, index) => {
+            {subSteps.map((step) => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
-              
-              // Define completion status for each sub-step
-              const hasCurrentSources = currentSources.length > 0 || 
-                                       addedLeadItems.some(item => item.type === 'Current Sources');
-              const hasExpansionOpportunities = expansionOpportunities.length > 0 || 
-                                               addedLeadItems.some(item => item.type === 'Expansion Opportunities');
-              const hasCSPSetup = Object.values(cspSetup).every(value => value && value.trim().length > 0) ||
-                                 addedLeadItems.some(item => item.type === 'CSP Setup');
-              
-              const isCompleted = step.id < 4 ? (
-                step.id === 1 ? hasCurrentSources :
-                step.id === 2 ? hasExpansionOpportunities :
-                step.id === 3 ? hasCSPSetup : false
-              ) : isStepComplete;
+              const isCompleted = isSubStepCompleted(step.id);
 
               return (
                 <button
@@ -778,8 +320,8 @@ const Step3 = () => {
                     isActive
                       ? 'border-[#fbae42] bg-orange-50'
                       : isUnlocked
-                      ? 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-                      : 'border-transparent bg-gray-50'
+                      ? 'border-transparent hover:border-gray-300 hover:bg-white hover:bg-opacity-50'
+                      : 'border-transparent bg-transparent'
                   } ${
                     !isUnlocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                   }`}
@@ -797,9 +339,9 @@ const Step3 = () => {
                       {isCompleted ? (
                         <CheckCircle2 className="w-4 h-4" />
                       ) : !isUnlocked ? (
-                        <span className="text-sm">🔒</span>
+                        <span className="text-xs">🔒</span>
                       ) : (
-                        <span className="text-sm font-bold">{step.id}</span>
+                        <span className="text-sm font-bold">{step.id + 1}</span>
                       )}
                     </div>
                     <span className={`text-sm font-medium ${
@@ -819,165 +361,394 @@ const Step3 = () => {
         </div>
 
         {/* Sub-step Content */}
-        <div className="mb-8">
-          {renderSubStepContent()}
-        </div>
-
-        {/* Manual Entry Modal */}
-        {manualModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">Add {currentModalType}</h3>
-                <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                  <select
-                    value={manualForm.type}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                  >
-                    <option value="">Select type...</option>
-                    <option value="Current Sources">Current Sources</option>
-                    <option value="Expansion Opportunities">Expansion Opportunities</option>
-                    <option value="CSP Setup">CSP Setup</option>
-                  </select>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Current Sub-step */}
+          <div className="space-y-6">
+            {activeSubStep === 0 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Lead Sources</h3>
+                <p className="text-gray-600 mb-6">Add your current lead sources and discover new opportunities.</p>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                  <input
-                    type="text"
-                    value={manualForm.title}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Website Organic Traffic"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <textarea
-                    value={manualForm.description}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Brief description..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
-                  <textarea
-                    value={manualForm.details}
-                    onChange={(e) => setManualForm(prev => ({ ...prev, details: e.target.value }))}
-                    placeholder="Additional details (optional)..."
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#0e9246] focus:border-transparent"
-                    rows={3}
-                  />
-                </div>
-              </div>
-              
-              <div className="flex gap-3 p-6 border-t">
-                <button
-                  onClick={() => setManualModalOpen(false)}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleManualSubmit}
-                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
-                >
-                  Add Entry
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* AI Suggestions Modal */}
-        {aiSuggestionsModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h3 className="text-lg font-semibold">AI {currentModalType} Suggestions</h3>
-                <button
-                  onClick={() => setAiSuggestionsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              
-              <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Select from these AI-generated {currentModalType.toLowerCase()} suggestions:
-                </p>
-                
-                <div className="space-y-4">
-                  {aiSuggestions.map((suggestion) => (
-                    <div key={suggestion.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{suggestion.title}</h4>
-                          <p className="text-gray-600 mt-1">{suggestion.description}</p>
-                          <p className="text-gray-500 text-sm mt-2">{suggestion.details}</p>
-                        </div>
-                        <button
-                          onClick={() => addAiSuggestion(suggestion)}
-                          className="ml-4 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 font-medium"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add
-                        </button>
-                      </div>
+                {/* Section 1: Add Lead Sources */}
+                <div className="mb-8">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 bg-[#0e9246] rounded-full flex items-center justify-center mr-3">
+                      <span className="text-white text-sm font-bold">1</span>
                     </div>
-                  ))}
+                    <h4 className="text-lg font-semibold text-gray-900">Add Lead Sources</h4>
+                  </div>
+                  <button
+                    onClick={() => setAddLeadSourceModalOpen(true)}
+                    className="w-full px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Add Lead Source</span>
+                  </button>
+                </div>
+
+                {/* Section 2: AI Lead Source Ideas */}
+                <div className="mb-8">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 bg-[#d7df21] rounded-full flex items-center justify-center mr-3">
+                      <span className="text-black text-sm font-bold">2</span>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900">AI Lead Source Ideas</h4>
+                  </div>
+                  <button
+                    onClick={handleAILeadSuggestions}
+                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>Get AI Lead Source Ideas</span>
+                  </button>
+                </div>
+
+                {/* Lead Sources Display */}
+                {leadSources.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No lead sources added yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-gray-900">Your Lead Sources ({leadSources.length} sources)</h4>
+                    {leadSources.map((source) => (
+                      <div key={source.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-medium text-gray-900">{source.name}</h4>
+                            <p className="text-sm text-gray-600">{source.type}</p>
+                            {source.description && (
+                              <p className="text-sm text-gray-500 mt-1">{source.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 1 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Lead Scoring Setup</h3>
+                <p className="text-gray-600 mb-6">Set point thresholds and scoring criteria for lead qualification.</p>
+                
+                {/* Point Threshold */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Point Threshold for Sales Assignment
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="number"
+                      value={leadScoringSetup.threshold}
+                      onChange={(e) => setLeadScoringSetup(prev => ({...prev, threshold: parseInt(e.target.value)}))}
+                      className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    />
+                    <span className="text-gray-600">points</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    When a lead reaches this score, assign to sales rep
+                  </p>
+                </div>
+
+                {/* Scoring Criteria */}
+                <div className="mb-6">
+                  <h4 className="font-medium text-gray-900 mb-4">Scoring Criteria</h4>
                   
-                  {aiSuggestions.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      All suggestions have been added! Close this modal to continue.
+                  {/* Preset Templates */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Use Preset Template</label>
+                    <div className="space-y-2">
+                      {scoringTemplates.map((template, index) => (
+                        <button
+                          key={index}
+                          onClick={() => applyTemplate(template)}
+                          className="w-full text-left px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                        >
+                          <span className="font-medium text-gray-900">{template.name}</span>
+                          <p className="text-sm text-gray-600">
+                            {template.criteria.length} criteria, max {Math.max(...template.criteria.map(c => c.points))} points
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Current Criteria */}
+                  {leadScoringSetup.criteria.length > 0 && (
+                    <div className="space-y-2">
+                      <h5 className="font-medium text-gray-900">Current Criteria:</h5>
+                      {leadScoringSetup.criteria.map((criteria, index) => (
+                        <div key={index} className="flex justify-between items-center bg-gray-50 rounded-lg p-3">
+                          <span className="text-sm text-gray-700">{criteria.action}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-900">{criteria.points} points</span>
+                            <button
+                              onClick={() => removeCriteria(index)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="text-sm text-gray-600 mt-2">
+                        Total possible points: {leadScoringSetup.criteria.reduce((sum, c) => sum + c.points, 0)}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
+            )}
+
+            {activeSubStep === 2 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
+                <p className="text-gray-600 mb-6">Congratulations! You've set up your lead intelligence system.</p>
+                
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-900 mb-2">What You've Accomplished:</h4>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li>✅ Identified {leadSources.length} lead sources</li>
+                      <li>✅ Set up lead scoring with {leadScoringSetup.criteria.length} criteria</li>
+                      <li>✅ Configured {leadScoringSetup.threshold}-point threshold for sales assignment</li>
+                      <li>✅ Built intelligent lead qualification system</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
+                    <p className="text-sm text-blue-800">
+                      Move on to Step 4: Signature Funnel Build to create your conversion system.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Lead Intelligence Overview */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Lead Intelligence Overview</h3>
+            
+            {/* Lead Sources Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Lead Sources ({leadSources.length})</h4>
+              {leadSources.length === 0 ? (
+                <p className="text-gray-500 text-sm">No lead sources added yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {leadSources.map((source) => (
+                    <div key={source.id} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium text-blue-900 text-sm">{source.name}</p>
+                          <p className="text-xs text-blue-700">{source.type}</p>
+                        </div>
+                        <Users className="w-4 h-4 text-blue-600" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Lead Scoring Summary */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Lead Scoring Setup</h4>
+              {leadScoringSetup.criteria.length === 0 ? (
+                <p className="text-gray-500 text-sm">No scoring criteria set</p>
+              ) : (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="font-medium text-yellow-900">Sales Threshold</span>
+                    <span className="text-yellow-800 font-bold">{leadScoringSetup.threshold} points</span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-yellow-800 font-medium">Scoring Criteria:</p>
+                    {leadScoringSetup.criteria.slice(0, 3).map((criteria, index) => (
+                      <div key={index} className="flex justify-between text-xs text-yellow-700">
+                        <span>{criteria.action}</span>
+                        <span>{criteria.points} pts</span>
+                      </div>
+                    ))}
+                    {leadScoringSetup.criteria.length > 3 && (
+                      <p className="text-xs text-yellow-600">
+                        +{leadScoringSetup.criteria.length - 3} more criteria
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-3">Setup Progress</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Lead Sources</span>
+                  <span className={`text-sm font-medium ${hasLeadSources ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasLeadSources ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Lead Scoring</span>
+                  <span className={`text-sm font-medium ${hasLeadScoring ? 'text-green-600' : 'text-gray-400'}`}>
+                    {hasLeadScoring ? '✅ Complete' : '⏳ Pending'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Add Lead Source Modal */}
+        {addLeadSourceModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Add Lead Source</h3>
+                  <button
+                    onClick={() => setAddLeadSourceModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Lead Source Type *</label>
+                  <select
+                    value={newLeadSourceForm.type}
+                    onChange={(e) => setNewLeadSourceForm({...newLeadSourceForm, type: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                  >
+                    <option value="">Select type</option>
+                    {leadSourceTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Source Name *</label>
+                  <input
+                    type="text"
+                    value={newLeadSourceForm.name}
+                    onChange={(e) => setNewLeadSourceForm({...newLeadSourceForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="Enter source name"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={newLeadSourceForm.description}
+                    onChange={(e) => setNewLeadSourceForm({...newLeadSourceForm, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    rows="3"
+                    placeholder="Describe this lead source"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                  <textarea
+                    value={newLeadSourceForm.notes}
+                    onChange={(e) => setNewLeadSourceForm({...newLeadSourceForm, notes: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    rows="2"
+                    placeholder="Additional notes"
+                  />
+                </div>
+              </div>
+              
+              <div className="p-6 border-t border-gray-200 flex space-x-3">
+                <button
+                  onClick={() => setAddLeadSourceModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddLeadSource}
+                  className="flex-1 px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                >
+                  Add Source
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* AI Modal */}
-        <AIModal
-          isOpen={aiModalOpen}
-          onClose={() => setAiModalOpen(false)}
-          title="AI Lead Intelligence"
-          content={aiResult}
-          isLoading={aiLoading}
-          onUseContent={handleUseAIContent}
-        />
-
-        {/* API Key Modal */}
-        <APIKeyModal
-          isOpen={apiKeyModalOpen}
-          onClose={() => setApiKeyModalOpen(false)}
-          onSave={handleSaveApiKey}
-        />
-
-        {/* Footer */}
-        <StepFooter 
-          currentStep={3}
-          isStepComplete={isStepComplete}
-          onPrevious={() => {}}
-          onNext={() => {}}
-        />
+        {/* AI Lead Suggestions Modal */}
+        {aiLeadSuggestionsModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">AI Lead Source Suggestions</h3>
+                  <button
+                    onClick={() => setAiLeadSuggestionsModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <p className="text-gray-600 mt-2">AI-recommended lead sources based on your business type</p>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Analyzing potential lead sources...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Recommended Lead Sources ({aiLeadSuggestions.length} suggestions)</h4>
+                    {aiLeadSuggestions.map((suggestion, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h5 className="font-medium text-gray-900">{suggestion.name}</h5>
+                            <p className="text-sm text-gray-600">{suggestion.type}</p>
+                          </div>
+                        </div>
+                        
+                        <p className="text-sm text-gray-700 mb-3">{suggestion.description}</p>
+                        
+                        <div className="bg-gray-50 rounded-md p-3 mb-3">
+                          <p className="text-sm text-gray-700">
+                            <span className="font-medium">Why this works:</span> {suggestion.reasoning}
+                          </p>
+                        </div>
+                        
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => addAISuggestion(suggestion)}
+                            className="px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
+                          >
+                            Add to Lead Sources
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
