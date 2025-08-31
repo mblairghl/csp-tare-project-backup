@@ -1,589 +1,354 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, CheckCircle2, FileText, BarChart2, Lightbulb, Plus, Sparkles, Search, Target, X, Edit, Trash2, Upload, Move } from 'lucide-react';
-import Confetti from 'react-confetti';
-import StepFooter from './StepFooter';
-import AIModal from './AIModal';
-import APIKeyModal from './APIKeyModal';
-import aiService from '../services/aiService';
-import storageOptimizer from '../utils/storageOptimizer';
+import { CheckCircle2, ChevronDown, ChevronUp, Plus, Sparkles, X, Target, FileText, Lightbulb } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 const Step2 = () => {
-  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [windowDimensions, setWindowDimensions] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight
-  });
-
-  // Tab management
+  // Sub-step management
   const [activeSubStep, setActiveSubStep] = useState(1);
-
-  // Step completion tracking
-  const [isStepComplete, setIsStepComplete] = useState(false);
-
-  // Content library and funnel data
   const [contentLibrary, setContentLibrary] = useState([]);
-  const [marketingFunnel, setMarketingFunnel] = useState({
-    'discover': [],
-    'resonate': [],
-    'envision': [],
-    'trust': [],
-    'authority': []
+  const [funnelContent, setFunnelContent] = useState({
+    discover: [],
+    resonate: [],
+    envision: [],
+    trust: [],
+    authority: []
   });
-
+  const [marketingCopy, setMarketingCopy] = useState('');
+  
   // Modal states
   const [addContentModalOpen, setAddContentModalOpen] = useState(false);
+  const [aiPlacementModalOpen, setAiPlacementModalOpen] = useState(false);
+  const [gapAnalysisModalOpen, setGapAnalysisModalOpen] = useState(false);
+  const [marketingCopyModalOpen, setMarketingCopyModalOpen] = useState(false);
+  
+  // Form states
   const [newContentForm, setNewContentForm] = useState({
-    title: '',
     type: '',
+    name: '',
     description: '',
-    url: '',
     notes: ''
   });
+  
+  // AI results
+  const [aiPlacementResults, setAiPlacementResults] = useState([]);
+  const [gapAnalysisResults, setGapAnalysisResults] = useState([]);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  
+  // UI states
+  const [isHowThisWorksOpen, setIsHowThisWorksOpen] = useState(false);
 
-  // AI suggestions
-  const [aiResult, setAiResult] = useState(null);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Load saved data
-  useEffect(() => {
-    const savedLibrary = storageOptimizer.safeGet('step2_content_library');
-    const savedFunnel = storageOptimizer.safeGet('step2_marketing_funnel');
-    
-    if (savedLibrary && Array.isArray(savedLibrary)) {
-      setContentLibrary(savedLibrary);
-    }
-    if (savedFunnel && typeof savedFunnel === 'object') {
-      setMarketingFunnel(savedFunnel);
-    }
-  }, []);
-
-  // Auto-progression logic
-  useEffect(() => {
-    const hasContent = contentLibrary.length > 0;
-    const hasMappedContent = Object.values(marketingFunnel).some(stage => stage.length > 0);
-    
-    if (hasContent && activeSubStep === 1) {
-      setActiveSubStep(2);
-    }
-    if (hasMappedContent && activeSubStep === 2) {
-      setActiveSubStep(3);
-    }
-  }, [contentLibrary, marketingFunnel, activeSubStep]);
-
-  // Confetti effect for milestone
-  React.useEffect(() => {
-    if (activeSubStep === 3 && !showConfetti) {
-      setShowConfetti(true);
-      const timer = setTimeout(() => setShowConfetti(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [activeSubStep, showConfetti]);
-
-  const funnelStages = [
-    {
-      id: 'discover',
-      title: 'Discover the Possibility',
-      description: 'They become aware that a better way exists.',
-      color: 'bg-blue-50 border-blue-200',
-      items: 2
-    },
-    {
-      id: 'resonate',
-      title: 'Resonate with the Mission',
-      description: 'They connect emotionally with your message and positioning.',
-      color: 'bg-green-50 border-green-200',
-      items: 2
-    },
-    {
-      id: 'envision',
-      title: 'Envision Their Transformation',
-      description: 'They see the tangible results of working with you.',
-      color: 'bg-yellow-50 border-yellow-200',
-      items: 2
-    },
-    {
-      id: 'trust',
-      title: 'Trust the Process',
-      description: 'They gain confidence in your ability to deliver.',
-      color: 'bg-orange-50 border-orange-200',
-      items: 2
-    },
-    {
-      id: 'authority',
-      title: 'Step Into Authority',
-      description: 'They are ready to take action and invest.',
-      color: 'bg-purple-50 border-purple-200',
-      items: 2
-    }
+  // Sub-steps configuration
+  const subSteps = [
+    { id: 1, title: 'Content Library', icon: FileText },
+    { id: 2, title: 'AI Placement', icon: Sparkles },
+    { id: 3, title: 'Gap Analysis', icon: Target },
+    { id: 4, title: 'Marketing Copy & TARE', icon: FileText },
+    { id: 5, title: 'Milestone Reflection', icon: CheckCircle2 }
   ];
 
-  const handleAddContent = () => {
-    if (newContentForm.title && newContentForm.type) {
-      const newContent = {
-        id: Date.now(),
-        ...newContentForm,
-        dateAdded: new Date().toISOString()
-      };
-      
-      const updatedLibrary = [...contentLibrary, newContent];
-      setContentLibrary(updatedLibrary);
-      storageOptimizer.safeSet('step2_content_library', updatedLibrary);
-      
-      setNewContentForm({
-        title: '',
-        type: '',
-        description: '',
-        url: '',
-        notes: ''
-      });
-      setAddContentModalOpen(false);
-    }
-  };
+  // Funnel stages
+  const funnelStages = [
+    { id: 'discover', title: 'Discover the Possibility', color: 'bg-blue-100 border-blue-300', textColor: 'text-blue-800' },
+    { id: 'resonate', title: 'Resonate with the Mission', color: 'bg-green-100 border-green-300', textColor: 'text-green-800' },
+    { id: 'envision', title: 'Envision Their Transformation', color: 'bg-yellow-100 border-yellow-300', textColor: 'text-yellow-800' },
+    { id: 'trust', title: 'Trust the Process', color: 'bg-orange-100 border-orange-300', textColor: 'text-orange-800' },
+    { id: 'authority', title: 'Step Into Authority', color: 'bg-purple-100 border-purple-300', textColor: 'text-purple-800' }
+  ];
 
-  const handleAIPlacement = async () => {
-    if (contentLibrary.length === 0) {
-      alert('Please add some content first before using AI placement suggestions.');
-      return;
-    }
+  // Content types (alphabetized)
+  const contentTypes = [
+    'Article', 'Audio Course', 'Blog Post', 'Book', 'Brochure', 'Case Study', 'Checklist', 
+    'Community Post', 'Comparison Chart', 'Course', 'Demo Video', 'E-book', 'Email', 
+    'FAQ Document', 'Flowchart', 'Guide', 'Infographic', 'Landing Page', 'Lead Magnet', 
+    'PDF Document', 'Playlist', 'Podcast', 'Presentation', 'Quiz', 'Resource List', 
+    'Sales Page', 'Social Media Post', 'Template', 'Testimonial Video', 'Tool', 
+    'Training Video', 'Video', 'Webinar', 'White Paper', 'Workshop'
+  ];
 
-    setAiModalOpen(true);
-    setAiLoading(true);
-    
-    try {
-      // Enhanced AI placement suggestions with detailed analysis
-      const suggestions = contentLibrary.map(content => {
-        // Determine best funnel stage based on content type and characteristics
-        let suggestedStage, reasoning;
-        
-        switch (content.type.toLowerCase()) {
-          case 'blog post':
-          case 'article':
-          case 'infographic':
-          case 'social media post':
-            suggestedStage = 'discover';
-            reasoning = 'Blog posts and articles are excellent for top-of-funnel awareness. They help prospects discover new possibilities and establish your expertise in the field.';
-            break;
-          case 'case study':
-          case 'testimonial video':
-          case 'white paper':
-            suggestedStage = 'resonate';
-            reasoning = 'Case studies and testimonials build emotional connection by showing real results. They help prospects resonate with your mission and see social proof.';
-            break;
-          case 'demo video':
-          case 'webinar':
-          case 'presentation':
-          case 'training video':
-            suggestedStage = 'envision';
-            reasoning = 'Demonstrations and training content help prospects envision their transformation. They can see the tangible results of working with you.';
-            break;
-          case 'checklist':
-          case 'template':
-          case 'tool':
-          case 'guide':
-          case 'pdf document':
-            suggestedStage = 'trust';
-            reasoning = 'Practical tools and resources build confidence in your ability to deliver. They demonstrate your process and expertise, building trust.';
-            break;
-          case 'sales page':
-          case 'landing page':
-          case 'quiz':
-          case 'lead magnet':
-            suggestedStage = 'authority';
-            reasoning = 'Sales pages and lead magnets are designed for action. They position you as the authority and encourage prospects to take the next step.';
-            break;
-          default:
-            suggestedStage = 'discover';
-            reasoning = 'Based on the content type, this would work well for initial awareness and discovery of your expertise.';
-        }
-
-        return {
-          contentId: content.id,
-          contentTitle: content.title,
-          contentType: content.type,
-          suggestedStage: suggestedStage,
-          reasoning: reasoning,
-          confidence: 'High',
-          alternativeStages: getAlternativeStages(suggestedStage)
-        };
-      });
-      
-      setAiResult({
-        type: 'placement',
-        title: 'AI Content Placement Analysis',
-        description: 'Based on analysis of your content with AI-powered funnel stage placement',
-        suggestions: suggestions,
-        summary: `Analyzed ${suggestions.length} content items and provided funnel stage recommendations based on content type, purpose, and customer journey positioning.`
-      });
-    } catch (error) {
-      console.error('Error generating AI placement:', error);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const getAlternativeStages = (primaryStage) => {
-    const alternatives = {
-      'discover': ['resonate'],
-      'resonate': ['discover', 'envision'],
-      'envision': ['resonate', 'trust'],
-      'trust': ['envision', 'authority'],
-      'authority': ['trust']
-    };
-    return alternatives[primaryStage] || [];
-  };
-
-  const handleGapAnalysis = async () => {
-    setAiModalOpen(true);
-    setAiLoading(true);
-    
-    try {
-      // Simulate gap analysis
-      const gaps = funnelStages.filter(stage => 
-        marketingFunnel[stage.id].length === 0
-      ).map(stage => ({
-        stage: stage.title,
-        suggestions: [
-          `Create a ${stage.title.toLowerCase()} focused blog post`,
-          `Develop a ${stage.title.toLowerCase()} video series`,
-          `Design a ${stage.title.toLowerCase()} lead magnet`
-        ]
-      }));
-      
-      setAiResult({
-        type: 'gaps',
-        gaps: gaps
-      });
-    } catch (error) {
-      console.error('Error generating gap analysis:', error);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const moveContentToFunnel = (contentId, stageId) => {
-    const content = contentLibrary.find(c => c.id === contentId);
-    if (!content) return;
-
-    // Remove from current stage if exists
-    const updatedFunnel = { ...marketingFunnel };
-    Object.keys(updatedFunnel).forEach(stage => {
-      updatedFunnel[stage] = updatedFunnel[stage].filter(c => c.id !== contentId);
-    });
-
-    // Add to new stage
-    updatedFunnel[stageId] = [...updatedFunnel[stageId], content];
-    
-    setMarketingFunnel(updatedFunnel);
-    storageOptimizer.safeSet('step2_marketing_funnel', updatedFunnel);
-  };
-
-  const howThisWorksContent = {
-    title: "How This Step Works",
-    description: "Follow these Action Steps to audit your existing content and map it to your customer journey for maximum impact.",
-    steps: [
-      {
-        title: "Content Library",
-        description: "Add your existing content assets and let AI suggest where they fit in your marketing funnel.",
-        color: "bg-[#fbae42]"
-      },
-      {
-        title: "Marketing Copy & TARE", 
-        description: "Map content to funnel stages and use AI to identify gaps in your content strategy.",
-        color: "bg-[#0e9246]"
-      },
-      {
-        title: "Milestone Reflection",
-        description: "Review your content mapping and celebrate your strategic content organization.",
-        color: "bg-[#467a8f]"
-      }
-    ]
-  };
-
-  // Completion logic
+  // Check completion status
   const hasContentLibrary = contentLibrary.length > 0;
-  const hasMappedContent = Object.values(marketingFunnel).some(stage => stage.length > 0);
-  const hasGapAnalysis = Object.values(marketingFunnel).every(stage => stage.length > 0);
+  const hasPlacedContent = Object.values(funnelContent).some(stage => stage.length > 0);
+  const hasCompletedGapAnalysis = Object.values(funnelContent).every(stage => stage.length >= 2);
+  const hasMarketingCopy = marketingCopy.length > 0;
+  const isStepComplete = hasContentLibrary && hasPlacedContent && hasCompletedGapAnalysis && hasMarketingCopy;
 
-  // Tab progression logic
-  const isSubStepUnlocked = (stepNumber) => {
-    switch (stepNumber) {
-      case 1: return true; // Always unlocked
-      case 2: return hasContentLibrary; // Unlocked when content added
-      case 3: return hasContentLibrary && hasMappedContent; // Unlocked when content mapped
+  // Sub-step unlock logic
+  const isSubStepUnlocked = (stepId) => {
+    switch (stepId) {
+      case 1: return true; // Content Library always unlocked
+      case 2: return hasContentLibrary; // AI Placement unlocked when content exists
+      case 3: return hasPlacedContent; // Gap Analysis unlocked when content is placed
+      case 4: return hasCompletedGapAnalysis; // Marketing Copy unlocked when gaps filled
+      case 5: return hasMarketingCopy; // Milestone unlocked when copy is done
       default: return false;
     }
   };
 
-  const subSteps = [
-    { id: 1, title: 'Content Library', icon: FileText },
-    { id: 2, title: 'Marketing Copy & TARE', icon: Target },
-    { id: 3, title: 'Milestone Reflection', icon: CheckCircle2 }
-  ];
-
-  const renderSubStepContent = () => {
-    switch (activeSubStep) {
-      case 1:
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Content Library */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Library</h3>
-              <p className="text-gray-600 mb-6">
-                Drag items to the funnel or use AI to help.
-              </p>
-
-              <div className="space-y-4 mb-6">
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setAddContentModalOpen(true)}
-                    className="flex-1 px-6 py-3 bg-[#0e9246] text-white rounded-md hover:bg-[#0c7a3a] flex items-center justify-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add New Content Asset
-                  </button>
-                </div>
-                
-                <button
-                  onClick={handleAIPlacement}
-                  className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center justify-center gap-2 font-medium transition-colors duration-200"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  AI Placement Suggestions
-                </button>
-              </div>
-
-              {/* Content Items */}
-              <div className="space-y-3">
-                {contentLibrary.length > 0 ? (
-                  contentLibrary.map((content) => (
-                    <div 
-                      key={content.id}
-                      className="p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-move hover:shadow-md transition-shadow"
-                      draggable
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h5 className="font-semibold text-gray-900">{content.title}</h5>
-                          <p className="text-sm text-gray-600 mt-1">{content.type}</p>
-                          {content.description && (
-                            <p className="text-sm text-gray-500 mt-2">{content.description}</p>
-                          )}
-                        </div>
-                        <Move className="w-4 h-4 text-gray-400" />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>No unmapped content</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Marketing Funnel */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Funnel Content Goal</h3>
-                <button
-                  onClick={handleGapAnalysis}
-                  className="px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center gap-2 text-sm font-medium transition-colors duration-200"
-                >
-                  <Target className="w-4 h-4" />
-                  AI Gap Analysis
-                </button>
-              </div>
-              
-              <p className="text-gray-600 mb-6">
-                Goal: At least 2 content items per stage to start.
-              </p>
-
-              <div className="space-y-4">
-                {funnelStages.map((stage) => (
-                  <div 
-                    key={stage.id}
-                    className={`p-4 rounded-lg border-2 border-dashed ${stage.color} min-h-[120px]`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-gray-900">{stage.title}</h4>
-                      <span className="text-sm text-gray-500">{marketingFunnel[stage.id].length} items</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">{stage.description}</p>
-                    
-                    <div className="space-y-2">
-                      {marketingFunnel[stage.id].map((content) => (
-                        <div 
-                          key={content.id}
-                          className="p-2 bg-white rounded border border-gray-200 text-sm"
-                        >
-                          <div className="font-medium text-gray-900">{content.title}</div>
-                          <div className="text-gray-500">{content.type}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Marketing Copy & TARE Analysis</h3>
-              <p className="text-gray-600 mb-6">
-                Review your content mapping and optimize for each funnel stage. Use AI to identify gaps and opportunities.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900">Content Distribution</h4>
-                  {funnelStages.map((stage) => (
-                    <div key={stage.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-gray-700">{stage.title}</span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        marketingFunnel[stage.id].length >= 2 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {marketingFunnel[stage.id].length} items
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900">Gap Analysis</h4>
-                  <button
-                    onClick={handleGapAnalysis}
-                    className="w-full px-6 py-3 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] flex items-center justify-center gap-2 font-medium transition-colors duration-200"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Generate Gap Analysis
-                  </button>
-                  
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h5 className="font-semibold text-blue-900 mb-2">📊 Content Strategy Insights</h5>
-                    <p className="text-blue-800 text-sm">
-                      AI will analyze your content distribution and suggest specific content pieces needed to complete your marketing funnel.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            {showConfetti && activeSubStep === 3 && (
-              <Confetti
-                width={windowDimensions.width}
-                height={windowDimensions.height}
-                recycle={false}
-                numberOfPieces={200}
-                gravity={0.3}
-              />
-            )}
-            
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Step 2 Milestone Celebration!</h3>
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 mb-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-[#0e9246] rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-gray-900">Congratulations! 🎊</h4>
-                    <p className="text-gray-600">You've completed your Content Audit & Mapping!</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <h5 className="font-semibold text-gray-900 mb-2">🎯 What You've Accomplished:</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>✅ Audited existing content assets</li>
-                      <li>✅ Mapped content to marketing funnel stages</li>
-                      <li>✅ Identified content gaps and opportunities</li>
-                      <li>✅ Created strategic content distribution plan</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <h5 className="font-semibold text-gray-900 mb-2">🚀 How This Impacts Your Success:</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>📈 <strong>Step 3:</strong> Content strategy guides lead generation</li>
-                      <li>🎯 <strong>Step 4:</strong> Funnel mapping informs sales sequences</li>
-                      <li>📧 <strong>Step 5:</strong> Content assets drive automation</li>
-                      <li>🏗️ <strong>CSP Setup:</strong> Content strategy powers campaigns</li>
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h5 className="font-semibold text-blue-900 mb-2">🔗 Building Your Content Foundation:</h5>
-                  <p className="text-blue-800 text-sm">
-                    Your content audit and funnel mapping from this step become the strategic backbone of your authority-building system. Combined with your ideal client personas from Step 1, this content strategy will guide lead generation, sales funnels, and automated nurture sequences.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Please complete the previous steps to unlock this section.</p>
-          </div>
-        );
+  // Auto-progression logic
+  useEffect(() => {
+    if (activeSubStep === 1 && hasContentLibrary && !hasPlacedContent) {
+      setActiveSubStep(2);
+    } else if (activeSubStep === 2 && hasPlacedContent && !hasCompletedGapAnalysis) {
+      setActiveSubStep(3);
+    } else if (activeSubStep === 3 && hasCompletedGapAnalysis && !hasMarketingCopy) {
+      setActiveSubStep(4);
+    } else if (activeSubStep === 4 && hasMarketingCopy) {
+      setActiveSubStep(5);
+      // Trigger confetti for milestone
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
     }
+  }, [hasContentLibrary, hasPlacedContent, hasCompletedGapAnalysis, hasMarketingCopy, activeSubStep]);
+
+  // Add content to library
+  const handleAddContent = () => {
+    if (!newContentForm.type || !newContentForm.name) {
+      alert('Please fill in content type and name');
+      return;
+    }
+
+    const newContent = {
+      id: Date.now(),
+      type: newContentForm.type,
+      name: newContentForm.name,
+      description: newContentForm.description,
+      notes: newContentForm.notes
+    };
+
+    setContentLibrary([...contentLibrary, newContent]);
+    setNewContentForm({ type: '', name: '', description: '', notes: '' });
+    setAddContentModalOpen(false);
+  };
+
+  // AI Placement Suggestions
+  const handleAIPlacement = () => {
+    if (contentLibrary.length === 0) {
+      alert('Please add content to your library first');
+      return;
+    }
+
+    setIsAiLoading(true);
+    setAiPlacementModalOpen(true);
+
+    // Simulate AI analysis
+    setTimeout(() => {
+      const suggestions = contentLibrary.map(content => {
+        let suggestedStage, reasoning;
+        
+        // AI logic based on content type
+        switch (content.type.toLowerCase()) {
+          case 'blog post':
+          case 'article':
+          case 'infographic':
+            suggestedStage = 'discover';
+            reasoning = 'Blog posts and articles are perfect for top-of-funnel awareness, helping prospects discover new possibilities.';
+            break;
+          case 'case study':
+          case 'testimonial video':
+            suggestedStage = 'resonate';
+            reasoning = 'Case studies and testimonials build emotional connection and show social proof.';
+            break;
+          case 'course':
+          case 'demo video':
+          case 'webinar':
+            suggestedStage = 'envision';
+            reasoning = 'Educational content helps prospects envision their transformation and see results.';
+            break;
+          case 'checklist':
+          case 'template':
+          case 'tool':
+            suggestedStage = 'trust';
+            reasoning = 'Practical tools and resources build confidence in your ability to deliver.';
+            break;
+          case 'brochure':
+          case 'sales page':
+          case 'landing page':
+            suggestedStage = 'authority';
+            reasoning = 'Sales materials position you as the authority and encourage action.';
+            break;
+          default:
+            suggestedStage = 'discover';
+            reasoning = 'This content type works well for initial awareness and discovery.';
+        }
+
+        return {
+          contentId: content.id,
+          contentName: content.name,
+          contentType: content.type,
+          suggestedStage,
+          reasoning
+        };
+      });
+
+      setAiPlacementResults(suggestions);
+      setIsAiLoading(false);
+    }, 2000);
+  };
+
+  // Apply AI placement suggestion
+  const applyPlacementSuggestion = (suggestion) => {
+    const content = contentLibrary.find(c => c.id === suggestion.contentId);
+    if (content) {
+      setFunnelContent(prev => ({
+        ...prev,
+        [suggestion.suggestedStage]: [...prev[suggestion.suggestedStage], content]
+      }));
+      setContentLibrary(prev => prev.filter(c => c.id !== content.id));
+    }
+  };
+
+  // Gap Analysis
+  const handleGapAnalysis = () => {
+    setIsAiLoading(true);
+    setGapAnalysisModalOpen(true);
+
+    // Simulate AI gap analysis
+    setTimeout(() => {
+      const gaps = [];
+      
+      funnelStages.forEach(stage => {
+        const currentCount = funnelContent[stage.id].length;
+        if (currentCount < 2) {
+          const suggestions = getGapSuggestions(stage.id, 2 - currentCount);
+          gaps.push({
+            stage: stage.title,
+            stageId: stage.id,
+            currentCount,
+            needed: 2 - currentCount,
+            suggestions
+          });
+        }
+      });
+
+      setGapAnalysisResults(gaps);
+      setIsAiLoading(false);
+    }, 2000);
+  };
+
+  // Get gap suggestions based on stage
+  const getGapSuggestions = (stageId, count) => {
+    const suggestions = {
+      discover: [
+        'The Hidden Cost of DIY Business Solutions',
+        '5 Warning Signs Your Current Strategy is Failing',
+        'Why Most Businesses Fail in Their First Year'
+      ],
+      resonate: [
+        'My Journey from Struggle to Success',
+        'The Mission Behind Our Approach',
+        'Why We Do What We Do'
+      ],
+      envision: [
+        'Your Transformation Blueprint',
+        'Client Results: Before and After',
+        '90-Day Success Roadmap'
+      ],
+      trust: [
+        'Our Proven Process Explained',
+        'Client Success: Business Owner Achieves Goals',
+        'The Science Behind Our Method'
+      ],
+      authority: [
+        'Ready to Transform Your Business?',
+        'Schedule Your Strategy Session',
+        'Take the Next Step Today'
+      ]
+    };
+
+    return suggestions[stageId]?.slice(0, count) || [];
+  };
+
+  // Add gap suggestion to funnel
+  const addGapSuggestion = (stageId, suggestionText) => {
+    const newContent = {
+      id: Date.now(),
+      type: 'AI Suggestion',
+      name: suggestionText,
+      description: 'AI-generated content suggestion',
+      notes: 'This content needs to be created'
+    };
+
+    setFunnelContent(prev => ({
+      ...prev,
+      [stageId]: [...prev[stageId], newContent]
+    }));
+  };
+
+  // Generate Marketing Copy
+  const handleGenerateMarketingCopy = () => {
+    setIsAiLoading(true);
+    setMarketingCopyModalOpen(true);
+
+    // Simulate marketing copy generation
+    setTimeout(() => {
+      const copy = `# TARE Framework Marketing Copy
+
+## TRUST
+Building confidence through proven expertise and transparent processes.
+
+## AUTHORITY  
+Establishing credibility through thought leadership and industry recognition.
+
+## RAPPORT
+Creating connection through shared values and understanding.
+
+## ENGAGEMENT
+Driving action through compelling calls-to-action and clear next steps.
+
+---
+
+*Generated based on your content audit and funnel mapping.*`;
+
+      setMarketingCopy(copy);
+      setIsAiLoading(false);
+    }, 2000);
+  };
+
+  // How This Works content
+  const howThisWorksContent = {
+    description: "Organize your existing content and map it to the customer journey for maximum impact.",
+    steps: [
+      {
+        title: "Content Library",
+        description: "Catalog your existing content assets",
+        color: "bg-blue-500"
+      },
+      {
+        title: "AI Placement",
+        description: "Get AI suggestions for funnel placement",
+        color: "bg-green-500"
+      },
+      {
+        title: "Gap Analysis",
+        description: "Identify missing content opportunities",
+        color: "bg-orange-500"
+      }
+    ]
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Component 1: Step Progress Indicator */}
-        <div className="text-sm text-gray-500 mb-2">
-          STEP 2 OF 9
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-sm text-gray-500 mb-2">STEP 2 OF 9</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Content Audit & Mapping
+          </h1>
+          <p className="text-base lg:text-lg text-gray-600">
+            Organize your content and map it to the customer journey.
+          </p>
         </div>
-
-        {/* Component 2: Step Name */}
-        <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-4">
-          Content Audit & Mapping
-        </h1>
-
-        {/* Component 3: Step Objective */}
-        <p className="text-base lg:text-lg text-gray-600 mb-6">
-          Organize your content and map it to the customer journey.
-        </p>
 
         {/* Step Completion Indicator */}
         {isStepComplete && (
           <div className="flex items-center gap-2 text-[#0e9246] font-medium mb-8 p-4 bg-green-50 rounded-lg border border-green-200">
             <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
             <div>
-              <p className="font-semibold">🎉 Step 2 Complete! Your content is strategically mapped.</p>
+              <p className="font-semibold">🎉 Step 2 Complete! Your content is mapped and optimized.</p>
               <p className="text-sm text-green-700 mt-1">
                 You now have a clear content strategy aligned with your customer journey.
               </p>
@@ -591,7 +356,7 @@ const Step2 = () => {
           </div>
         )}
 
-        {/* Component 4: How This Works Section */}
+        {/* How This Works Section */}
         <div className={`rounded-lg shadow-lg border border-gray-200 mb-6 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2 ${isHowThisWorksOpen ? 'bg-white' : 'bg-white'}`}>
           <button
             onClick={() => setIsHowThisWorksOpen(!isHowThisWorksOpen)}
@@ -612,20 +377,20 @@ const Step2 = () => {
               )}
             </div>
           </button>
-
+          
           {isHowThisWorksOpen && (
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-6 bg-white border-t border-[#0e9246]">
               <p className="text-gray-600 mb-6">{howThisWorksContent.description}</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {howThisWorksContent.steps.map((step, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <div className={`w-8 h-8 ${step.color} rounded-full flex items-center justify-center flex-shrink-0`}>
-                      <span className="text-white text-sm font-bold">{index + 1}</span>
+                  <div key={index} className="text-center">
+                    <div 
+                      className={`w-12 h-12 ${step.color} rounded-full flex items-center justify-center mx-auto mb-3`}
+                    >
+                      <span className="text-white font-bold">{index + 1}</span>
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">{step.title}</h4>
-                      <p className="text-sm text-gray-600">{step.description}</p>
-                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">{step.title}</h4>
+                    <p className="text-sm text-gray-600">{step.description}</p>
                   </div>
                 ))}
               </div>
@@ -641,13 +406,10 @@ const Step2 = () => {
         
         <div className="bg-[#467a8f] bg-opacity-10 rounded-lg shadow-lg border border-[#467a8f] border-opacity-20 mb-8 transform transition-all duration-200 hover:shadow-xl hover:-translate-y-2">
           <div className="flex flex-wrap">
-            {subSteps.map((step, index) => {
+            {subSteps.map((step) => {
               const isUnlocked = isSubStepUnlocked(step.id);
               const isActive = activeSubStep === step.id;
-              const isCompleted = step.id < 3 ? (
-                step.id === 1 ? hasContentLibrary :
-                step.id === 2 ? hasMappedContent : false
-              ) : isStepComplete;
+              const isCompleted = step.id < activeSubStep || (step.id === 5 && isStepComplete);
 
               return (
                 <button
@@ -699,278 +461,340 @@ const Step2 = () => {
         </div>
 
         {/* Sub-step Content */}
-        <div className="mb-8">
-          {renderSubStepContent()}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Current Sub-step */}
+          <div className="space-y-6">
+            {activeSubStep === 1 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Library</h3>
+                <p className="text-gray-600 mb-6">Add your existing content to build your library.</p>
+                
+                <button
+                  onClick={() => setAddContentModalOpen(true)}
+                  className="w-full mb-6 px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Add New Content Asset</span>
+                </button>
+
+                {contentLibrary.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No content added yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {contentLibrary.map((content) => (
+                      <div key={content.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-medium text-gray-900">{content.name}</h4>
+                            <p className="text-sm text-gray-600">{content.type}</p>
+                            {content.description && (
+                              <p className="text-sm text-gray-500 mt-1">{content.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 2 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Placement Suggestions</h3>
+                <p className="text-gray-600 mb-6">Get AI recommendations for where your content fits in the funnel.</p>
+                
+                <button
+                  onClick={handleAIPlacement}
+                  className="w-full mb-6 px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  <span>AI Placement Suggestions</span>
+                </button>
+
+                {contentLibrary.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <p>Add content to your library first</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {contentLibrary.map((content) => (
+                      <div key={content.id} className="border border-gray-200 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900">{content.name}</h4>
+                        <p className="text-sm text-gray-600">{content.type}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 3 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Gap Analysis</h3>
+                <p className="text-gray-600 mb-6">Identify missing content for your funnel stages.</p>
+                
+                <button
+                  onClick={handleGapAnalysis}
+                  className="w-full mb-6 px-6 py-3 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                >
+                  <Target className="w-5 h-5" />
+                  <span>AI Gap Analysis</span>
+                </button>
+
+                <div className="text-center py-12 text-gray-500">
+                  <p>Goal: At least 2 content items per stage to start</p>
+                </div>
+              </div>
+            )}
+
+            {activeSubStep === 4 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Marketing Copy & TARE</h3>
+                <p className="text-gray-600 mb-6">Generate marketing copy based on the TARE framework.</p>
+                
+                <button
+                  onClick={handleGenerateMarketingCopy}
+                  className="w-full mb-6 px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                >
+                  <FileText className="w-5 h-5" />
+                  <span>Generate Marketing Copy</span>
+                </button>
+
+                {marketingCopy && (
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">Generated Marketing Copy</h4>
+                    <div className="text-sm text-gray-600 whitespace-pre-line">
+                      {marketingCopy.substring(0, 200)}...
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeSubStep === 5 && (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">🎉 Milestone Reflection</h3>
+                <p className="text-gray-600 mb-6">Congratulations! You've completed your content audit and mapping.</p>
+                
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-900 mb-2">What You've Accomplished:</h4>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li>✅ Built your content library</li>
+                      <li>✅ Mapped content to funnel stages</li>
+                      <li>✅ Identified content gaps</li>
+                      <li>✅ Generated marketing copy</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
+                    <p className="text-sm text-blue-800">
+                      Move on to Step 3: Lead Intelligence to identify and attract your ideal prospects.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Funnel Content Goal */}
+          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">Funnel Content Goal</h3>
+              {activeSubStep >= 3 && (
+                <button
+                  onClick={handleGapAnalysis}
+                  className="px-4 py-2 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] text-sm"
+                >
+                  AI Gap Analysis
+                </button>
+              )}
+            </div>
+            
+            <p className="text-gray-600 mb-6">Goal: At least 2 content items per stage to start.</p>
+            
+            <div className="space-y-4">
+              {funnelStages.map((stage) => (
+                <div key={stage.id} className={`border-2 border-dashed rounded-lg p-4 ${stage.color}`}>
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className={`font-medium ${stage.textColor}`}>{stage.title}</h4>
+                    <span className={`text-sm ${stage.textColor}`}>
+                      {funnelContent[stage.id].length} items
+                    </span>
+                  </div>
+                  <p className={`text-sm ${stage.textColor} mb-3`}>
+                    {stage.id === 'discover' && 'They become aware that a better way exists.'}
+                    {stage.id === 'resonate' && 'They connect emotionally with your message and positioning.'}
+                    {stage.id === 'envision' && 'They see the tangible results of working with you.'}
+                    {stage.id === 'trust' && 'They gain confidence in your ability to deliver.'}
+                    {stage.id === 'authority' && 'They are ready to take action and invest.'}
+                  </p>
+                  
+                  {funnelContent[stage.id].length === 0 ? (
+                    <div className={`text-center py-4 ${stage.textColor} opacity-60`}>
+                      <p className="text-sm">No content assigned</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {funnelContent[stage.id].map((content) => (
+                        <div key={content.id} className="bg-white bg-opacity-50 rounded p-2">
+                          <p className="font-medium text-gray-900 text-sm">{content.name}</p>
+                          <p className="text-xs text-gray-600">{content.type}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Add Content Modal */}
         {addContentModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Add New Content Asset</h3>
-                <button
-                  onClick={() => setAddContentModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Add New Content Asset</h3>
+                  <button
+                    onClick={() => setAddContentModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
               
-              <div className="space-y-4">
+              <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                  <input
-                    type="text"
-                    value={newContentForm.title}
-                    onChange={(e) => setNewContentForm({...newContentForm, title: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="Content title"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Content Type *</label>
                   <select
                     value={newContentForm.type}
                     onChange={(e) => setNewContentForm({...newContentForm, type: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
                   >
                     <option value="">Select type</option>
-                    <option value="Article">Article</option>
-                    <option value="Audio Course">Audio Course</option>
-                    <option value="Blog Post">Blog Post</option>
-                    <option value="Book">Book</option>
-                    <option value="Brochure">Brochure</option>
-                    <option value="Case Study">Case Study</option>
-                    <option value="Checklist">Checklist</option>
-                    <option value="Community Post">Community Post</option>
-                    <option value="Comparison Chart">Comparison Chart</option>
-                    <option value="Demo Video">Demo Video</option>
-                    <option value="E-book">E-book</option>
-                    <option value="Email">Email</option>
-                    <option value="FAQ Document">FAQ Document</option>
-                    <option value="Flowchart">Flowchart</option>
-                    <option value="Guide">Guide</option>
-                    <option value="Infographic">Infographic</option>
-                    <option value="Landing Page">Landing Page</option>
-                    <option value="Lead Magnet">Lead Magnet</option>
-                    <option value="PDF Document">PDF Document</option>
-                    <option value="Playlist">Playlist</option>
-                    <option value="Podcast">Podcast</option>
-                    <option value="Presentation">Presentation</option>
-                    <option value="Quiz">Quiz</option>
-                    <option value="Resource List">Resource List</option>
-                    <option value="Sales Page">Sales Page</option>
-                    <option value="Social Media Post">Social Media Post</option>
-                    <option value="Template">Template</option>
-                    <option value="Testimonial Video">Testimonial Video</option>
-                    <option value="Tool">Tool</option>
-                    <option value="Training Video">Training Video</option>
-                    <option value="Video">Video</option>
-                    <option value="Webinar">Webinar</option>
-                    <option value="White Paper">White Paper</option>
-                    <option value="Workshop">Workshop</option>
-                    <option value="Other">Other</option>
+                    {contentTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
                   </select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Content Name *</label>
+                  <input
+                    type="text"
+                    value={newContentForm.name}
+                    onChange={(e) => setNewContentForm({...newContentForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
+                    placeholder="Enter content name"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Content Description</label>
                   <textarea
                     value={newContentForm.description}
                     onChange={(e) => setNewContentForm({...newContentForm, description: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
                     rows="3"
-                    placeholder="Brief description of the content"
+                    placeholder="Describe your content"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
-                  <input
-                    type="url"
-                    value={newContentForm.url}
-                    onChange={(e) => setNewContentForm({...newContentForm, url: e.target.value})}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                  <textarea
+                    value={newContentForm.notes}
+                    onChange={(e) => setNewContentForm({...newContentForm, notes: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e9246]"
-                    placeholder="https://..."
+                    rows="2"
+                    placeholder="Additional notes"
                   />
                 </div>
-                
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={() => setAddContentModalOpen(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddContent}
-                    className="flex-1 px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-[#0c7a3a]"
-                  >
-                    Add Content
-                  </button>
-                </div>
+              </div>
+              
+              <div className="p-6 border-t border-gray-200 flex space-x-3">
+                <button
+                  onClick={() => setAddContentModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddContent}
+                  className="flex-1 px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                >
+                  Add Content
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* AI Results Modal */}
-        {aiModalOpen && (
+        {/* AI Placement Modal */}
+        {aiPlacementModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {aiResult?.title || 'AI Analysis Results'}
-                  </h3>
+                  <h3 className="text-xl font-semibold text-gray-900">AI Content Placement Analysis</h3>
                   <button
-                    onClick={() => setAiModalOpen(false)}
+                    onClick={() => setAiPlacementModalOpen(false)}
                     className="text-gray-400 hover:text-gray-600"
                   >
                     <X className="w-6 h-6" />
                   </button>
                 </div>
-                {aiResult?.description && (
-                  <p className="text-gray-600 mt-2">{aiResult.description}</p>
-                )}
+                <p className="text-gray-600 mt-2">AI analysis of your content with funnel stage placement</p>
               </div>
               
               <div className="p-6">
-                {aiLoading ? (
+                {isAiLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
                     <span className="ml-3 text-gray-600">Analyzing your content...</span>
                   </div>
-                ) : aiResult?.type === 'placement' ? (
-                  <div className="space-y-6">
-                    {aiResult.summary && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-blue-800">{aiResult.summary}</p>
-                      </div>
-                    )}
-                    
-                    <div className="space-y-4">
-                      <h4 className="font-semibold text-gray-900">Content Analysis Results ({aiResult.suggestions?.length || 0} items)</h4>
-                      {aiResult.suggestions?.map((suggestion, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h5 className="font-medium text-gray-900">{suggestion.contentTitle}</h5>
-                              <p className="text-sm text-gray-600">{suggestion.contentType}</p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                                {suggestion.confidence} Confidence
-                              </span>
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                suggestion.suggestedStage === 'discover' ? 'bg-blue-100 text-blue-800' :
-                                suggestion.suggestedStage === 'resonate' ? 'bg-green-100 text-green-800' :
-                                suggestion.suggestedStage === 'envision' ? 'bg-yellow-100 text-yellow-800' :
-                                suggestion.suggestedStage === 'trust' ? 'bg-orange-100 text-orange-800' :
-                                'bg-purple-100 text-purple-800'
-                              }`}>
-                                {suggestion.suggestedStage === 'discover' ? 'Discover the Possibility' :
-                                 suggestion.suggestedStage === 'resonate' ? 'Resonate with the Mission' :
-                                 suggestion.suggestedStage === 'envision' ? 'Envision Their Transformation' :
-                                 suggestion.suggestedStage === 'trust' ? 'Trust the Process' :
-                                 'Step Into Authority'}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-gray-50 rounded-md p-3">
-                            <p className="text-sm text-gray-700">
-                              <span className="font-medium">AI Recommendation:</span> {suggestion.reasoning}
-                            </p>
-                          </div>
-                          
-                          <div className="mt-3 flex justify-between items-center">
-                            <div className="flex space-x-2">
-                              {suggestion.alternativeStages?.map((altStage, altIndex) => (
-                                <span key={altIndex} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                                  Alt: {altStage === 'discover' ? 'Discover' :
-                                       altStage === 'resonate' ? 'Resonate' :
-                                       altStage === 'envision' ? 'Envision' :
-                                       altStage === 'trust' ? 'Trust' : 'Authority'}
-                                </span>
-                              ))}
-                            </div>
-                            <button
-                              onClick={() => {
-                                // Apply the AI suggestion
-                                const content = contentLibrary.find(c => c.id === suggestion.contentId);
-                                if (content) {
-                                  const targetStage = funnelStages.find(stage => 
-                                    stage.id === suggestion.suggestedStage
-                                  );
-                                  if (targetStage) {
-                                    setFunnelContent({
-                                      ...funnelContent,
-                                      [targetStage.id]: [...(funnelContent[targetStage.id] || []), content]
-                                    });
-                                    setContentLibrary(prev => prev.filter(c => c.id !== content.id));
-                                  }
-                                }
-                              }}
-                              className="px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
-                            >
-                              Apply Suggestion
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => {
-                          // Apply all suggestions
-                          aiResult.suggestions?.forEach(suggestion => {
-                            const content = contentLibrary.find(c => c.id === suggestion.contentId);
-                            if (content) {
-                              const targetStage = funnelStages.find(stage => 
-                                stage.id === suggestion.suggestedStage
-                              );
-                              if (targetStage) {
-                                setFunnelContent(prev => ({
-                                  ...prev,
-                                  [targetStage.id]: [...(prev[targetStage.id] || []), content]
-                                }));
-                              }
-                            }
-                          });
-                          setContentLibrary([]);
-                          setAiModalOpen(false);
-                        }}
-                        className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
-                      >
-                        Apply All Suggestions
-                      </button>
-                      <button
-                        onClick={() => setAiModalOpen(false)}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                      >
-                        Review Later
-                      </button>
-                    </div>
-                  </div>
                 ) : (
-                  // Gap analysis results
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Gap Analysis Results</h4>
-                    {aiResult?.gaps?.map((gap, index) => (
+                    <h4 className="font-semibold text-gray-900">Content Analysis Results ({aiPlacementResults.length} items)</h4>
+                    {aiPlacementResults.map((result, index) => (
                       <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <h5 className="font-medium text-gray-900 mb-2">{gap.stage}</h5>
-                        <p className="text-gray-600 mb-3">{gap.description}</p>
-                        <div className="space-y-2">
-                          <p className="text-sm font-medium text-gray-700">Recommended Content:</p>
-                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                            {gap.recommendations?.map((rec, recIndex) => (
-                              <li key={recIndex}>{rec}</li>
-                            ))}
-                          </ul>
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h5 className="font-medium text-gray-900">{result.contentName}</h5>
+                            <p className="text-sm text-gray-600">{result.contentType}</p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            result.suggestedStage === 'discover' ? 'bg-blue-100 text-blue-800' :
+                            result.suggestedStage === 'resonate' ? 'bg-green-100 text-green-800' :
+                            result.suggestedStage === 'envision' ? 'bg-yellow-100 text-yellow-800' :
+                            result.suggestedStage === 'trust' ? 'bg-orange-100 text-orange-800' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {funnelStages.find(s => s.id === result.suggestedStage)?.title}
+                          </span>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-md p-3 mb-3">
+                          <p className="text-sm text-gray-700">
+                            <span className="font-medium">AI Recommendation:</span> {result.reasoning}
+                          </p>
+                        </div>
+                        
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => applyPlacementSuggestion(result)}
+                            className="px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
+                          >
+                            Add to {funnelStages.find(s => s.id === result.suggestedStage)?.title}
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -981,20 +805,109 @@ const Step2 = () => {
           </div>
         )}
 
-        {/* API Key Modal */}
-        <APIKeyModal
-          isOpen={apiKeyModalOpen}
-          onClose={() => setApiKeyModalOpen(false)}
-          onSave={() => {}}
-        />
+        {/* Gap Analysis Modal */}
+        {gapAnalysisModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">AI Gap Analysis</h3>
+                  <button
+                    onClick={() => setGapAnalysisModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <p className="text-gray-600 mt-2">Identify missing content for incomplete funnel stages</p>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Analyzing content gaps...</span>
+                  </div>
+                ) : gapAnalysisResults.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                    <h4 className="font-semibold text-gray-900 mb-2">No Gaps Found!</h4>
+                    <p className="text-gray-600">All funnel stages have at least 2 content pieces.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {gapAnalysisResults.map((gap, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <h5 className="font-medium text-gray-900 mb-2">{gap.stage}</h5>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Current: {gap.currentCount} items | Needed: {gap.needed} more
+                        </p>
+                        
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-gray-700">AI Suggestions:</p>
+                          {gap.suggestions.map((suggestion, suggestionIndex) => (
+                            <div key={suggestionIndex} className="flex justify-between items-center bg-gray-50 rounded p-3">
+                              <span className="text-sm text-gray-700">{suggestion}</span>
+                              <button
+                                onClick={() => addGapSuggestion(gap.stageId, suggestion)}
+                                className="px-3 py-1 bg-[#0e9246] text-white text-xs rounded hover:bg-green-700"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* Footer */}
-        <StepFooter 
-          currentStep={2}
-          isStepComplete={isStepComplete}
-          onPrevious={() => {}}
-          onNext={() => {}}
-        />
+        {/* Marketing Copy Modal */}
+        {marketingCopyModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold text-gray-900">Marketing Copy & TARE Framework</h3>
+                  <button
+                    onClick={() => setMarketingCopyModalOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                {isAiLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e9246]"></div>
+                    <span className="ml-3 text-gray-600">Generating marketing copy...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <pre className="whitespace-pre-wrap text-sm text-gray-700">{marketingCopy}</pre>
+                    </div>
+                    
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => setMarketingCopyModalOpen(false)}
+                        className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                      >
+                        Save Marketing Copy
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
