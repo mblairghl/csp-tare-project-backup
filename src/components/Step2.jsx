@@ -83,19 +83,10 @@ const Step2 = () => {
     }
   };
 
-  // Auto-progression logic
+  // Auto-progression logic - only progress when user explicitly moves forward
   useEffect(() => {
-    if (activeSubStep === 1 && hasContentLibrary && !hasPlacedContent) {
-      setActiveSubStep(2);
-    } else if (activeSubStep === 2 && hasPlacedContent && !hasCompletedGapAnalysis) {
-      setActiveSubStep(3);
-    } else if (activeSubStep === 3 && hasCompletedGapAnalysis && !hasMarketingCopy) {
-      setActiveSubStep(4);
-    } else if (activeSubStep === 4 && hasMarketingCopy) {
-      setActiveSubStep(5);
-      // Trigger celebration for milestone
-      console.log('🎉 Milestone reached!');
-    }
+    // Don't auto-progress - let user control when to move to next step
+    // User should be able to add multiple content pieces before AI placement
   }, [hasContentLibrary, hasPlacedContent, hasCompletedGapAnalysis, hasMarketingCopy, activeSubStep]);
 
   // Add content to library
@@ -187,11 +178,16 @@ const Step2 = () => {
   const applyPlacementSuggestion = (suggestion) => {
     const content = contentLibrary.find(c => c.id === suggestion.contentId);
     if (content) {
+      // Add to funnel
       setFunnelContent(prev => ({
         ...prev,
         [suggestion.suggestedStage]: [...prev[suggestion.suggestedStage], content]
       }));
+      // Remove from library
       setContentLibrary(prev => prev.filter(c => c.id !== content.id));
+      
+      // Update AI results to remove this suggestion
+      setAiPlacementResults(prev => prev.filter(r => r.contentId !== suggestion.contentId));
     }
   };
 
@@ -462,23 +458,39 @@ Driving action through compelling calls-to-action and clear next steps.
             {activeSubStep === 1 && (
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Content Library</h3>
-                <p className="text-gray-600 mb-6">Add your existing content to build your library.</p>
+                <p className="text-gray-600 mb-6">Drag items to the funnel or use AI to help.</p>
                 
-                <button
-                  onClick={() => setAddContentModalOpen(true)}
-                  className="w-full mb-6 px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span>Add New Content Asset</span>
-                </button>
+                <div className="space-y-3 mb-6">
+                  <button
+                    onClick={() => setAddContentModalOpen(true)}
+                    className="w-full px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Add New Content Asset</span>
+                  </button>
+                  
+                  <button
+                    onClick={handleAIPlacement}
+                    disabled={contentLibrary.length === 0}
+                    className={`w-full px-6 py-3 rounded-lg flex items-center justify-center space-x-2 ${
+                      contentLibrary.length === 0 
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                        : 'bg-[#d7df21] text-black hover:bg-[#c5cd1e]'
+                    }`}
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    <span>AI Placement Suggestions</span>
+                  </button>
+                </div>
 
                 {contentLibrary.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>No content added yet</p>
+                    <p>No unmapped content</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
+                    <h4 className="font-medium text-gray-900">Your Content ({contentLibrary.length} items)</h4>
                     {contentLibrary.map((content) => (
                       <div key={content.id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex justify-between items-start">
