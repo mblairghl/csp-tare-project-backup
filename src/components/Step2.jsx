@@ -579,7 +579,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                       isCompleted
                         ? 'bg-[#0e9246] text-white'
                         : isActive
-                        ? 'bg-[#fbae42] text-white'
+                        ? 'bg-[#0e9246] text-white'
                         : isUnlocked
                         ? 'bg-gray-200 text-gray-600'
                         : 'bg-gray-100 text-gray-400'
@@ -594,7 +594,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                     </div>
                     <span className={`text-sm font-medium ${
                       isActive
-                        ? 'text-[#fbae42]'
+                        ? 'text-[#0e9246]'
                         : isUnlocked
                         ? 'text-gray-700'
                         : 'text-gray-400'
@@ -627,7 +627,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                   </div>
                   <button
                     onClick={() => setAddContentModalOpen(true)}
-                    className="w-full px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                    className="w-full px-6 py-3 bg-[#fbae42] text-white rounded-lg hover:bg-[#e09d3a] flex items-center justify-center space-x-2"
                   >
                     <Plus className="w-5 h-5" />
                     <span>Add New Content Asset</span>
@@ -709,7 +709,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                 
                 <button
                   onClick={handleGenerateMarketingCopy}
-                  className="w-full mb-6 px-6 py-3 bg-[#0e9246] text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                  className="w-full mb-6 px-6 py-3 bg-[#fbae42] text-white rounded-lg hover:bg-[#e09d3a] flex items-center justify-center space-x-2"
                 >
                   <FileText className="w-5 h-5" />
                   <span>Generate Marketing Copy</span>
@@ -882,7 +882,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                 </button>
                 <button
                   onClick={handleAddContent}
-                  className="flex-1 px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                  className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
                 >
                   Add Content
                 </button>
@@ -944,7 +944,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                         <div className="flex justify-end">
                           <button
                             onClick={() => applyPlacementSuggestion(result)}
-                            className="px-3 py-1 bg-[#0e9246] text-white text-sm rounded hover:bg-green-700"
+                            className="px-3 py-1 bg-[#fbae42] text-white text-sm rounded hover:bg-[#e09d3a]"
                           >
                             Add to {funnelStages.find(s => s.id === result.suggestedStage)?.title}
                           </button>
@@ -1013,7 +1013,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                                     ).filter(g => g.suggestions.length > 0)
                                   );
                                 }}
-                                className="px-3 py-1 bg-[#0e9246] text-white text-xs rounded hover:bg-green-700"
+                                className="px-3 py-1 bg-[#fbae42] text-white text-xs rounded hover:bg-[#e09d3a]"
                               >
                                 Add
                               </button>
@@ -1069,7 +1069,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                       </button>
                       <button
                         onClick={() => setMarketingCopyModalOpen(false)}
-                        className="px-4 py-2 bg-[#0e9246] text-white rounded-md hover:bg-green-700"
+                        className="px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a]"
                       >
                         Save Marketing Copy
                       </button>
@@ -1080,6 +1080,47 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
             </div>
           </div>
         )}
+
+        {/* Custom Step Footer */}
+        <div className="mt-8 lg:mt-12 space-y-6 lg:space-y-8">
+          {/* Navigation Buttons */}
+          <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 lg:gap-0">
+            <a 
+              href="/step/1"
+              className="text-white px-4 lg:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 text-center"
+              style={{ backgroundColor: '#467a8f' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3a6578'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#467a8f'}
+            >
+              <span className="text-sm lg:text-base">← Back to Step 1</span>
+            </a>
+            
+            {/* Show orange "Continue To Step 3" button when on milestone reflection */}
+            {activeSubStep === 2 ? (
+              <a 
+                href="/step/3"
+                className="text-white px-4 lg:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 text-center"
+                style={{ backgroundColor: '#fbae42' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#e09d3a'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#fbae42'}
+              >
+                <span className="text-sm lg:text-base">Continue To Step 3 →</span>
+              </a>
+            ) : (
+              /* Show completion message when not on milestone */
+              <div className="px-4 lg:px-6 py-3 rounded-lg border-2 border-gray-300 bg-gray-50 text-gray-500 text-center">
+                <span className="text-sm lg:text-base">Complete all sub-steps to continue</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Copyright */}
+          <div className="text-center py-4 lg:py-6 border-t border-gray-200">
+            <p className="text-gray-500 text-sm lg:text-base">
+              © 2025 Cultivating Sales, LLC. All rights reserved.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
