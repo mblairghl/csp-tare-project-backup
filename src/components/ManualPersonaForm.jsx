@@ -17,9 +17,6 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
     details: ''
   });
 
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const [showUploadSuccess, setShowUploadSuccess] = useState(false);
-
   // Load editing data when editingPersona changes
   React.useEffect(() => {
     if (editingPersona) {
@@ -63,76 +60,6 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
     }));
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setUploadedFile(file);
-      setShowUploadSuccess(true);
-      
-      // Read file content
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const fileContent = event.target.result;
-        
-        // Auto-fill fields from filename and content
-        const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-        
-        setFormData(prev => ({
-          ...prev,
-          title: prev.title || fileName.charAt(0).toUpperCase() + fileName.slice(1),
-          description: prev.description || `Persona created from uploaded document: ${file.name}`,
-          details: `UPLOADED DOCUMENT CONTENT:\n\n${fileContent}\n\n---\nFile: ${file.name} (${(file.size / 1024).toFixed(1)} KB)\nUploaded: ${new Date().toLocaleString()}`,
-          // Try to extract some basic info for other fields
-          summary: prev.summary || `Persona profile extracted from ${file.name}`,
-          keyBehaviors: prev.keyBehaviors || 'Content extracted from uploaded document - please review and edit as needed',
-          motivations: prev.motivations || 'Content extracted from uploaded document - please review and edit as needed'
-        }));
-      };
-      
-      // Read as text for most file types
-      if (file.type.includes('text') || file.name.endsWith('.txt')) {
-        reader.readAsText(file);
-      } else {
-        // For other file types, show filename and prompt for manual entry
-        const fileName = file.name.replace(/\.[^/.]+$/, "");
-        setFormData(prev => ({
-          ...prev,
-          title: prev.title || fileName.charAt(0).toUpperCase() + fileName.slice(1),
-          description: prev.description || `Persona created from uploaded document: ${file.name}`,
-          details: `UPLOADED DOCUMENT: ${file.name}\n\nFile Size: ${(file.size / 1024).toFixed(1)} KB\nUploaded: ${new Date().toLocaleString()}\n\nNote: This file type requires manual content extraction. Please fill in the persona details above based on your document content, or convert your document to a text file (.txt) for automatic content extraction.`,
-          summary: prev.summary || `Persona profile from ${file.name} - please add details from your document`,
-          keyBehaviors: prev.keyBehaviors || 'Please add key behaviors from your uploaded document',
-          motivations: prev.motivations || 'Please add motivations from your uploaded document'
-        }));
-      }
-    }
-  };
-
-  const handleSubmitWithFile = (e) => {
-    e.preventDefault();
-    
-    if (uploadedFile) {
-      // Create persona from uploaded file
-      const personaData = {
-        ...formData,
-        id: editingPersona?.id || `persona_manual_${Date.now()}`,
-        type: 'Demographics',
-        source: 'manual',
-        uploadedFile: uploadedFile.name,
-        title: formData.title || uploadedFile.name.replace(/\.[^/.]+$/, ""),
-        description: formData.description || `Persona created from uploaded document: ${uploadedFile.name}`,
-        details: `${formData.details}\n\nUploaded Document: ${uploadedFile.name} (${(uploadedFile.size / 1024).toFixed(1)} KB)\nNote: Document content will be processed and integrated into persona data.`
-      };
-      
-      onSave(personaData);
-      onClose();
-      setUploadedFile(null);
-      setShowUploadSuccess(false);
-    } else {
-      handleSubmit(e);
-    }
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -164,18 +91,13 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmitWithFile} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Basic Information */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <h3 className="font-semibold text-blue-900 mb-2">📋 Persona Information</h3>
             <p className="text-blue-800 text-sm mb-2">
               Fill out the same fields that AI personas include to create a comprehensive client profile.
             </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mt-3">
-              <p className="text-yellow-800 text-sm">
-                💡 <strong>Already have a persona document?</strong> You can upload your existing Word doc, Google doc, PDF, or other persona documentation using the upload button at the bottom instead of typing everything manually.
-              </p>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -321,51 +243,6 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
 
           {/* Form Actions */}
           <div className="space-y-4 pt-6 border-t">
-            {/* Document Upload Option */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-800 mb-2">📄 Upload Existing Document</h4>
-              <p className="text-gray-600 text-sm mb-3">
-                Have a persona document already? Upload your Word doc, PDF, Google doc, or any other persona documentation instead of filling out the form manually.
-              </p>
-              
-              {showUploadSuccess && uploadedFile && (
-                <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p className="text-green-800 font-medium text-sm">✅ Document Uploaded Successfully!</p>
-                      <p className="text-green-700 text-xs">File: {uploadedFile.name} ({(uploadedFile.size / 1024).toFixed(1)} KB)</p>
-                      <p className="text-green-700 text-xs mt-1">
-                        <strong>Content Extracted:</strong> Document content has been automatically filled into the form fields above. Review and edit as needed, then click "Create Persona from Document" below.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.txt,.rtf"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="persona-document-upload"
-              />
-              <label
-                htmlFor="persona-document-upload"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#d7df21] text-black rounded-md hover:bg-[#c5cd1e] cursor-pointer transition-colors font-medium"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                {uploadedFile ? 'Upload Different Document' : 'Upload Document'}
-              </label>
-              <p className="text-xs text-gray-500 mt-2">
-                Supported formats: PDF, Word (.doc/.docx), Text (.txt), RTF
-              </p>
-            </div>
-
             {/* Form Buttons */}
             <div className="flex gap-3">
               <button
@@ -379,10 +256,7 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
                 type="submit"
                 className="flex-1 px-4 py-2 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] transition-colors"
               >
-                {uploadedFile 
-                  ? (editingPersona ? 'Update Persona with Document' : 'Create Persona from Document')
-                  : (editingPersona ? 'Update Persona' : 'Create Persona')
-                }
+                {editingPersona ? 'Update Persona' : 'Create Persona'}
               </button>
             </div>
           </div>

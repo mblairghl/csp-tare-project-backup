@@ -92,11 +92,10 @@ const Step1 = () => {
 
   // Check completion status and auto-progression
   useEffect(() => {
-    const clientComplete = Object.values(idealClient).every(value => value && value.trim().length > 0);
     const hasPersonas = addedPersonas.length > 0;
     
     const wasComplete = isStepComplete;
-    const nowComplete = clientComplete && hasPersonas;
+    const nowComplete = hasPersonas; // Only require at least one persona as per video feedback
     
     setIsStepComplete(nowComplete);
     
@@ -558,7 +557,7 @@ const Step1 = () => {
               <div className="flex gap-4">
                 <button
                   onClick={() => openManualModal('Demographics')}
-                  className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  className="px-6 py-3 bg-[#0e9246] text-white rounded-md hover:bg-[#0c7d3a] flex items-center gap-2 font-medium transition-colors duration-200"
                 >
                   <Plus className="w-4 h-4" />
                   Add Manual Entry
