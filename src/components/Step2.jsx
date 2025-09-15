@@ -763,14 +763,6 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-gray-900">Funnel Content Goal</h3>
-              {hasPlacedContent && (
-                <button
-                  onClick={handleGapAnalysis}
-                  className="px-4 py-2 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] text-sm"
-                >
-                  AI Gap Analysis
-                </button>
-              )}
             </div>
             
             <p className="text-gray-600 mb-6">Goal: At least 2 content items per stage to start.</p>
@@ -972,7 +964,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                     <X className="w-6 h-6" />
                   </button>
                 </div>
-                <p className="text-gray-600 mt-2">Identify missing content for incomplete funnel stages</p>
+                <p className="text-gray-600 mt-2">AI recommendations for missing content in your funnel stages</p>
               </div>
               
               <div className="p-6">
@@ -991,34 +983,78 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
                   <div className="space-y-6">
                     {gapAnalysisResults.map((gap, index) => (
                       <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <h5 className="font-medium text-gray-900 mb-2">{gap.stage}</h5>
-                        <p className="text-sm text-gray-600 mb-4">
-                          Current: {gap.currentCount} items | Needed: {gap.needed} more
-                        </p>
+                        <div className="flex justify-between items-center mb-4">
+                          <div>
+                            <h5 className="font-medium text-gray-900">{gap.stage}</h5>
+                            <p className="text-sm text-gray-600">
+                              Current: {gap.currentCount} items | Needed: {gap.needed} more
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs text-gray-500">Recommended for:</span>
+                            <div className="font-medium text-sm" style={{ color: funnelStages.find(s => s.id === gap.stageId)?.textColor || '#000' }}>
+                              {gap.stage}
+                            </div>
+                          </div>
+                        </div>
                         
-                        <div className="space-y-2">
-                          <p className="text-sm font-medium text-gray-700">AI Suggestions:</p>
+                        <div className="space-y-3">
                           {gap.suggestions.map((suggestion, suggestionIndex) => (
-                            <div key={suggestionIndex} className="flex justify-between items-center bg-gray-50 rounded p-3">
-                              <span className="text-sm text-gray-700">{suggestion}</span>
-                              <button
-                                onClick={() => {
-                                  addGapSuggestion(gap.stageId, suggestion);
-                                  // Remove this suggestion from the list
-                                  setGapAnalysisResults(prev => 
-                                    prev.map(g => 
-                                      g.stageId === gap.stageId 
-                                        ? {...g, suggestions: g.suggestions.filter((_, i) => i !== suggestionIndex)}
-                                        : g
-                                    ).filter(g => g.suggestions.length > 0)
-                                  );
-                                }}
-                                className="px-3 py-1 bg-[#fbae42] text-white text-xs rounded hover:bg-[#e09d3a]"
-                              >
-                                Add
-                              </button>
+                            <div key={suggestionIndex} className="bg-gray-50 rounded-lg p-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1">
+                                  <h6 className="font-medium text-gray-900 mb-1">{suggestion}</h6>
+                                  <p className="text-sm text-gray-600">
+                                    This content will help fill the gap in your {gap.stage.toLowerCase()} stage.
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex justify-end">
+                                <button
+                                  onClick={() => {
+                                    addGapSuggestion(gap.stageId, suggestion);
+                                    // Remove this suggestion from the list
+                                    setGapAnalysisResults(prev => 
+                                      prev.map(g => 
+                                        g.stageId === gap.stageId 
+                                          ? {...g, suggestions: g.suggestions.filter((_, i) => i !== suggestionIndex)}
+                                          : g
+                                      ).filter(g => g.suggestions.length > 0)
+                                    );
+                                  }}
+                                  className="px-4 py-2 bg-[#fbae42] text-white text-sm rounded-lg hover:bg-[#e09d3a]"
+                                >
+                                  Add to {gap.stage}
+                                </button>
+                              </div>
                             </div>
                           ))}
+                        </div>
+                        
+                        {/* More Ideas Button */}
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <button
+                            onClick={() => {
+                              // Generate more suggestions for this stage
+                              setIsAiLoading(true);
+                              setTimeout(() => {
+                                const moreSuggestions = getGapSuggestions(gap.stageId, 3);
+                                setGapAnalysisResults(prev => 
+                                  prev.map(g => 
+                                    g.stageId === gap.stageId 
+                                      ? {...g, suggestions: [...g.suggestions, ...moreSuggestions]}
+                                      : g
+                                  )
+                                );
+                                setIsAiLoading(false);
+                              }, 1500);
+                            }}
+                            className="w-full px-4 py-2 bg-[#d7df21] text-black rounded-lg hover:bg-[#c5cd1e] flex items-center justify-center space-x-2"
+                          >
+                            <Sparkles className="w-4 h-4" />
+                            <span>🧠 More Ideas for {gap.stage}</span>
+                          </button>
                         </div>
                       </div>
                     ))}
