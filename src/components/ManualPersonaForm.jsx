@@ -98,6 +98,11 @@ const ManualPersonaForm = ({ isOpen, onClose, onSave, editingPersona }) => {
             <p className="text-blue-800 text-sm mb-2">
               Fill out the same fields that AI personas include to create a comprehensive client profile.
             </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mt-3">
+              <p className="text-yellow-800 text-sm">
+                💡 <strong>Already have a persona document?</strong> You can upload your existing Word doc, Google doc, PDF, or other persona documentation using the upload button at the bottom instead of typing everything manually.
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
