@@ -557,7 +557,7 @@ const Step1 = () => {
               <div className="flex gap-4">
                 <button
                   onClick={() => openManualModal('Demographics')}
-                  className="px-6 py-3 bg-[#0e9246] text-white rounded-md hover:bg-[#0c7d3a] flex items-center gap-2 font-medium transition-colors duration-200"
+                  className="px-6 py-3 bg-[#fbae42] text-white rounded-md hover:bg-[#e09d3a] flex items-center gap-2 font-medium transition-colors duration-200"
                 >
                   <Plus className="w-4 h-4" />
                   Add Manual Entry
@@ -1482,7 +1482,7 @@ const Step1 = () => {
                   disabled={!isUnlocked}
                   className={`flex-1 min-w-0 px-4 py-4 text-center border-b-2 transition-colors duration-200 ${
                     isActive
-                      ? 'border-[#fbae42] bg-orange-50'
+                      ? 'border-[#0e9246] bg-green-50'
                       : isUnlocked
                       ? 'border-transparent hover:border-gray-300 hover:bg-white hover:bg-opacity-50'
                       : 'border-transparent bg-transparent'
@@ -1495,7 +1495,7 @@ const Step1 = () => {
                       isCompleted
                         ? 'bg-[#0e9246] text-white'
                         : isActive
-                        ? 'bg-[#fbae42] text-white'
+                        ? 'bg-[#0e9246] text-white'
                         : isUnlocked
                         ? 'bg-gray-200 text-gray-600'
                         : 'bg-gray-100 text-gray-400'
@@ -1510,7 +1510,7 @@ const Step1 = () => {
                     </div>
                     <span className={`text-sm font-medium ${
                       isActive
-                        ? 'text-[#fbae42]'
+                        ? 'text-[#0e9246]'
                         : isUnlocked
                         ? 'text-gray-700'
                         : 'text-gray-400'
