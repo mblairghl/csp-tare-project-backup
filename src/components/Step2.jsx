@@ -759,11 +759,12 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
             )}
           </div>
 
-          {/* Right Column - Funnel Content Goal */}
-          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">Funnel Content Goal</h3>
-            </div>
+          {/* Right Column - Funnel Content Goal (only show during sub-step 1) */}
+          {activeSubStep === 0 && (
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Funnel Content Goal</h3>
+              </div>
             
             <p className="text-gray-600 mb-6">Goal: At least 2 content items per stage to start.</p>
             
@@ -798,6 +799,7 @@ ${funnelContent.authority.map(content => `• ${content.name} (${content.type})`
               ))}
             </div>
           </div>
+        )}
         </div>
 
         {/* Add Content Modal */}
