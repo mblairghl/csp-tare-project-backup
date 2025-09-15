@@ -1685,13 +1685,46 @@ const Step1 = () => {
           onSave={handleSaveApiKey}
         />
 
-        {/* Footer */}
-        <StepFooter 
-          currentStep={1}
-          isStepComplete={isStepComplete}
-          onPrevious={() => {}}
-          onNext={() => {}}
-        />
+        {/* Custom Step Footer */}
+        <div className="mt-8 lg:mt-12 space-y-6 lg:space-y-8">
+          {/* Navigation Buttons */}
+          <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 lg:gap-0">
+            <a 
+              href="/"
+              className="text-white px-4 lg:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 text-center"
+              style={{ backgroundColor: '#467a8f' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3a6578'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#467a8f'}
+            >
+              <span className="text-sm lg:text-base">← Back to Dashboard</span>
+            </a>
+            
+            {/* Show orange "Continue To Step 2" button when on milestone reflection */}
+            {activeSubStep === 3 ? (
+              <a 
+                href="/step/2"
+                className="text-white px-4 lg:px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 text-center"
+                style={{ backgroundColor: '#fbae42' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#e09d3a'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#fbae42'}
+              >
+                <span className="text-sm lg:text-base">Continue To Step 2 →</span>
+              </a>
+            ) : (
+              /* Show completion message when not on milestone */
+              <div className="px-4 lg:px-6 py-3 rounded-lg border-2 border-gray-300 bg-gray-50 text-gray-500 text-center">
+                <span className="text-sm lg:text-base">Complete all sub-steps to continue</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Copyright */}
+          <div className="text-center py-4 lg:py-6 border-t border-gray-200">
+            <p className="text-gray-500 text-sm lg:text-base">
+              © 2025 Cultivating Sales, LLC. All rights reserved.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
