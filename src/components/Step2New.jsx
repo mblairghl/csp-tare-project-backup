@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { FunnelContext } from '../context/FunnelContext';
+import React, { useContext, useEffect } from 'react';
+import { FunnelContext } from '../context/FunnelContext.jsx';
 import { CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import ContentLibrary from './ContentLibrary';
 import MarketingCopyGenerator from './MarketingCopyGenerator';
@@ -17,6 +17,60 @@ const Step2New = () => {
   } = useContext(FunnelContext);
 
   const [isHowThisWorksOpen, setIsHowThisWorksOpen] = React.useState(false);
+
+  // Confetti effect for milestone reflection
+  useEffect(() => {
+    if (activeSubStep === 2) {
+      // Create confetti effect
+      const createConfetti = () => {
+        const confettiContainer = document.createElement('div');
+        confettiContainer.style.position = 'fixed';
+        confettiContainer.style.top = '0';
+        confettiContainer.style.left = '0';
+        confettiContainer.style.width = '100%';
+        confettiContainer.style.height = '100%';
+        confettiContainer.style.pointerEvents = 'none';
+        confettiContainer.style.zIndex = '9999';
+        document.body.appendChild(confettiContainer);
+
+        // Create confetti pieces
+        for (let i = 0; i < 50; i++) {
+          const confetti = document.createElement('div');
+          confetti.style.position = 'absolute';
+          confetti.style.width = '10px';
+          confetti.style.height = '10px';
+          confetti.style.backgroundColor = ['#fbae42', '#0e9246', '#d7df21', '#467A8f'][Math.floor(Math.random() * 4)];
+          confetti.style.left = Math.random() * 100 + '%';
+          confetti.style.top = '-10px';
+          confetti.style.borderRadius = '50%';
+          confetti.style.animation = `confetti-fall ${2 + Math.random() * 3}s linear forwards`;
+          confettiContainer.appendChild(confetti);
+        }
+
+        // Add CSS animation
+        if (!document.getElementById('confetti-styles')) {
+          const style = document.createElement('style');
+          style.id = 'confetti-styles';
+          style.textContent = `
+            @keyframes confetti-fall {
+              to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+              }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
+        // Clean up after animation
+        setTimeout(() => {
+          document.body.removeChild(confettiContainer);
+        }, 5000);
+      };
+
+      createConfetti();
+    }
+  }, [activeSubStep]);
 
   // Sub-steps configuration
   const subSteps = [

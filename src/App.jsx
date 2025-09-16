@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import { FunnelProvider } from './context/FunnelContext';
+import { FunnelProvider } from './context/FunnelContext.jsx';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Step1 from './components/Step1';
