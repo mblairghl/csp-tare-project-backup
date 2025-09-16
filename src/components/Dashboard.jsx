@@ -258,7 +258,7 @@ const Dashboard = () => {
       <div className="space-y-6 lg:space-y-8">
         {/* Hero Section */}
         <div id="hero" className="rounded-lg p-6 lg:p-8 text-white csp-3d-section text-center hero-section">
-          <h1 className="text-2xl lg:text-4xl font-bold font-header mb-4">
+          <h1 className="text-2xl lg:text-4xl font-bold font-header mb-4 text-orange-500">
             Transform Your Expertise Into Consistent Revenue
           </h1>
           <p className="text-base lg:text-lg mb-4">
