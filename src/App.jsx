@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { FunnelProvider } from './context/FunnelContext';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Step1 from './components/Step1';
-import Step2 from './components/Step2';
+import Step2New from './components/Step2New';
 import Step3 from './components/Step3';
 import Step4 from './components/Step4';
 import Step5 from './components/Step5';
@@ -25,7 +26,8 @@ function App() {
   };
 
   return (
-    <Router>
+    <FunnelProvider>
+      <Router>
       <div className="flex h-screen bg-gray-100">
         {/* Mobile Sidebar Overlay */}
         {isSidebarOpen && (
@@ -79,7 +81,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/step/1" element={<Step1 />} />
-              <Route path="/step/2" element={<Step2 />} />
+              <Route path="/step/2" element={<Step2New />} />
               <Route path="/step/3" element={<Step3 />} />
               <Route path="/step/4" element={<Step4 />} />
               <Route path="/step/5" element={<Step5 />} />
@@ -94,8 +96,9 @@ function App() {
             </Routes>
           </div>
         </div>
-      </div>
-    </Router>
+        </div>
+      </Router>
+    </FunnelProvider>
   );
 }
 
